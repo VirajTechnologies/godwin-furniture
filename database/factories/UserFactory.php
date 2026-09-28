@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -31,6 +32,24 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Attach the head-office role.
+     */
+    public function superAdmin(): static
+    {
+        return $this->state(function (): array {
+            $role = Role::query()->firstOrCreate(
+                ['slug' => Role::SUPER_ADMIN],
+                ['name' => 'Super Admin', 'status' => Role::STATUS_ACTIVE],
+            );
+
+            return [
+                'role_id' => $role->id,
+                'status' => 'active',
+            ];
+        });
     }
 
     /**

@@ -27,10 +27,7 @@ class ExpiredSessionTest extends TestCase
 
     public function test_remembered_admin_is_restored_when_the_idle_session_is_gone(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         $this->post(route('admin.login.store'), [
             'email' => $admin->email,
@@ -47,10 +44,7 @@ class ExpiredSessionTest extends TestCase
 
     public function test_admin_pages_keep_the_session_alive_while_open(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))

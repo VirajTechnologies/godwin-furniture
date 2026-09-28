@@ -112,6 +112,11 @@
                                 </ul>
                             </div>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}" href="{{ route('admin.employees.index') }}">
+                                <i class="ri-team-line"></i> <span>Employees</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

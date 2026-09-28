@@ -34,10 +34,7 @@ class LocationMasterTest extends TestCase
 
     public function test_district_options_are_limited_to_the_selected_state(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         $this->seed(StateSeeder::class);
         $this->seed(DistrictSeeder::class);
@@ -63,10 +60,7 @@ class LocationMasterTest extends TestCase
 
     public function test_deactivating_a_state_keeps_the_row(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         $this->seed(StateSeeder::class);
         $state = \App\Models\State::query()->where('state_name', 'Andhra Pradesh')->firstOrFail();

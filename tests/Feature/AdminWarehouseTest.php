@@ -22,10 +22,7 @@ class AdminWarehouseTest extends TestCase
 
     public function test_admin_can_create_the_first_warehouse_as_primary(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         [$state, $district, $city] = $this->location();
 
@@ -55,10 +52,7 @@ class AdminWarehouseTest extends TestCase
 
     public function test_warehouse_rejects_a_district_from_another_state(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         [$state, $district, $city] = $this->location();
         $otherState = State::query()->create([
@@ -82,10 +76,7 @@ class AdminWarehouseTest extends TestCase
 
     public function test_setting_a_second_warehouse_as_primary_clears_the_previous_one(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         $first = Warehouse::query()->create([
             'code' => 'WH001',
@@ -115,10 +106,7 @@ class AdminWarehouseTest extends TestCase
 
     public function test_primary_warehouse_cannot_be_deactivated(): void
     {
-        $admin = User::factory()->create([
-            'role' => User::ROLE_SUPER_ADMIN,
-            'status' => 'active',
-        ]);
+        $admin = User::factory()->superAdmin()->create();
 
         $warehouse = Warehouse::query()->create([
             'code' => 'WH001',

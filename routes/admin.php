@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DistrictController;
+use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\StateController;
 use App\Http\Controllers\Admin\WarehouseController;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('cities/{city}/edit', [CityController::class, 'edit'])->name('cities.edit');
         Route::put('cities/{city}', [CityController::class, 'update'])->name('cities.update');
         Route::post('cities/{city}/status', [CityController::class, 'updateStatus'])->name('cities.status');
+
+        Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
+        Route::get('employees/create', [EmployeeController::class, 'create'])->name('employees.create');
+        Route::post('employees', [EmployeeController::class, 'store'])->name('employees.store');
+        Route::get('employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
+        Route::put('employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+        Route::post('employees/{employee}/status', [EmployeeController::class, 'updateStatus'])->name('employees.status');
 
         Route::get('warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
         Route::get('warehouses/create', [WarehouseController::class, 'create'])->name('warehouses.create');
