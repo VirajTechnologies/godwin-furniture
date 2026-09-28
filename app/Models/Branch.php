@@ -5,10 +5,8 @@ namespace App\Models;
 use App\Models\Concerns\HasActiveStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\DB;
 
-class Warehouse extends Model
+class Branch extends Model
 {
     use HasActiveStatus;
 
@@ -18,6 +16,7 @@ class Warehouse extends Model
     protected $fillable = [
         'code',
         'name',
+        'warehouse_id',
         'contact_person',
         'phone',
         'email',
@@ -26,19 +25,13 @@ class Warehouse extends Model
         'district_id',
         'city_id',
         'pincode',
-        'is_primary',
         'status',
         'notes',
     ];
 
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function warehouse(): BelongsTo
     {
-        return [
-            'is_primary' => 'boolean',
-        ];
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function state(): BelongsTo
@@ -54,22 +47,5 @@ class Warehouse extends Model
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
-    }
-
-    public function branches(): HasMany
-    {
-        return $this->hasMany(Branch::class);
-    }
-
-    public function markAsPrimary(): void
-    {
-        DB::transaction(function () {
-            static::query()->whereKeyNot($this->id)->update(['is_primary' => false]);
-
-            $this->forceFill([
-                'is_primary' => true,
-                'status' => self::STATUS_ACTIVE,
-            ])->save();
-        });
     }
 }

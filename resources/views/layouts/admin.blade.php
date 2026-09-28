@@ -89,7 +89,7 @@
                             </a>
                         </li>
                         @php
-                            $mastersOpen = request()->routeIs('admin.states.*', 'admin.districts.*', 'admin.cities.*', 'admin.warehouses.*');
+                            $mastersOpen = request()->routeIs('admin.states.*', 'admin.districts.*', 'admin.cities.*', 'admin.warehouses.*', 'admin.branches.*');
                         @endphp
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ $mastersOpen ? 'active' : '' }}" href="#sidebarMasters" data-bs-toggle="collapse" role="button" aria-expanded="{{ $mastersOpen ? 'true' : 'false' }}" aria-controls="sidebarMasters">
@@ -108,6 +108,9 @@
                                     </li>
                                     <li class="nav-item">
                                         <a href="{{ route('admin.warehouses.index') }}" class="nav-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">Warehouses</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.branches.index') }}" class="nav-link {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">Branches</a>
                                     </li>
                                 </ul>
                             </div>

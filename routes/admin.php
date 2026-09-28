@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DistrictController;
@@ -56,5 +57,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('warehouses/{warehouse}', [WarehouseController::class, 'update'])->name('warehouses.update');
         Route::post('warehouses/{warehouse}/primary', [WarehouseController::class, 'makePrimary'])->name('warehouses.primary');
         Route::post('warehouses/{warehouse}/status', [WarehouseController::class, 'updateStatus'])->name('warehouses.status');
+
+        Route::get('branches', [BranchController::class, 'index'])->name('branches.index');
+        Route::get('branches/create', [BranchController::class, 'create'])->name('branches.create');
+        Route::post('branches', [BranchController::class, 'store'])->name('branches.store');
+        Route::get('branches/{branch}/edit', [BranchController::class, 'edit'])->name('branches.edit');
+        Route::put('branches/{branch}', [BranchController::class, 'update'])->name('branches.update');
+        Route::post('branches/{branch}/status', [BranchController::class, 'updateStatus'])->name('branches.status');
     });
 });
