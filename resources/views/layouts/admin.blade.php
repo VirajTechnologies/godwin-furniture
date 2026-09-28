@@ -138,10 +138,26 @@
                                 </ul>
                             </div>
                         </li>
+                        @php
+                            $stockOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*');
+                        @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('admin.stocks.*') ? 'active' : '' }}" href="{{ route('admin.stocks.index') }}">
+                            <a class="nav-link menu-link {{ $stockOpen ? 'active' : '' }}" href="#sidebarStock" data-bs-toggle="collapse" role="button" aria-expanded="{{ $stockOpen ? 'true' : 'false' }}" aria-controls="sidebarStock">
                                 <i class="ri-archive-line"></i> <span>Stock</span>
                             </a>
+                            <div class="collapse menu-dropdown {{ $stockOpen ? 'show' : '' }}" id="sidebarStock">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.stocks.index') }}" class="nav-link {{ request()->routeIs('admin.stocks.*') ? 'active' : '' }}">Warehouse Stock</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.branch-stocks.index') }}" class="nav-link {{ request()->routeIs('admin.branch-stocks.*') ? 'active' : '' }}">Branch Stock</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.transfers.index') }}" class="nav-link {{ request()->routeIs('admin.transfers.*') ? 'active' : '' }}">Transfers</a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                     </ul>
                 </div>

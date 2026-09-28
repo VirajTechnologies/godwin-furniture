@@ -11,6 +11,10 @@ class StockMovement extends Model
 
     public const TYPE_ADJUSTMENT = 'adjustment';
 
+    public const TYPE_TRANSFER_OUT = 'transfer_out';
+
+    public const TYPE_TRANSFER_IN = 'transfer_in';
+
     /**
      * @var list<string>
      */
@@ -42,5 +46,16 @@ class StockMovement extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function label(): string
+    {
+        return match ($this->type) {
+            self::TYPE_OPENING => 'Opening',
+            self::TYPE_ADJUSTMENT => 'Adjustment',
+            self::TYPE_TRANSFER_OUT => 'Transfer Out',
+            self::TYPE_TRANSFER_IN => 'Transfer In',
+            default => $this->type,
+        };
     }
 }

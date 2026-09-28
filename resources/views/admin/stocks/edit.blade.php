@@ -41,7 +41,7 @@
                                     @foreach ($movements as $movement)
                                         <tr>
                                             <td>{{ $movement->created_at?->format('d M Y, h:i A') }}</td>
-                                            <td>{{ $movement->type === 'opening' ? 'Opening' : 'Adjustment' }}</td>
+                                            <td>{{ $movement->label() }}</td>
                                             <td>{{ $movement->quantity_change > 0 ? '+' : '' }}{{ $movement->quantity_change }}</td>
                                             <td>{{ $movement->quantity_after }}</td>
                                             <td>{{ $movement->note ?: '—' }}</td>

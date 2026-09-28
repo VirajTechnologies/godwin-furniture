@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\BranchController;
+use App\Http\Controllers\Admin\BranchStockController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\DistrictController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\StateController;
+use App\Http\Controllers\Admin\StockTransferController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\WarehouseStockController;
 use Illuminate\Support\Facades\Route;
@@ -87,5 +89,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('stocks', [WarehouseStockController::class, 'store'])->name('stocks.store');
         Route::get('stocks/{stock}/edit', [WarehouseStockController::class, 'edit'])->name('stocks.edit');
         Route::put('stocks/{stock}', [WarehouseStockController::class, 'update'])->name('stocks.update');
+
+        Route::get('branch-stocks', [BranchStockController::class, 'index'])->name('branch-stocks.index');
+
+        Route::get('transfers', [StockTransferController::class, 'index'])->name('transfers.index');
+        Route::get('transfers/create', [StockTransferController::class, 'create'])->name('transfers.create');
+        Route::post('transfers', [StockTransferController::class, 'store'])->name('transfers.store');
+        Route::get('transfers/{transfer}/edit', [StockTransferController::class, 'edit'])->name('transfers.edit');
+        Route::put('transfers/{transfer}', [StockTransferController::class, 'update'])->name('transfers.update');
+        Route::post('transfers/{transfer}/dispatch', [StockTransferController::class, 'dispatch'])->name('transfers.dispatch');
+        Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
+        Route::post('transfers/{transfer}/cancel', [StockTransferController::class, 'cancel'])->name('transfers.cancel');
     });
 });
