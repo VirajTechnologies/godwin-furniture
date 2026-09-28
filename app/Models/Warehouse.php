@@ -61,6 +61,11 @@ class Warehouse extends Model
         return $this->hasMany(Branch::class);
     }
 
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(Stock::class);
+    }
+
     public function markAsPrimary(): void
     {
         DB::transaction(function () {

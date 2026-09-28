@@ -120,6 +120,29 @@
                                 <i class="ri-team-line"></i> <span>Employees</span>
                             </a>
                         </li>
+                        @php
+                            $catalogOpen = request()->routeIs('admin.categories.*', 'admin.products.*');
+                        @endphp
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ $catalogOpen ? 'active' : '' }}" href="#sidebarCatalog" data-bs-toggle="collapse" role="button" aria-expanded="{{ $catalogOpen ? 'true' : 'false' }}" aria-controls="sidebarCatalog">
+                                <i class="ri-price-tag-3-line"></i> <span>Catalog</span>
+                            </a>
+                            <div class="collapse menu-dropdown {{ $catalogOpen ? 'show' : '' }}" id="sidebarCatalog">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categories</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.products.index') }}" class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('admin.stocks.*') ? 'active' : '' }}" href="{{ route('admin.stocks.index') }}">
+                                <i class="ri-archive-line"></i> <span>Stock</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

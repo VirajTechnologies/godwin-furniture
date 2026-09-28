@@ -2,12 +2,15 @@
 
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\BranchController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DistrictController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\StateController;
 use App\Http\Controllers\Admin\WarehouseController;
+use App\Http\Controllers\Admin\WarehouseStockController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -64,5 +67,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('branches/{branch}/edit', [BranchController::class, 'edit'])->name('branches.edit');
         Route::put('branches/{branch}', [BranchController::class, 'update'])->name('branches.update');
         Route::post('branches/{branch}/status', [BranchController::class, 'updateStatus'])->name('branches.status');
+
+        Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::post('categories/{category}/status', [CategoryController::class, 'updateStatus'])->name('categories.status');
+
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('products', [ProductController::class, 'store'])->name('products.store');
+        Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::post('products/{product}/status', [ProductController::class, 'updateStatus'])->name('products.status');
+
+        Route::get('stocks', [WarehouseStockController::class, 'index'])->name('stocks.index');
+        Route::get('stocks/create', [WarehouseStockController::class, 'create'])->name('stocks.create');
+        Route::post('stocks', [WarehouseStockController::class, 'store'])->name('stocks.store');
+        Route::get('stocks/{stock}/edit', [WarehouseStockController::class, 'edit'])->name('stocks.edit');
+        Route::put('stocks/{stock}', [WarehouseStockController::class, 'update'])->name('stocks.update');
     });
 });
