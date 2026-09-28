@@ -6,36 +6,23 @@ use App\Models\Concerns\HasActiveStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Employee extends Model
+class Customer extends Model
 {
     use HasActiveStatus;
-
-    protected $table = 'employee_profiles';
 
     /**
      * @var list<string>
      */
     protected $fillable = [
         'user_id',
-        'employee_code',
-        'warehouse_id',
-        'branch_id',
-        'designation',
+        'name',
+        'phone',
+        'email',
         'status',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function warehouse(): BelongsTo
-    {
-        return $this->belongsTo(Warehouse::class);
-    }
-
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
     }
 }

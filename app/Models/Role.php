@@ -15,6 +15,18 @@ class Role extends Model
 
     public const WAREHOUSE_STAFF = 'warehouse_staff';
 
+    public const BRANCH_MANAGER = 'branch_manager';
+
+    public const BRANCH_STAFF = 'branch_staff';
+
+    /**
+     * @return list<string>
+     */
+    public static function branchSlugs(): array
+    {
+        return [self::BRANCH_MANAGER, self::BRANCH_STAFF];
+    }
+
     /**
      * @var list<string>
      */

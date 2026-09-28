@@ -1,7 +1,7 @@
 <script>
     (function () {
         var tokenUrl = @json(route('csrf.token'));
-        var loginUrl = @json(route('admin.login'));
+        var loginUrl = @json($loginUrl ?? route('admin.login'));
         var requiresAuth = @json((bool) ($requiresAuth ?? false));
         var keepAliveMs = 15 * 60 * 1000;
 

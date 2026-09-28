@@ -68,7 +68,7 @@
             <select class="form-select @error('role_id') is-invalid @enderror" id="role_id" name="role_id" required>
                 <option value="">Select Role</option>
                 @foreach ($roles as $role)
-                    <option value="{{ $role->id }}" data-requires-warehouse="{{ $role->slug === 'warehouse_staff' ? '1' : '0' }}" @selected((string) old('role_id', $user?->role_id) === (string) $role->id)>{{ $role->name }}</option>
+                    <option value="{{ $role->id }}" data-requires-warehouse="{{ $role->slug === 'warehouse_staff' ? '1' : '0' }}" data-requires-branch="{{ in_array($role->slug, ['branch_manager', 'branch_staff'], true) ? '1' : '0' }}" @selected((string) old('role_id', $user?->role_id) === (string) $role->id)>{{ $role->name }}</option>
                 @endforeach
             </select>
             @error('role_id')
@@ -88,6 +88,19 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
+        <div class="col-md-4">
+            <label for="branch_id" class="form-label">Branch</label>
+            <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id" name="branch_id">
+                <option value="">Select Branch</option>
+                @foreach ($branches as $branch)
+                    <option value="{{ $branch->id }}" @selected((string) old('branch_id', $employee->branch_id) === (string) $branch->id)>{{ $branch->name }}</option>
+                @endforeach
+            </select>
+            <div class="form-text">Required for branch staff.</div>
+            @error('branch_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
         @include('admin.partials.record-status', ['statusId' => 'employee_record_status', 'record' => $employee])
     </div>
 
@@ -102,15 +115,16 @@
         document.addEventListener('DOMContentLoaded', function () {
             const roleSelect = document.getElementById('role_id');
             const warehouseSelect = document.getElementById('warehouse_id');
+            const branchSelect = document.getElementById('branch_id');
 
-            function syncWarehouse() {
+            function syncPlace() {
                 const option = roleSelect.options[roleSelect.selectedIndex];
-                const required = option && option.dataset.requiresWarehouse === '1';
-                warehouseSelect.required = required;
+                warehouseSelect.required = option && option.dataset.requiresWarehouse === '1';
+                branchSelect.required = option && option.dataset.requiresBranch === '1';
             }
 
-            roleSelect.addEventListener('change', syncWarehouse);
-            syncWarehouse();
+            roleSelect.addEventListener('change', syncPlace);
+            syncPlace();
         });
     </script>
 @endpush

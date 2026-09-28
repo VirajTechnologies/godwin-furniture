@@ -159,6 +159,11 @@
                                 </ul>
                             </div>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
+                                <i class="ri-bill-line"></i> <span>Sales</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

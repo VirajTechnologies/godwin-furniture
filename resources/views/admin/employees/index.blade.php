@@ -34,6 +34,7 @@
                                         <th>Name</th>
                                         <th>Role</th>
                                         <th>Warehouse</th>
+                                        <th>Branch</th>
                                         <th>Phone</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -47,6 +48,7 @@
                                             <td>{{ $employee->user->name }}</td>
                                             <td>{{ $employee->user->role?->name ?? '—' }}</td>
                                             <td>{{ $employee->warehouse?->name ?? '—' }}</td>
+                                            <td>{{ $employee->branch?->name ?? '—' }}</td>
                                             <td>{{ $employee->user->phone ?: '—' }}</td>
                                             <td>
                                                 @if ($employee->isActive())

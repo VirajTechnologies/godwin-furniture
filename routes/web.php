@@ -20,3 +20,4 @@ Route::get('/csrf-token', function () {
 })->middleware('throttle:60,1')->name('csrf.token');
 
 require __DIR__.'/admin.php';
+require __DIR__.'/branch.php';

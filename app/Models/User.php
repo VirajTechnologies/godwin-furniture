@@ -66,4 +66,9 @@ class User extends Authenticatable
     {
         return $this->role?->slug === Role::SUPER_ADMIN;
     }
+
+    public function isBranchUser(): bool
+    {
+        return in_array($this->role?->slug, Role::branchSlugs(), true);
+    }
 }

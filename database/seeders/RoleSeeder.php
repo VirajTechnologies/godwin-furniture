@@ -27,5 +27,21 @@ class RoleSeeder extends Seeder
                 'status' => Role::STATUS_ACTIVE,
             ],
         );
+
+        Role::query()->updateOrCreate(
+            ['slug' => Role::BRANCH_MANAGER],
+            [
+                'name' => 'Branch Manager',
+                'status' => Role::STATUS_ACTIVE,
+            ],
+        );
+
+        Role::query()->updateOrCreate(
+            ['slug' => Role::BRANCH_STAFF],
+            [
+                'name' => 'Branch Staff',
+                'status' => Role::STATUS_ACTIVE,
+            ],
+        );
     }
 }

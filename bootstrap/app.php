@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureBranchUser;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,10 +17,20 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'super_admin' => EnsureSuperAdmin::class,
+            'branch_user' => EnsureBranchUser::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn () => route('admin.login'));
-        $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
+        $middleware->redirectGuestsTo(function (Request $request) {
+            return $request->is('branch', 'branch/*')
+                ? route('branch.login')
+                : route('admin.login');
+        });
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            return $request->user()?->isBranchUser()
+                ? route('branch.home')
+                : route('admin.dashboard');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (HttpException $exception, Request $request) {
@@ -33,9 +44,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 419);
             }
 
+            $branchRequest = $request->is('branch', 'branch/*');
+            $home = $branchRequest ? route('branch.home') : route('admin.dashboard');
+
             $redirect = auth()->check()
-                ? redirect()->back(fallback: route('admin.dashboard'))
-                : redirect()->route('admin.login');
+                ? redirect()->back(fallback: $home)
+                : redirect()->route($branchRequest ? 'branch.login' : 'admin.login');
 
             return $redirect
                 ->withInput($request->except(['password', 'password_confirmation', '_token']))

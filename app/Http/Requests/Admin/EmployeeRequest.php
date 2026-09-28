@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\Warehouse;
@@ -30,6 +31,7 @@ class EmployeeRequest extends FormRequest
             'password' => [$employee instanceof Employee ? 'nullable' : 'required', 'string', 'min:8', 'confirmed'],
             'role_id' => ['required', 'integer', Rule::exists('roles', 'id')->where('status', Role::STATUS_ACTIVE)],
             'warehouse_id' => ['nullable', 'integer', Rule::exists('warehouses', 'id')],
+            'branch_id' => ['nullable', 'integer', Rule::exists('branches', 'id')],
             'designation' => ['nullable', 'string', 'max:150'],
             'status' => ['required', Rule::in([Employee::STATUS_ACTIVE, Employee::STATUS_INACTIVE])],
         ];
@@ -52,6 +54,10 @@ class EmployeeRequest extends FormRequest
         if ($this->input('warehouse_id') === '') {
             $this->merge(['warehouse_id' => null]);
         }
+
+        if ($this->input('branch_id') === '') {
+            $this->merge(['branch_id' => null]);
+        }
     }
 
     public function withValidator($validator): void
@@ -59,8 +65,11 @@ class EmployeeRequest extends FormRequest
         $validator->after(function ($validator): void {
             $role = Role::query()->find($this->integer('role_id'));
             $warehouse = Warehouse::query()->find($this->integer('warehouse_id'));
+            $branch = Branch::query()->find($this->integer('branch_id'));
             $employee = $this->route('employee');
             $currentWarehouseId = $employee instanceof Employee ? $employee->warehouse_id : null;
+            $currentBranchId = $employee instanceof Employee ? $employee->branch_id : null;
+            $branchRole = $role && in_array($role->slug, Role::branchSlugs(), true);
 
             if ($role?->slug === Role::WAREHOUSE_STAFF && ! $warehouse) {
                 $validator->errors()->add('warehouse_id', 'Choose the warehouse this employee works in.');
@@ -72,6 +81,18 @@ class EmployeeRequest extends FormRequest
 
             if ($role && $role->slug !== Role::WAREHOUSE_STAFF && $this->filled('warehouse_id')) {
                 $validator->errors()->add('warehouse_id', 'A warehouse is only set for warehouse staff.');
+            }
+
+            if ($branchRole && ! $branch) {
+                $validator->errors()->add('branch_id', 'Choose the branch this employee works in.');
+            }
+
+            if ($branch && ! $branch->isActive() && $branch->id !== $currentBranchId) {
+                $validator->errors()->add('branch_id', 'Choose an active branch.');
+            }
+
+            if ($role && ! $branchRole && $this->filled('branch_id')) {
+                $validator->errors()->add('branch_id', 'A branch is only set for branch staff.');
             }
 
             if ($employee instanceof Employee

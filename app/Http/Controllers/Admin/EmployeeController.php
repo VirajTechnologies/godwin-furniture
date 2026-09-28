@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\EmployeeRequest;
+use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
@@ -18,7 +19,7 @@ class EmployeeController extends Controller
     public function index(): View
     {
         $employees = Employee::query()
-            ->with(['user.role', 'warehouse'])
+            ->with(['user.role', 'warehouse', 'branch'])
             ->orderBy('employee_code')
             ->paginate(15);
 
@@ -33,6 +34,7 @@ class EmployeeController extends Controller
             'employee' => new Employee(['status' => Employee::STATUS_ACTIVE]),
             'roles' => $this->roles(),
             'warehouses' => $this->warehouses(),
+            'branches' => $this->branches(),
         ]);
     }
 
@@ -51,6 +53,7 @@ class EmployeeController extends Controller
             $user->employee()->create([
                 'employee_code' => $request->string('employee_code')->toString(),
                 'warehouse_id' => $request->input('warehouse_id'),
+                'branch_id' => $request->input('branch_id'),
                 'designation' => $request->input('designation'),
                 'status' => $request->string('status')->toString(),
             ]);
@@ -67,6 +70,7 @@ class EmployeeController extends Controller
             'employee' => $employee,
             'roles' => $this->roles((int) old('role_id', $employee->user->role_id)),
             'warehouses' => $this->warehouses((int) old('warehouse_id', $employee->warehouse_id) ?: null),
+            'branches' => $this->branches((int) old('branch_id', $employee->branch_id) ?: null),
         ]);
     }
 
@@ -88,6 +92,7 @@ class EmployeeController extends Controller
             $employee->user()->update($userData);
             $employee->update([
                 'warehouse_id' => $request->input('warehouse_id'),
+                'branch_id' => $request->input('branch_id'),
                 'designation' => $request->input('designation'),
                 'status' => $request->string('status')->toString(),
             ]);
@@ -139,6 +144,23 @@ class EmployeeController extends Controller
         return Warehouse::query()
             ->where(function ($query) use ($selectedId): void {
                 $query->where('status', Warehouse::STATUS_ACTIVE);
+
+                if ($selectedId) {
+                    $query->orWhere('id', $selectedId);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, Branch>
+     */
+    private function branches(?int $selectedId = null)
+    {
+        return Branch::query()
+            ->where(function ($query) use ($selectedId): void {
+                $query->where('status', Branch::STATUS_ACTIVE);
 
                 if ($selectedId) {
                     $query->orWhere('id', $selectedId);
