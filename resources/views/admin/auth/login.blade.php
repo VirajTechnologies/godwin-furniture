@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Sign in | Godwin Furniture</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
     <script src="{{ asset('assets/js/layout.js') }}"></script>
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
@@ -42,6 +43,12 @@
                                     <p class="text-muted">Sign in to continue to the admin panel.</p>
                                 </div>
                                 <div class="p-2 mt-4">
+                                    @if (session('error'))
+                                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                            {{ session('error') }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    @endif
                                     <form method="POST" action="{{ route('admin.login.store') }}">
                                         @csrf
                                         <div class="mb-3">
@@ -98,5 +105,6 @@
     <script src="{{ asset('assets/js/plugins.js') }}"></script>
     <script src="{{ asset('assets/js/pages/particles.app.js') }}"></script>
     <script src="{{ asset('assets/js/pages/password-addon.init.js') }}"></script>
+    @include('partials.csrf-refresh')
 </body>
 </html>

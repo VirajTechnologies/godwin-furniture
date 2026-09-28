@@ -177,6 +177,7 @@
     <script src="{{ asset('assets/libs/feather-icons/feather.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
+    @include('partials.csrf-refresh', ['requiresAuth' => true])
     @stack('scripts')
 </body>
 </html>
