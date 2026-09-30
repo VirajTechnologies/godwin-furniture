@@ -120,23 +120,6 @@ class StockTransferController extends Controller
             ->with('success', $transfer->code.' dispatched.');
     }
 
-    public function receive(Request $request, StockTransfer $transfer, StockTransferWorkflow $workflow): RedirectResponse
-    {
-        if (! $transfer->isDispatched()) {
-            return back()->with('error', 'Only a dispatched transfer can be received.');
-        }
-
-        try {
-            $workflow->receive($transfer, (int) $request->user()->id);
-        } catch (RuntimeException $exception) {
-            return back()->with('error', $exception->getMessage());
-        }
-
-        return redirect()
-            ->route('admin.transfers.edit', $transfer)
-            ->with('success', $transfer->code.' received.');
-    }
-
     public function cancel(StockTransfer $transfer): RedirectResponse
     {
         if (! $transfer->isDraft()) {

@@ -75,6 +75,11 @@ class StockTransfer extends Model
         return $this->status === self::STATUS_DISPATCHED;
     }
 
+    public function isReceived(): bool
+    {
+        return $this->status === self::STATUS_RECEIVED;
+    }
+
     public function statusLabel(): string
     {
         return match ($this->status) {

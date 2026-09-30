@@ -19,11 +19,6 @@
                             @csrf
                             <button type="submit" class="btn btn-warning">Dispatch</button>
                         </form>
-                    @elseif ($transfer->isDispatched())
-                        <form method="POST" action="{{ route('admin.transfers.receive', $transfer) }}" onsubmit="return confirm('Receive this transfer? Branch stock will increase.')">
-                            @csrf
-                            <button type="submit" class="btn btn-success">Receive</button>
-                        </form>
                     @endif
                 </div>
                 <div class="card-body">
@@ -40,6 +35,9 @@
                             <button type="submit" class="btn btn-soft-danger">Cancel Transfer</button>
                         </form>
                     @else
+                        @if ($transfer->isDispatched())
+                            <p class="text-muted">The branch manager receives this transfer after counting the pieces at the showroom.</p>
+                        @endif
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
                                 <label class="form-label">Branch</label>

@@ -6,7 +6,9 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\District;
+use App\Models\Employee;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\State;
 use App\Models\Stock;
 use App\Models\StockMovement;
@@ -92,8 +94,16 @@ class AdminStockTransferTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->post(route('admin.transfers.receive', $transferId))
-            ->assertRedirect(route('admin.transfers.edit', $transferId));
+            ->get(route('admin.transfers.edit', $transferId))
+            ->assertOk()
+            ->assertSee('The branch manager receives this transfer after counting the pieces at the showroom.')
+            ->assertDontSee('Branch stock will increase.');
+
+        $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
+
+        $this->actingAs($manager)
+            ->post(route('branch.transfers.receive', $transferId))
+            ->assertRedirect(route('branch.transfers.show', $transferId));
 
         $this->assertDatabaseHas('stock_transfers', [
             'id' => $transferId,
@@ -169,14 +179,107 @@ class AdminStockTransferTest extends TestCase
 
         $transferId = \App\Models\StockTransfer::query()->where('code', 'TR003')->value('id');
 
+        $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
+
+        $this->actingAs($manager)
+            ->post(route('branch.transfers.receive', $transferId))
+            ->assertNotFound();
+
         $this->actingAs($admin)
-            ->post(route('admin.transfers.receive', $transferId))
-            ->assertSessionHas('error');
+            ->post('/admin/transfers/'.$transferId.'/receive')
+            ->assertNotFound();
 
         $this->assertDatabaseHas('stock_transfers', [
             'id' => $transferId,
             'status' => 'draft',
         ]);
+    }
+
+    public function test_a_cashier_cannot_receive_a_transfer(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$product, , $branch] = $this->stocked(5);
+
+        $this->actingAs($admin)->post(route('admin.transfers.store'), [
+            'code' => 'TR004',
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+
+        $transferId = \App\Models\StockTransfer::query()->where('code', 'TR004')->value('id');
+        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId));
+
+        $cashier = $this->branchUser($branch, Role::BRANCH_STAFF, 'Branch Staff', 'CSH001');
+
+        $this->actingAs($cashier)->get(route('branch.transfers.index'))->assertForbidden();
+        $this->actingAs($cashier)->post(route('branch.transfers.receive', $transferId))->assertForbidden();
+
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transferId,
+            'status' => 'dispatched',
+        ]);
+    }
+
+    public function test_a_manager_cannot_receive_another_branch_transfer(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$product, $warehouse, $branch] = $this->stocked(5);
+
+        $other = Branch::query()->create([
+            'code' => 'BR002',
+            'name' => 'Guntur Showroom',
+            'warehouse_id' => $warehouse->id,
+            'address_line' => 'Brodipet',
+            'state_id' => $branch->state_id,
+            'district_id' => $branch->district_id,
+            'city_id' => $branch->city_id,
+            'pincode' => '522002',
+            'status' => 'active',
+        ]);
+        $manager = $this->branchUser($other, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR002');
+
+        $this->actingAs($admin)->post(route('admin.transfers.store'), [
+            'code' => 'TR005',
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+
+        $transferId = \App\Models\StockTransfer::query()->where('code', 'TR005')->value('id');
+        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId));
+
+        $this->actingAs($manager)
+            ->post(route('branch.transfers.receive', $transferId))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transferId,
+            'status' => 'dispatched',
+        ]);
+    }
+
+    private function branchUser(Branch $branch, string $slug, string $name, string $code): User
+    {
+        $role = Role::query()->firstOrCreate(
+            ['slug' => $slug],
+            ['name' => $name, 'status' => 'active'],
+        );
+        $user = User::factory()->create([
+            'role_id' => $role->id,
+            'status' => 'active',
+        ]);
+        Employee::query()->create([
+            'user_id' => $user->id,
+            'employee_code' => $code,
+            'branch_id' => $branch->id,
+            'designation' => $name,
+            'status' => 'active',
+        ]);
+
+        return $user;
     }
 
     /**

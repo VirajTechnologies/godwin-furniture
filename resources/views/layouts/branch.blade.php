@@ -88,6 +88,13 @@
                                 <i class="ri-archive-line"></i> <span>Stock</span>
                             </a>
                         </li>
+                        @if (auth()->user()?->isBranchManager())
+                            <li class="nav-item">
+                                <a class="nav-link menu-link {{ request()->routeIs('branch.transfers.*') ? 'active' : '' }}" href="{{ route('branch.transfers.index') }}">
+                                    <i class="ri-truck-line"></i> <span>Receive</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>

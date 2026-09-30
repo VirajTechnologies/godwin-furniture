@@ -71,4 +71,9 @@ class User extends Authenticatable
     {
         return in_array($this->role?->slug, Role::branchSlugs(), true);
     }
+
+    public function isBranchManager(): bool
+    {
+        return $this->role?->slug === Role::BRANCH_MANAGER;
+    }
 }

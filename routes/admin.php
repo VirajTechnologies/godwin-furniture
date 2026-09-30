@@ -99,7 +99,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('transfers/{transfer}/edit', [StockTransferController::class, 'edit'])->name('transfers.edit');
         Route::put('transfers/{transfer}', [StockTransferController::class, 'update'])->name('transfers.update');
         Route::post('transfers/{transfer}/dispatch', [StockTransferController::class, 'dispatch'])->name('transfers.dispatch');
-        Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
         Route::post('transfers/{transfer}/cancel', [StockTransferController::class, 'cancel'])->name('transfers.cancel');
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
