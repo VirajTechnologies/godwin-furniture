@@ -20,15 +20,20 @@ class WarehouseStockRequest extends FormRequest
      */
     public function rules(): array
     {
+        if ($this->route('stock') instanceof Stock) {
+            return [
+                'direction' => ['required', Rule::in(['add', 'remove'])],
+                'adjust_quantity' => ['required', 'integer', 'min:1'],
+                'note' => ['required', 'string', 'max:2000'],
+            ];
+        }
+
         $rules = [
             'quantity' => ['required', 'integer', 'min:0'],
             'note' => ['nullable', 'string', 'max:2000'],
+            'product_id' => ['required', 'integer', Rule::exists('products', 'id')],
+            'warehouse_id' => ['required', 'integer', Rule::exists('warehouses', 'id')],
         ];
-
-        if ($this->route('stock') === null) {
-            $rules['product_id'] = ['required', 'integer', Rule::exists('products', 'id')];
-            $rules['warehouse_id'] = ['required', 'integer', Rule::exists('warehouses', 'id')];
-        }
 
         return $rules;
     }
@@ -36,7 +41,13 @@ class WarehouseStockRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
-            if ($this->route('stock') instanceof Stock) {
+            $stock = $this->route('stock');
+
+            if ($stock instanceof Stock) {
+                if ($this->input('direction') === 'remove' && $this->integer('adjust_quantity') > $stock->quantity) {
+                    $validator->errors()->add('adjust_quantity', 'Only '.$stock->quantity.' can be removed.');
+                }
+
                 return;
             }
 

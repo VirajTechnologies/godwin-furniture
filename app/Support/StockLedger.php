@@ -33,26 +33,19 @@ class StockLedger
         });
     }
 
-    public function setQuantity(Stock $stock, int $quantity, ?string $note, ?int $userId): Stock
+    public function adjust(Stock $stock, int $quantity, string $direction, ?string $note, ?int $userId): Stock
     {
-        return DB::transaction(function () use ($stock, $quantity, $note, $userId) {
-            $change = $quantity - $stock->quantity;
+        return DB::transaction(function () use ($stock, $quantity, $direction, $note, $userId) {
+            $locked = Stock::query()->whereKey($stock->id)->lockForUpdate()->firstOrFail();
+            $locked->loadMissing('product');
 
-            if ($change === 0) {
-                return $stock;
+            if ($direction === 'remove') {
+                $this->decrease($locked, $quantity, StockMovement::TYPE_ADJUSTMENT, $note, $userId);
+            } else {
+                $this->increase($locked, $quantity, StockMovement::TYPE_ADJUSTMENT, $note, $userId);
             }
 
-            $stock->update(['quantity' => $quantity]);
-
-            $stock->movements()->create([
-                'type' => StockMovement::TYPE_ADJUSTMENT,
-                'quantity_change' => $change,
-                'quantity_after' => $quantity,
-                'note' => $note,
-                'user_id' => $userId,
-            ]);
-
-            return $stock->refresh();
+            return $locked->refresh();
         });
     }
 

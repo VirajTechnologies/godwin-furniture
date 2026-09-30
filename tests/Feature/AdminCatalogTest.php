@@ -124,7 +124,8 @@ class AdminCatalogTest extends TestCase
         $stock = $product->stocks()->firstOrFail();
 
         $this->actingAs($admin)->put(route('admin.stocks.update', $stock), [
-            'quantity' => 8,
+            'direction' => 'add',
+            'adjust_quantity' => 3,
             'note' => 'Counted extra pieces',
         ])->assertRedirect(route('admin.stocks.index'));
 
@@ -137,6 +138,32 @@ class AdminCatalogTest extends TestCase
             'type' => StockMovement::TYPE_ADJUSTMENT,
             'quantity_change' => 3,
             'quantity_after' => 8,
+        ]);
+    }
+
+    public function test_removing_more_than_the_quantity_on_hand_is_rejected(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        $product = $this->product();
+        $warehouse = $this->warehouse();
+
+        $this->actingAs($admin)->post(route('admin.stocks.store'), [
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 5,
+        ]);
+
+        $stock = $product->stocks()->firstOrFail();
+
+        $this->actingAs($admin)->put(route('admin.stocks.update', $stock), [
+            'direction' => 'remove',
+            'adjust_quantity' => 8,
+            'note' => 'Damaged pieces',
+        ])->assertSessionHasErrors('adjust_quantity');
+
+        $this->assertDatabaseHas('stocks', [
+            'id' => $stock->id,
+            'quantity' => 5,
         ]);
     }
 

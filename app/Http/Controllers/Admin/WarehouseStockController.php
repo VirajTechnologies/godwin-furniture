@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\InsufficientStock;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\WarehouseStockRequest;
 use App\Models\Product;
@@ -68,15 +69,24 @@ class WarehouseStockController extends Controller
     {
         abort_unless($stock->warehouse_id, 404);
 
-        $before = $stock->quantity;
-        $ledger->setQuantity(
-            $stock,
-            $request->integer('quantity'),
-            $request->filled('note') ? $request->string('note')->toString() : null,
-            $request->user()?->id,
-        );
+        $quantity = $request->integer('adjust_quantity');
+        $direction = $request->string('direction')->toString();
 
-        $message = $stock->quantity === $before ? 'Quantity is unchanged.' : 'Stock updated.';
+        try {
+            $ledger->adjust(
+                $stock,
+                $quantity,
+                $direction,
+                $request->string('note')->toString(),
+                $request->user()?->id,
+            );
+        } catch (InsufficientStock $exception) {
+            return back()->withInput()->withErrors(['adjust_quantity' => $exception->getMessage()]);
+        }
+
+        $message = $direction === 'remove'
+            ? $quantity.' removed from warehouse stock.'
+            : $quantity.' added to warehouse stock.';
 
         return redirect()->route('admin.stocks.index')->with('success', $message);
     }
