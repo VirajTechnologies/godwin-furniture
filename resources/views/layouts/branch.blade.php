@@ -90,6 +90,11 @@
                         </li>
                         @if (auth()->user()?->isBranchManager())
                             <li class="nav-item">
+                                <a class="nav-link menu-link {{ request()->routeIs('branch.stock-requests.*') ? 'active' : '' }}" href="{{ route('branch.stock-requests.index') }}">
+                                    <i class="ri-file-list-3-line"></i> <span>Request</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link menu-link {{ request()->routeIs('branch.transfers.*') ? 'active' : '' }}" href="{{ route('branch.transfers.index') }}">
                                     <i class="ri-truck-line"></i> <span>Receive</span>
                                 </a>

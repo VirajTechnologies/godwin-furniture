@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\StateController;
+use App\Http\Controllers\Admin\StockRequestController;
 use App\Http\Controllers\Admin\StockTransferController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\WarehouseStockController;
@@ -92,6 +93,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('stocks/{stock}', [WarehouseStockController::class, 'update'])->name('stocks.update');
 
         Route::get('branch-stocks', [BranchStockController::class, 'index'])->name('branch-stocks.index');
+
+        Route::get('stock-requests', [StockRequestController::class, 'index'])->name('stock-requests.index');
+        Route::get('stock-requests/{stockRequest}', [StockRequestController::class, 'show'])->name('stock-requests.show');
+        Route::post('stock-requests/{stockRequest}/transfer', [StockRequestController::class, 'createTransfer'])->name('stock-requests.transfer');
 
         Route::get('transfers', [StockTransferController::class, 'index'])->name('transfers.index');
         Route::get('transfers/create', [StockTransferController::class, 'create'])->name('transfers.create');

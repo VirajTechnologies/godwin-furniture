@@ -131,6 +131,10 @@ class StockTransferController extends Controller
             'cancelled_at' => now(),
         ]);
 
+        $transfer->stockRequest()?->update([
+            'stock_transfer_id' => null,
+        ]);
+
         return redirect()
             ->route('admin.transfers.index')
             ->with('success', $transfer->code.' cancelled.');

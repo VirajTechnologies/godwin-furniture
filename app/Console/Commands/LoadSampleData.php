@@ -12,6 +12,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\State;
 use App\Models\Stock;
+use App\Models\StockRequest;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use App\Models\User;
@@ -67,35 +68,55 @@ class LoadSampleData extends Command
                 $ledger->adjust($stock, 2, 'add', 'Assembled extra wardrobes', $admin->id);
             });
 
-            $this->transfer($workflow, 'TR001', $warehouse, $branches['BR001'], $staff['warehouse'], 'Weekly refill for Vijayawada', [
+            $this->transfer($workflow, 'TR001', $warehouse, $branches['BR001'], $staff['warehouse'], $staff['managers']['BR001'], 'Weekly refill for Vijayawada', [
                 'SF001' => 3, 'CH001' => 4, 'ST002' => 2, 'DN002' => 2,
             ], $products, now()->subDays(8)->setTime(9, 30), now()->subDays(8)->setTime(16, 0));
 
-            $this->transfer($workflow, 'TR002', $warehouse, $branches['BR002'], $staff['warehouse'], 'Opening stock for Guntur', [
+            $this->transfer($workflow, 'TR002', $warehouse, $branches['BR002'], $staff['warehouse'], $staff['managers']['BR002'], 'Opening stock for Guntur', [
                 'SF002' => 2, 'BD001' => 2, 'CH002' => 3, 'ST001' => 1,
             ], $products, now()->subDays(7)->setTime(10, 0), now()->subDays(7)->setTime(15, 30));
 
-            $this->transfer($workflow, 'TR003', $warehouse, $branches['BR003'], $staff['warehouse'], 'Opening stock for Visakhapatnam', [
+            $this->transfer($workflow, 'TR003', $warehouse, $branches['BR003'], $staff['warehouse'], $staff['managers']['BR003'], 'Opening stock for Visakhapatnam', [
                 'SF003' => 1, 'BD002' => 2, 'DN001' => 1, 'CH001' => 4,
             ], $products, now()->subDays(6)->setTime(10, 15), now()->subDays(6)->setTime(17, 0));
 
-            $this->sale($sales, $branches['BR003'], $staff['BR003'], $products['CH001'], 2, Payment::METHOD_CASH, 'Venkat Rao', '9848011007', now()->subDays(5)->setTime(12, 10));
-            $this->sale($sales, $branches['BR002'], $staff['BR002'], $products['BD001'], 1, Payment::METHOD_UPI, 'Kiran Reddy', '9848011005', now()->subDays(4)->setTime(15, 40), [
+            $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $products['CH001'], 2, Payment::METHOD_CASH, 'Venkat Rao', '9848011007', now()->subDays(5)->setTime(12, 10));
+            $this->sale($sales, $branches['BR002'], $staff['cashiers']['BR002'], $products['BD001'], 1, Payment::METHOD_UPI, 'Kiran Reddy', '9848011005', now()->subDays(4)->setTime(15, 40), [
                 ['product' => $products['CH002'], 'quantity' => 1],
             ]);
-            $this->sale($sales, $branches['BR001'], $staff['BR001'], $products['ST002'], 1, Payment::METHOD_CARD, 'Suresh Babu', '9848011003', now()->subDays(3)->setTime(13, 20));
+            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $products['ST002'], 1, Payment::METHOD_CARD, 'Suresh Babu', '9848011003', now()->subDays(3)->setTime(13, 20));
 
-            $this->at(now()->subDays(2)->setTime(11, 0), function () use ($workflow, $warehouse, $branches, $staff, $products): void {
+            $this->at(now()->subDays(4)->setTime(9, 0), function () use ($branches, $staff, $products): void {
+                $this->stockRequest('R00001', $branches['BR001'], $staff['managers']['BR001'], 'Changed the display plan', [
+                    'ST001' => 1,
+                ], $products, cancelled: true);
+            });
+
+            $vijayawadaRequest = $this->at(now()->subDays(3)->setTime(9, 15), function () use ($branches, $staff, $products) {
+                return $this->stockRequest('R00002', $branches['BR001'], $staff['managers']['BR001'], 'Showroom needs another sofa and two chairs', [
+                    'SF002' => 1, 'CH002' => 2,
+                ], $products);
+            });
+
+            $this->at(now()->subDays(2)->setTime(11, 0), function () use ($workflow, $warehouse, $branches, $staff, $products, $vijayawadaRequest): void {
                 $transfer = $this->draft('TR004', $warehouse, $branches['BR001'], $staff['warehouse'], 'Second delivery for Vijayawada', [
                     'SF002' => 1, 'CH002' => 2,
                 ], $products);
                 $workflow->dispatch($transfer, $staff['warehouse']->id);
+                $vijayawadaRequest->update(['stock_transfer_id' => $transfer->id]);
             });
 
-            $this->at(now()->subDays(2)->setTime(11, 20), function () use ($warehouse, $branches, $staff, $products): void {
-                $this->draft('TR005', $warehouse, $branches['BR002'], $staff['warehouse'], 'Next Guntur delivery', [
+            $gunturRequest = $this->at(now()->subDay()->setTime(10, 0), function () use ($branches, $staff, $products) {
+                return $this->stockRequest('R00003', $branches['BR002'], $staff['managers']['BR002'], 'Wardrobe and beds for a home order', [
                     'BD001' => 2, 'ST002' => 1,
                 ], $products);
+            });
+
+            $this->at(now()->subDay()->setTime(14, 0), function () use ($warehouse, $branches, $staff, $products, $gunturRequest): void {
+                $transfer = $this->draft('TR005', $warehouse, $branches['BR002'], $staff['warehouse'], 'Next Guntur delivery', [
+                    'BD001' => 2, 'ST002' => 1,
+                ], $products);
+                $gunturRequest->update(['stock_transfer_id' => $transfer->id]);
             });
 
             $this->at(now()->subDays(2)->setTime(11, 40), function () use ($warehouse, $branches, $staff, $products): void {
@@ -108,18 +129,26 @@ class LoadSampleData extends Command
                 ]);
             });
 
-            $this->sale($sales, $branches['BR002'], $staff['BR002'], $products['SF002'], 1, Payment::METHOD_CASH, 'Priya Nair', '9848011004', now()->subDays(2)->setTime(16, 5));
-            $this->sale($sales, $branches['BR001'], $staff['BR001'], $products['CH001'], 2, Payment::METHOD_UPI, 'Lakshmi Devi', '9848011002', now()->subDay()->setTime(11, 45), [
+            $this->sale($sales, $branches['BR002'], $staff['cashiers']['BR002'], $products['SF002'], 1, Payment::METHOD_CASH, 'Priya Nair', '9848011004', now()->subDays(2)->setTime(16, 5));
+            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $products['CH001'], 2, Payment::METHOD_UPI, 'Lakshmi Devi', '9848011002', now()->subDay()->setTime(11, 45), [
                 ['product' => $products['DN002'], 'quantity' => 1],
             ]);
-            $this->sale($sales, $branches['BR003'], $staff['BR003'], $products['SF003'], 1, Payment::METHOD_CARD, 'Anitha Rao', '9848011006', now()->subDay()->setTime(18, 10));
-            $this->sale($sales, $branches['BR001'], $staff['BR001'], $products['SF001'], 1, Payment::METHOD_CASH, 'Ravi Kumar', '9848011001', now()->setTime(10, 25));
+            $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $products['SF003'], 1, Payment::METHOD_CARD, 'Anitha Rao', '9848011006', now()->subDay()->setTime(18, 10));
+            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $products['SF001'], 1, Payment::METHOD_CASH, 'Ravi Kumar', '9848011001', now()->setTime(10, 25));
+
+            $this->at(now()->setTime(9, 40), function () use ($branches, $staff, $products): void {
+                $this->stockRequest('R00004', $branches['BR003'], $staff['managers']['BR003'], 'Dining table for a customer visit', [
+                    'DN001' => 1, 'CH002' => 2,
+                ], $products);
+            });
         });
 
         $this->components->info('Sample data loaded.');
         $this->table(['Email', 'Password', 'Signs in at'], [
             ['admin@godwin.test', 'password', 'Admin'],
             ['manager.vijayawada@godwin.test', 'password', 'Branch portal'],
+            ['manager.guntur@godwin.test', 'password', 'Branch portal'],
+            ['manager.vizag@godwin.test', 'password', 'Branch portal'],
             ['cashier.vijayawada@godwin.test', 'password', 'Branch portal'],
             ['cashier.guntur@godwin.test', 'password', 'Branch portal'],
             ['cashier.vizag@godwin.test', 'password', 'Branch portal'],
@@ -200,7 +229,7 @@ class LoadSampleData extends Command
 
     /**
      * @param  array<string, Branch>  $branches
-     * @return array<string, User>
+     * @return array{warehouse: User, managers: array<string, User>, cashiers: array<string, User>}
      */
     private function staff(Warehouse $warehouse, array $branches): array
     {
@@ -215,22 +244,18 @@ class LoadSampleData extends Command
             null,
         );
 
-        $this->employee(
-            'manager.vijayawada@godwin.test',
-            'Ramesh Kumar',
-            '9848002001',
-            'MGR001',
-            'Branch Manager',
-            'branchManager',
-            null,
-            $branches['BR001']->id,
-        );
-
         return [
             'warehouse' => $warehouseUser,
-            'BR001' => $this->employee('cashier.vijayawada@godwin.test', 'Sowmya Rao', '9848003001', 'CSH001', 'Cashier', 'branchStaff', null, $branches['BR001']->id),
-            'BR002' => $this->employee('cashier.guntur@godwin.test', 'Harish Patel', '9848003002', 'CSH002', 'Cashier', 'branchStaff', null, $branches['BR002']->id),
-            'BR003' => $this->employee('cashier.vizag@godwin.test', 'Divya Nair', '9848003003', 'CSH003', 'Cashier', 'branchStaff', null, $branches['BR003']->id),
+            'managers' => [
+                'BR001' => $this->employee('manager.vijayawada@godwin.test', 'Ramesh Kumar', '9848002001', 'MGR001', 'Branch Manager', 'branchManager', null, $branches['BR001']->id),
+                'BR002' => $this->employee('manager.guntur@godwin.test', 'Srinivas Rao', '9848002002', 'MGR002', 'Branch Manager', 'branchManager', null, $branches['BR002']->id),
+                'BR003' => $this->employee('manager.vizag@godwin.test', 'Padma Reddy', '9848002003', 'MGR003', 'Branch Manager', 'branchManager', null, $branches['BR003']->id),
+            ],
+            'cashiers' => [
+                'BR001' => $this->employee('cashier.vijayawada@godwin.test', 'Sowmya Rao', '9848003001', 'CSH001', 'Cashier', 'branchStaff', null, $branches['BR001']->id),
+                'BR002' => $this->employee('cashier.guntur@godwin.test', 'Harish Patel', '9848003002', 'CSH002', 'Cashier', 'branchStaff', null, $branches['BR002']->id),
+                'BR003' => $this->employee('cashier.vizag@godwin.test', 'Divya Nair', '9848003003', 'CSH003', 'Cashier', 'branchStaff', null, $branches['BR003']->id),
+            ],
         ];
     }
 
@@ -325,21 +350,47 @@ class LoadSampleData extends Command
         string $code,
         Warehouse $warehouse,
         Branch $branch,
-        User $user,
+        User $dispatcher,
+        User $receiver,
         string $notes,
         array $lines,
         array $products,
         Carbon $dispatchedAt,
         Carbon $receivedAt,
     ): void {
-        $transfer = $this->at($dispatchedAt, function () use ($workflow, $code, $warehouse, $branch, $user, $notes, $lines, $products) {
-            $transfer = $this->draft($code, $warehouse, $branch, $user, $notes, $lines, $products);
-            $workflow->dispatch($transfer, $user->id);
+        $transfer = $this->at($dispatchedAt, function () use ($workflow, $code, $warehouse, $branch, $dispatcher, $notes, $lines, $products) {
+            $transfer = $this->draft($code, $warehouse, $branch, $dispatcher, $notes, $lines, $products);
+            $workflow->dispatch($transfer, $dispatcher->id);
 
             return $transfer;
         });
 
-        $this->at($receivedAt, fn () => $workflow->receive($transfer, $user->id));
+        $this->at($receivedAt, fn () => $workflow->receive($transfer, $receiver->id));
+    }
+
+    /**
+     * @param  array<string, int>  $lines
+     * @param  array<string, Product>  $products
+     */
+    private function stockRequest(string $code, Branch $branch, User $manager, string $notes, array $lines, array $products, bool $cancelled = false): StockRequest
+    {
+        $request = StockRequest::query()->create([
+            'code' => $code,
+            'branch_id' => $branch->id,
+            'status' => $cancelled ? StockRequest::STATUS_CANCELLED : StockRequest::STATUS_REQUESTED,
+            'notes' => $notes,
+            'requested_by' => $manager->id,
+            'cancelled_at' => $cancelled ? now() : null,
+        ]);
+
+        foreach ($lines as $productCode => $quantity) {
+            $request->items()->create([
+                'product_id' => $products[$productCode]->id,
+                'quantity' => $quantity,
+            ]);
+        }
+
+        return $request;
     }
 
     /**

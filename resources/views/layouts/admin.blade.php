@@ -139,7 +139,7 @@
                             </div>
                         </li>
                         @php
-                            $stockOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*');
+                            $stockOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*', 'admin.stock-requests.*');
                         @endphp
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ $stockOpen ? 'active' : '' }}" href="#sidebarStock" data-bs-toggle="collapse" role="button" aria-expanded="{{ $stockOpen ? 'true' : 'false' }}" aria-controls="sidebarStock">
@@ -155,6 +155,9 @@
                                     </li>
                                     <li class="nav-item">
                                         <a href="{{ route('admin.transfers.index') }}" class="nav-link {{ request()->routeIs('admin.transfers.*') ? 'active' : '' }}">Transfers</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.stock-requests.index') }}" class="nav-link {{ request()->routeIs('admin.stock-requests.*') ? 'active' : '' }}">Stock Requests</a>
                                     </li>
                                 </ul>
                             </div>
