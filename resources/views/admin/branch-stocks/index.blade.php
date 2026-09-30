@@ -31,6 +31,7 @@
                                         <th>Category</th>
                                         <th>Branch</th>
                                         <th>Quantity</th>
+                                        <th>Updated</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -42,6 +43,7 @@
                                             <td>{{ $stock->product?->category?->name ?? '—' }}</td>
                                             <td>{{ $stock->branch?->name ?? '—' }}</td>
                                             <td>{{ $stock->quantity }}</td>
+                                            <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

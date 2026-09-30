@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasActiveStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
-    use HasActiveStatus;
+    use HasActiveStatus, HasFactory;
 
     /**
      * @var list<string>

@@ -28,6 +28,7 @@
                                         <th>Product</th>
                                         <th>Category</th>
                                         <th>Quantity</th>
+                                        <th>Updated</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -38,6 +39,7 @@
                                             <td>{{ $stock->product?->name }}</td>
                                             <td>{{ $stock->product?->category?->name ?? '—' }}</td>
                                             <td>{{ $stock->quantity }}</td>
+                                            <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

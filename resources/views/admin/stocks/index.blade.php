@@ -35,6 +35,7 @@
                                         <th>Category</th>
                                         <th>Warehouse</th>
                                         <th>Quantity</th>
+                                        <th>Updated</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -47,6 +48,7 @@
                                             <td>{{ $stock->product?->category?->name ?? '—' }}</td>
                                             <td>{{ $stock->warehouse?->name ?? '—' }}</td>
                                             <td>{{ $stock->quantity }}</td>
+                                            <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>
                                             <td>
                                                 @include('admin.partials.edit-icon', ['url' => route('admin.stocks.edit', $stock)])
                                             </td>

@@ -28,6 +28,12 @@
                 </div>
                 <div class="card-body">
                     @if ($transfer->isDraft())
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Created</label>
+                                <input type="text" class="form-control" value="{{ $transfer->created_at?->format('d M Y, h:i A') }}" readonly>
+                            </div>
+                        </div>
                         @include('admin.transfers._form')
                         <form method="POST" action="{{ route('admin.transfers.cancel', $transfer) }}" class="mt-3" onsubmit="return confirm('Cancel this draft?')">
                             @csrf
@@ -47,6 +53,28 @@
                                 <label class="form-label">Status</label>
                                 <input type="text" class="form-control" value="{{ $transfer->statusLabel() }}" readonly>
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Created</label>
+                                <input type="text" class="form-control" value="{{ $transfer->created_at?->format('d M Y, h:i A') }}" readonly>
+                            </div>
+                            @if ($transfer->dispatched_at)
+                                <div class="col-md-4">
+                                    <label class="form-label">Dispatched</label>
+                                    <input type="text" class="form-control" value="{{ $transfer->dispatched_at->format('d M Y, h:i A') }}" readonly>
+                                </div>
+                            @endif
+                            @if ($transfer->received_at)
+                                <div class="col-md-4">
+                                    <label class="form-label">Received</label>
+                                    <input type="text" class="form-control" value="{{ $transfer->received_at->format('d M Y, h:i A') }}" readonly>
+                                </div>
+                            @endif
+                            @if ($transfer->cancelled_at)
+                                <div class="col-md-4">
+                                    <label class="form-label">Cancelled</label>
+                                    <input type="text" class="form-control" value="{{ $transfer->cancelled_at->format('d M Y, h:i A') }}" readonly>
+                                </div>
+                            @endif
                             @if ($transfer->notes)
                                 <div class="col-12">
                                     <label class="form-label">Notes</label>

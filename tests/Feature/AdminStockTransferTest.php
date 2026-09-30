@@ -78,6 +78,14 @@ class AdminStockTransferTest extends TestCase
             'quantity_change' => -2,
             'quantity_after' => 3,
         ]);
+
+        $stockId = Stock::query()->where('warehouse_id', $warehouse->id)->value('id');
+
+        $this->actingAs($admin)
+            ->get(route('admin.stocks.edit', $stockId))
+            ->assertOk()
+            ->assertSee('Vijayawada Showroom')
+            ->assertSee(route('admin.transfers.edit', $transferId), false);
         $this->assertDatabaseMissing('stocks', [
             'product_id' => $product->id,
             'branch_id' => $branch->id,
@@ -101,6 +109,19 @@ class AdminStockTransferTest extends TestCase
             'quantity_change' => 2,
             'quantity_after' => 2,
         ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.transfers.index'))
+            ->assertOk()
+            ->assertSee('>Created<', false)
+            ->assertSee('>Dispatched<', false)
+            ->assertSee('>Received<', false);
+
+        $this->actingAs($admin)
+            ->get(route('admin.transfers.edit', $transferId))
+            ->assertOk()
+            ->assertSee('Dispatched')
+            ->assertSee('Received');
     }
 
     public function test_dispatch_is_rejected_when_the_warehouse_does_not_have_enough(): void

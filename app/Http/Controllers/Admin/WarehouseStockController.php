@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\WarehouseStockRequest;
 use App\Models\Product;
 use App\Models\Stock;
+use App\Models\StockTransfer;
 use App\Models\Warehouse;
 use App\Support\StockLedger;
 use Illuminate\Http\RedirectResponse;
@@ -58,10 +59,27 @@ class WarehouseStockController extends Controller
         abort_unless($stock->warehouse_id, 404);
 
         $stock->load(['product', 'warehouse', 'movements.user']);
+        $movements = $stock->movements->sortByDesc('id')->take(10)->values();
+        $transferCodes = $movements
+            ->map(fn ($movement) => $this->transferCode($movement->note))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $transfers = StockTransfer::query()
+            ->with('branch')
+            ->whereIn('code', $transferCodes)
+            ->get()
+            ->keyBy('code');
+
+        $movements->each(function ($movement) use ($transfers): void {
+            $code = $this->transferCode($movement->note);
+            $movement->setRelation('transfer', $code ? $transfers->get($code) : null);
+        });
 
         return view('admin.stocks.edit', [
             'stock' => $stock,
-            'movements' => $stock->movements->sortByDesc('id')->take(10),
+            'movements' => $movements,
         ]);
     }
 
@@ -89,6 +107,19 @@ class WarehouseStockController extends Controller
             : $quantity.' added to warehouse stock.';
 
         return redirect()->route('admin.stocks.index')->with('success', $message);
+    }
+
+    private function transferCode(?string $note): ?string
+    {
+        $note = trim((string) $note);
+
+        if (! str_starts_with($note, 'Transfer ')) {
+            return null;
+        }
+
+        $code = trim(substr($note, strlen('Transfer ')));
+
+        return $code !== '' ? $code : null;
     }
 
     private function products()

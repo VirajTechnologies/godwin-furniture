@@ -34,6 +34,9 @@
                                         <th>Branch</th>
                                         <th>Warehouse</th>
                                         <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Dispatched</th>
+                                        <th>Received</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -41,7 +44,7 @@
                                     @foreach ($transfers as $transfer)
                                         <tr>
                                             <td>{{ $transfers->firstItem() + $loop->index }}</td>
-                                            <td class="fw-medium">{{ $transfer->code }}</td>
+                                            <td class="fw-medium"><a href="{{ route('admin.transfers.edit', $transfer) }}">{{ $transfer->code }}</a></td>
                                             <td>{{ $transfer->branch?->name ?? '—' }}</td>
                                             <td>{{ $transfer->warehouse?->name ?? '—' }}</td>
                                             <td>
@@ -51,10 +54,14 @@
                                                     <span class="badge bg-warning-subtle text-warning">Dispatched</span>
                                                 @elseif ($transfer->status === 'cancelled')
                                                     <span class="badge bg-danger-subtle text-danger">Cancelled</span>
+                                                    <div class="text-muted small mt-1">{{ $transfer->cancelled_at?->format('d M Y, h:i A') }}</div>
                                                 @else
                                                     <span class="badge bg-secondary-subtle text-secondary">Draft</span>
                                                 @endif
                                             </td>
+                                            <td>{{ $transfer->created_at?->format('d M Y, h:i A') }}</td>
+                                            <td>{{ $transfer->dispatched_at?->format('d M Y, h:i A') ?? '—' }}</td>
+                                            <td>{{ $transfer->received_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                             <td>
                                                 @include('admin.partials.edit-icon', ['url' => route('admin.transfers.edit', $transfer)])
                                             </td>

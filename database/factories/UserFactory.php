@@ -28,8 +28,10 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => null,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'status' => 'active',
             'remember_token' => Str::random(10),
         ];
     }
@@ -52,6 +54,21 @@ class UserFactory extends Factory
         });
     }
 
+    public function warehouseStaff(): static
+    {
+        return $this->withRole(Role::WAREHOUSE_STAFF, 'Warehouse Staff');
+    }
+
+    public function branchManager(): static
+    {
+        return $this->withRole(Role::BRANCH_MANAGER, 'Branch Manager');
+    }
+
+    public function branchStaff(): static
+    {
+        return $this->withRole(Role::BRANCH_STAFF, 'Branch Staff');
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */
@@ -60,5 +77,20 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    private function withRole(string $slug, string $name): static
+    {
+        return $this->state(function () use ($slug, $name): array {
+            $role = Role::query()->firstOrCreate(
+                ['slug' => $slug],
+                ['name' => $name, 'status' => Role::STATUS_ACTIVE],
+            );
+
+            return [
+                'role_id' => $role->id,
+                'status' => 'active',
+            ];
+        });
     }
 }

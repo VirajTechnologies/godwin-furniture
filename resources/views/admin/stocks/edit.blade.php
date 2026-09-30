@@ -32,6 +32,7 @@
                                     <tr>
                                         <th>Date</th>
                                         <th>Type</th>
+                                        <th>Branch</th>
                                         <th>Change</th>
                                         <th>Balance</th>
                                         <th>Note</th>
@@ -42,9 +43,16 @@
                                         <tr>
                                             <td>{{ $movement->created_at?->format('d M Y, h:i A') }}</td>
                                             <td>{{ $movement->label() }}</td>
+                                            <td>{{ $movement->transfer?->branch?->name ?? '—' }}</td>
                                             <td>{{ $movement->quantity_change > 0 ? '+' : '' }}{{ $movement->quantity_change }}</td>
                                             <td>{{ $movement->quantity_after }}</td>
-                                            <td>{{ $movement->note ?: '—' }}</td>
+                                            <td>
+                                                @if ($movement->transfer)
+                                                    <a href="{{ route('admin.transfers.edit', $movement->transfer) }}">{{ $movement->note ?: $movement->transfer->code }}</a>
+                                                @else
+                                                    {{ $movement->note ?: '—' }}
+                                                @endif
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

@@ -17,6 +17,10 @@
                         <input type="text" class="form-control" value="{{ $order->payment?->methodLabel() }}" readonly>
                     </div>
                     <div class="col-md-3">
+                        <label class="form-label">Date</label>
+                        <input type="text" class="form-control" value="{{ $order->created_at?->format('d M Y, h:i A') }}" readonly>
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label">Total</label>
                         <input type="text" class="form-control" value="₹{{ number_format((float) $order->total, 2) }}" readonly>
                     </div>
