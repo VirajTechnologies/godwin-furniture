@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Branch\Auth\LoginController;
 use App\Http\Controllers\Branch\HomeController;
+use App\Http\Controllers\Branch\ReportController;
 use App\Http\Controllers\Branch\SaleController;
 use App\Http\Controllers\Branch\StockController;
 use App\Http\Controllers\Branch\StockRequestController;
@@ -17,6 +18,11 @@ Route::prefix('branch')->name('branch.')->group(function () {
     Route::middleware(['auth', 'branch_user'])->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::get('/', [HomeController::class, 'index'])->name('home');
+
+        Route::get('reports/sales-by-product', [ReportController::class, 'salesByProduct'])->name('reports.sales-by-product');
+        Route::get('reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
+        Route::get('reports/transfers', [ReportController::class, 'transfers'])->name('reports.transfers');
+        Route::get('reports/stock-requests', [ReportController::class, 'stockRequests'])->name('reports.stock-requests');
 
         Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
         Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');

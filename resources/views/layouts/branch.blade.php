@@ -70,7 +70,7 @@
                         <li class="menu-title"><span>Branch</span></li>
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->routeIs('branch.home') ? 'active' : '' }}" href="{{ route('branch.home') }}">
-                                <i class="ri-dashboard-2-line"></i> <span>Counter</span>
+                                <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -87,6 +87,32 @@
                             <a class="nav-link menu-link {{ request()->routeIs('branch.stock.index') ? 'active' : '' }}" href="{{ route('branch.stock.index') }}">
                                 <i class="ri-archive-line"></i> <span>Stock</span>
                             </a>
+                        </li>
+                        @php
+                            $reportsOpen = request()->routeIs('branch.reports.*');
+                        @endphp
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="#sidebarBranchReports" data-bs-toggle="collapse" role="button" aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}" aria-controls="sidebarBranchReports">
+                                <i class="ri-bar-chart-2-line"></i> <span>Reports</span>
+                            </a>
+                            <div class="collapse menu-dropdown {{ $reportsOpen ? 'show' : '' }}" id="sidebarBranchReports">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a href="{{ route('branch.reports.sales-by-product') }}" class="nav-link {{ request()->routeIs('branch.reports.sales-by-product') ? 'active' : '' }}">Sales By Product</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('branch.reports.stock') }}" class="nav-link {{ request()->routeIs('branch.reports.stock') ? 'active' : '' }}">Stock On Hand</a>
+                                    </li>
+                                    @if (auth()->user()?->isBranchManager())
+                                        <li class="nav-item">
+                                            <a href="{{ route('branch.reports.transfers') }}" class="nav-link {{ request()->routeIs('branch.reports.transfers') ? 'active' : '' }}">Transfers</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a href="{{ route('branch.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('branch.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </div>
                         </li>
                         @if (auth()->user()?->isBranchManager())
                             <li class="nav-item">
