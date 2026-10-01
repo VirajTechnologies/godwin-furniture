@@ -167,6 +167,33 @@
                                 <i class="ri-bill-line"></i> <span>Sales</span>
                             </a>
                         </li>
+                        @php
+                            $reportsOpen = request()->routeIs('admin.reports.*');
+                        @endphp
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}" aria-controls="sidebarReports">
+                                <i class="ri-bar-chart-2-line"></i> <span>Reports</span>
+                            </a>
+                            <div class="collapse menu-dropdown {{ $reportsOpen ? 'show' : '' }}" id="sidebarReports">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.reports.sales-by-branch') }}" class="nav-link {{ request()->routeIs('admin.reports.sales-by-branch') ? 'active' : '' }}">Sales By Branch</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.reports.sales-by-product') }}" class="nav-link {{ request()->routeIs('admin.reports.sales-by-product') ? 'active' : '' }}">Sales By Product</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.reports.stock') }}" class="nav-link {{ request()->routeIs('admin.reports.stock') ? 'active' : '' }}">Stock On Hand</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.reports.transfers') }}" class="nav-link {{ request()->routeIs('admin.reports.transfers') ? 'active' : '' }}">Transfers</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('admin.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>

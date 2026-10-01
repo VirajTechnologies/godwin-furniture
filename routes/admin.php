@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DistrictController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StateController;
 use App\Http\Controllers\Admin\StockRequestController;
 use App\Http\Controllers\Admin\StockTransferController;
@@ -26,6 +27,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'super_admin'])->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('reports/sales-by-branch', [ReportController::class, 'salesByBranch'])->name('reports.sales-by-branch');
+        Route::get('reports/sales-by-product', [ReportController::class, 'salesByProduct'])->name('reports.sales-by-product');
+        Route::get('reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
+        Route::get('reports/transfers', [ReportController::class, 'transfers'])->name('reports.transfers');
+        Route::get('reports/stock-requests', [ReportController::class, 'stockRequests'])->name('reports.stock-requests');
 
         Route::get('states', [StateController::class, 'index'])->name('states.index');
         Route::get('states/create', [StateController::class, 'create'])->name('states.create');
