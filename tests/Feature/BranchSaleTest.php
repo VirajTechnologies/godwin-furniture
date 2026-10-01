@@ -92,6 +92,51 @@ class BranchSaleTest extends TestCase
         ]);
     }
 
+    public function test_leaving_the_phone_field_can_load_an_existing_customer(): void
+    {
+        [$cashier] = $this->counter(1);
+        Customer::query()->create([
+            'name' => 'Ramesh',
+            'phone' => '9000000001',
+            'email' => 'ramesh@example.com',
+            'status' => 'active',
+        ]);
+        Customer::query()->create([
+            'name' => 'Inactive Buyer',
+            'phone' => '9000000002',
+            'status' => 'inactive',
+        ]);
+
+        $this->actingAs($cashier)
+            ->get(route('branch.customers.lookup', ['phone' => '9000000001']))
+            ->assertOk()
+            ->assertJson([
+                'found' => true,
+                'name' => 'Ramesh',
+                'email' => 'ramesh@example.com',
+                'active' => true,
+            ]);
+
+        $this->actingAs($cashier)
+            ->get(route('branch.customers.lookup', ['phone' => '9000000002']))
+            ->assertOk()
+            ->assertJson([
+                'found' => true,
+                'name' => 'Inactive Buyer',
+                'active' => false,
+            ]);
+
+        $this->actingAs($cashier)
+            ->get(route('branch.customers.lookup', ['phone' => '9000000099']))
+            ->assertOk()
+            ->assertJson(['found' => false]);
+
+        $this->actingAs($cashier)
+            ->get(route('branch.sales.create'))
+            ->assertOk()
+            ->assertSee('After 10 digits, the name and email fill in', false);
+    }
+
     public function test_a_sale_is_rejected_when_the_branch_does_not_have_enough(): void
     {
         [$cashier, $product] = $this->counter(1);

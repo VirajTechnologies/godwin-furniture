@@ -9,17 +9,18 @@
     @csrf
     <div class="row g-3">
         <div class="col-md-4">
-            <label for="customer_name" class="form-label">Customer Name</label>
-            <input type="text" class="form-control @error('customer_name') is-invalid @enderror" id="customer_name" name="customer_name" value="{{ old('customer_name') }}" required>
-            @error('customer_name')
+            <label for="phone" class="form-label">Phone</label>
+            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" required data-lookup-url="{{ route('branch.customers.lookup') }}">
+            <div class="form-text" id="phone-lookup-note">Enter the phone. After 10 digits, the name and email fill in if this customer has bought before.</div>
+            <div class="text-danger small mt-1 d-none" id="phone-inactive">This customer is inactive.</div>
+            @error('phone')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
         <div class="col-md-4">
-            <label for="phone" class="form-label">Phone</label>
-            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" required>
-            <div class="form-text">The same phone is used again for a returning customer.</div>
-            @error('phone')
+            <label for="customer_name" class="form-label">Customer Name</label>
+            <input type="text" class="form-control @error('customer_name') is-invalid @enderror" id="customer_name" name="customer_name" value="{{ old('customer_name') }}" required>
+            @error('customer_name')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
@@ -132,6 +133,78 @@
             const template = document.getElementById('sale-line-template');
             const addButton = document.getElementById('add-sale-line');
             const total = document.getElementById('sale-total');
+            const phone = document.getElementById('phone');
+            const customerName = document.getElementById('customer_name');
+            const email = document.getElementById('email');
+            const lookupNote = document.getElementById('phone-lookup-note');
+            const inactiveNote = document.getElementById('phone-inactive');
+            let lastPhone = '';
+            let filledFromLookup = false;
+
+            function clearFilledCustomer() {
+                if (!filledFromLookup) {
+                    return;
+                }
+                customerName.value = '';
+                email.value = '';
+                filledFromLookup = false;
+            }
+
+            function lookupCustomer() {
+                const value = phone.value.trim();
+                inactiveNote.classList.add('d-none');
+
+                if (value === '') {
+                    clearFilledCustomer();
+                    lastPhone = '';
+                    lookupNote.textContent = "Enter the phone. After 10 digits, the name and email fill in if this customer has bought before.";
+                    return;
+                }
+
+                if (value === lastPhone) {
+                    return;
+                }
+
+                const previousFill = filledFromLookup;
+                lastPhone = value;
+
+                fetch(phone.dataset.lookupUrl + '?phone=' + encodeURIComponent(value), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(function (response) {
+                    if (!response.ok) {
+                        return null;
+                    }
+                    return response.json();
+                }).then(function (data) {
+                    if (!data || phone.value.trim() !== value) {
+                        return;
+                    }
+                    if (data.found) {
+                        customerName.value = data.name || '';
+                        email.value = data.email || '';
+                        filledFromLookup = true;
+                        lookupNote.textContent = 'Customer found.';
+                        inactiveNote.classList.toggle('d-none', data.active !== false);
+                        return;
+                    }
+                    if (previousFill) {
+                        customerName.value = '';
+                        email.value = '';
+                    }
+                    filledFromLookup = false;
+                    lookupNote.textContent = 'No customer has this phone. A new customer will be saved with this sale.';
+                });
+            }
+
+            phone.addEventListener('input', function () {
+                if (/^\d{10}$/.test(phone.value.trim())) {
+                    lookupCustomer();
+                }
+            });
+            phone.addEventListener('blur', lookupCustomer);
 
             function money(amount) {
                 return '₹' + amount.toFixed(2);

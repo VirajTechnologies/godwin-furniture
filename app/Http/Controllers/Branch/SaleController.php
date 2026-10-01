@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Support\BranchSale;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -35,6 +36,32 @@ class SaleController extends Controller
     {
         return view('branch.sales.create', [
             'stocks' => $this->stocks($request),
+        ]);
+    }
+
+    public function lookupCustomer(Request $request): JsonResponse
+    {
+        $phone = trim((string) $request->query('phone', ''));
+
+        if ($phone === '' || strlen($phone) > 20) {
+            return response()->json([
+                'found' => false,
+            ]);
+        }
+
+        $customer = Customer::query()->where('phone', $phone)->first();
+
+        if ($customer === null) {
+            return response()->json([
+                'found' => false,
+            ]);
+        }
+
+        return response()->json([
+            'found' => true,
+            'name' => $customer->name,
+            'email' => $customer->email,
+            'active' => $customer->isActive(),
         ]);
     }
 

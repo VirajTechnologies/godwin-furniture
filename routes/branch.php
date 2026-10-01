@@ -26,6 +26,7 @@ Route::prefix('branch')->name('branch.')->group(function () {
 
         Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
         Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');
+        Route::get('customers/lookup', [SaleController::class, 'lookupCustomer'])->name('customers.lookup');
         Route::post('sales', [SaleController::class, 'store'])->name('sales.store');
         Route::get('sales/{order}', [SaleController::class, 'show'])->name('sales.show');
 
