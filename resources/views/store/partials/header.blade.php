@@ -1,0 +1,93 @@
+<!-- Top Announcement Ticker Bar -->
+    <div class="top-ticker-bar d-none d-lg-block">
+        <div class="container-fluid px-5 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-4">
+                <span>✨ Godwin Groups: Free White-Glove In-Home Delivery & Installation on Orders Over ₹49,999</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a href="#"><i class="fas fa-map-marker-alt me-1 opacity-75"></i> Store Locator</a>
+                <span class="opacity-25">|</span>
+                <a href="#"><i class="fas fa-mobile-alt me-1 opacity-75"></i> Download Our Apps</a>
+                <span class="opacity-25">|</span>
+                <a href="{{ route('store.cart') }}"><i class="fas fa-truck me-1 opacity-75"></i> Track Furniture Order</a>
+                <span class="opacity-25">|</span>
+                <a href="https://wa.me/917418759171" target="_blank"><i class="fas fa-headset me-1 opacity-75"></i> Help</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="header-luxury py-3 bg-white border-bottom">
+        <div class="container-fluid px-4 px-lg-5">
+            <div class="row align-items-center gy-2">
+                <div class="col-12 col-md-3 col-lg-3 d-flex align-items-center justify-content-between">
+                    <a href="{{ route('store.home') }}" class="text-decoration-none d-flex align-items-center">
+                        <img src="{{ asset('store/images/logo.png') }}" alt="Godwin Groups" style="height: 44px; max-width: 200px; object-fit: contain;">
+                    </a>
+                    <a href="{{ route('store.cart') }}" class="text-dark position-relative fs-5 d-lg-none"><i class="fas fa-shopping-bag"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px;">2</span></a>
+                </div>
+                <div class="col-12 col-md-4 col-lg-4 d-none d-md-flex justify-content-center">
+                    <form class="w-100 d-flex justify-content-center" action="{{ route('store.catalog') }}" method="GET">
+                        <div class="search-box-wrapper">
+                            <input type="text" name="q" class="form-control search-input-reduced text-dark shadow-none" placeholder="Search Heavy Metal Beds, Sofas...">
+                            <button type="submit" class="search-btn-inside" title="Search"><i class="fas fa-search fs-6"></i></button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-12 col-md-5 col-lg-5 d-none d-lg-flex align-items-center justify-content-end gap-3 gap-xl-4">
+                    <a href="#" class="header-icon-item icon-favourites d-flex flex-column align-items-center justify-content-center">
+                        <i class="far fa-heart mb-1"></i>
+                        <span class="small-text fw-medium">Favourites</span>
+                    </a>
+                    <a href="{{ route('store.login') }}" class="header-icon-item icon-account d-flex flex-column align-items-center justify-content-center">
+                        <i class="far fa-user mb-1"></i>
+                        <span class="small-text fw-medium">Account</span>
+                    </a>
+                    <a href="{{ route('store.cart') }}" class="header-icon-item icon-basket d-flex flex-column align-items-center justify-content-center">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span class="basket-badge-count">2</span>
+                        </div>
+                        <span class="small-text fw-medium">Basket</span>
+                    </a>
+                    <!-- More Dropdown -->
+                    <div class="dropdown">
+                        <a href="#" class="header-icon-item icon-more d-flex flex-column align-items-center justify-content-center" data-bs-toggle="dropdown" aria-expanded="false" id="catMoreDropdown">
+                            <i class="fas fa-ellipsis-v mb-1"></i>
+                            <span class="small-text fw-semibold">More</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-more border-0 mt-2" aria-labelledby="catMoreDropdown">
+                            <a class="dropdown-item more-item" href="#">Online Gift Card</a>
+                            <a class="dropdown-item more-item" href="#">Bulk orders</a>
+                            <a class="dropdown-item more-item" href="#">Corporate Gifts</a>
+                            <a class="dropdown-item more-item" href="#">Offline Gift Card</a>
+                            <a class="dropdown-item more-item item-highlighted" href="#">Homecentre Delight</a>
+                            <a class="dropdown-item more-item" href="{{ route('store.catalog') }}">Catalogues</a>
+                            <a class="dropdown-item more-item" href="#">Blog</a>
+                            <a class="dropdown-item more-item" href="#">Store Locator</a>
+                            <a class="dropdown-item more-item" href="#">Landmark Rewards SBI Credit card</a>
+                            <a class="dropdown-item more-item" href="#">Furniture Exchange</a>
+                            <a class="dropdown-item more-item" href="#">Terms and condition</a>
+                            <a class="dropdown-item more-item" href="#">Landmark Group Foundation</a>
+                            <a class="dropdown-item more-item item-accent" href="#">Gift Card Balance Check</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sticky Navigation Menu Bar (Centered Mega Menu Navigation) -->
+    <nav class="sticky-top luxury-menubar-bg py-2 d-none d-lg-block" style="z-index: 1050;">
+        <div class="container-fluid px-4 px-xl-5">
+            <ul class="nav justify-content-center align-items-center gap-3 gap-xl-4 main-nav-luxury position-relative m-0">
+                <li class="nav-item"><a class="nav-link text-danger fw-bold d-flex align-items-center" href="{{ route('store.catalog', ['sale' => '1']) }}"><span class="nav-sale-icon-badge me-2"><i class="fas fa-percent"></i></span> Sale 🔥</a></li>
+                <li class="nav-item"><a class="nav-link active d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'living']) }}"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Living Room"> Living Room</a></li>
+                <li class="nav-item"><a class="nav-link d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'bedroom']) }}"><img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Bedroom"> Bedroom</a></li>
+                <li class="nav-item"><a class="nav-link d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'dining']) }}"><img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Dining Room"> Dining Room</a></li>
+                <li class="nav-item"><a class="nav-link d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'furnishings']) }}"><img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Furnishings"> Furnishings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    
