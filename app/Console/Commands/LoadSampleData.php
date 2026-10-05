@@ -290,35 +290,127 @@ class LoadSampleData extends Command
         $dining = $this->room('Dining Room', 'dining-room', 3, 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=600');
         $furnishings = $this->room('Furnishings', 'furnishings', 4, 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=600');
 
-        $threeSeater = $this->subcategory($living, '3 Seater Sofas', '3-seater-sofas', 'Sofas & Seating', 1);
-        $sectionals = $this->subcategory($living, 'Sofa Sets & Sectionals', 'sofa-sets-sectionals', 'Sofas & Seating', 2);
-        $recliners = $this->subcategory($living, 'Leather & Fabric Recliners', 'leather-fabric-recliners', 'Recliners & Chairs', 3);
-        $accentChairs = $this->subcategory($living, 'Accent & Folding Chairs', 'accent-folding-chairs', 'Recliners & Chairs', 4);
-        $tvUnits = $this->subcategory($living, 'TV Consoles & Media Units', 'tv-consoles-media-units', 'Tables & Storage', 5);
-        $ottoman = $this->subcategory($living, 'Benches & Ottoman Stools', 'benches-ottoman-stools', 'Recliners & Chairs', 6);
+        $subs = [];
+        $sort = 0;
+        foreach ([
+            // Living Room — Sofas & Seating
+            ['3 Seater Sofas', '3-seater-sofas', 'Sofas & Seating'],
+            ['2 Seater Sofas', '2-seater-sofas', 'Sofas & Seating'],
+            ['1 Seater Sofas', '1-seater-sofas', 'Sofas & Seating'],
+            ['Sofa Sets & Sectionals', 'sofa-sets-sectionals', 'Sofas & Seating'],
+            ['Sofa Cum Beds & Corner Sofas', 'sofa-cum-beds-corner-sofas', 'Sofas & Seating'],
+            // Living Room — Recliners & Chairs
+            ['Leather & Fabric Recliners', 'leather-fabric-recliners', 'Recliners & Chairs'],
+            ['Recliner Sets', 'recliner-sets', 'Recliners & Chairs'],
+            ['Accent & Folding Chairs', 'accent-folding-chairs', 'Recliners & Chairs'],
+            ['Benches & Ottoman Stools', 'benches-ottoman-stools', 'Recliners & Chairs'],
+            ['Bean Bags & Pouffes', 'bean-bags-pouffes', 'Recliners & Chairs'],
+            // Living Room — Tables & Storage
+            ['Centre & Coffee Tables', 'centre-coffee-tables', 'Tables & Storage'],
+            ['End & Console Tables', 'end-console-tables', 'Tables & Storage'],
+            ['TV Consoles & Media Units', 'tv-consoles-media-units', 'Tables & Storage'],
+            ['Wall Shelves & Home Mandir', 'wall-shelves-home-mandir', 'Tables & Storage'],
+            ['Shoe Racks & Cabinets', 'shoe-racks-cabinets', 'Tables & Storage'],
+        ] as [$name, $slug, $group]) {
+            $subs[$slug] = $this->subcategory($living, $name, $slug, $group, ++$sort);
+        }
 
-        $queenBeds = $this->subcategory($bedroom, 'Queen Size Solid Teak Beds', 'queen-size-solid-teak-beds', 'Beds & Frames', 1);
-        $kingBeds = $this->subcategory($bedroom, 'King Size Hydraulic Beds', 'king-size-hydraulic-beds', 'Beds & Frames', 2);
-        $wardrobes = $this->subcategory($bedroom, '2 Door Swing Wardrobes', '2-door-swing-wardrobes', 'Wardrobes & Storage', 3);
+        $sort = 0;
+        foreach ([
+            // Bedroom — Beds & Frames
+            ['King Size Hydraulic Beds', 'king-size-hydraulic-beds', 'Beds & Frames'],
+            ['Queen Size Solid Teak Beds', 'queen-size-solid-teak-beds', 'Beds & Frames'],
+            ['Single & Poster Beds', 'single-poster-beds', 'Beds & Frames'],
+            ['Heavy Duty Metal Bunk Beds', 'heavy-duty-metal-bunk-beds', 'Beds & Frames'],
+            // Bedroom — Wardrobes & Storage
+            ['2 Door Swing Wardrobes', '2-door-swing-wardrobes', 'Wardrobes & Storage'],
+            ['3 & 4 Door Wardrobes', '3-4-door-wardrobes', 'Wardrobes & Storage'],
+            ['Sliding Door Wardrobes', 'sliding-door-wardrobes', 'Wardrobes & Storage'],
+            ['Bedside Tables & Nightstands', 'bedside-tables-nightstands', 'Wardrobes & Storage'],
+            // Bedroom — Mattresses & Dressers
+            ['Memory Foam Mattresses', 'memory-foam-mattresses', 'Mattresses & Dressers'],
+            ['Spring & Orthopedic Mattresses', 'spring-orthopedic-mattresses', 'Mattresses & Dressers'],
+            ['Chest of Drawers', 'chest-of-drawers', 'Mattresses & Dressers'],
+            ['Dresser Mirrors & Vanities', 'dresser-mirrors-vanities', 'Mattresses & Dressers'],
+        ] as [$name, $slug, $group]) {
+            $subs[$slug] = $this->subcategory($bedroom, $name, $slug, $group, ++$sort);
+        }
 
-        $sixSeater = $this->subcategory($dining, '6-Seater Solid Teak Sets', '6-seater-solid-teak-sets', 'Dining Sets', 1);
-        $fourSeater = $this->subcategory($dining, '4-Seater Dining Sets', '4-seater-dining-sets', 'Dining Sets', 2);
+        $sort = 0;
+        foreach ([
+            // Dining — Dining Sets
+            ['4-Seater Dining Sets', '4-seater-dining-sets', 'Dining Sets'],
+            ['6-Seater Solid Teak Sets', '6-seater-solid-teak-sets', 'Dining Sets'],
+            ['8-Seater Grand Dining Sets', '8-seater-grand-dining-sets', 'Dining Sets'],
+            ['Industrial Steel Dining Sets', 'industrial-steel-dining-sets', 'Dining Sets'],
+            // Dining — Chairs & Tables
+            ['Teak & Marble Dining Tables', 'teak-marble-dining-tables', 'Chairs & Tables'],
+            ['Upholstered Dining Chairs', 'upholstered-dining-chairs', 'Chairs & Tables'],
+            ['Solid Wood Dining Benches', 'solid-wood-dining-benches', 'Chairs & Tables'],
+            ['Crockery Cabinets & Curios', 'crockery-cabinets-curios', 'Chairs & Tables'],
+            // Dining — Bar Furniture
+            ['Luxury Bar Cabinets', 'luxury-bar-cabinets', 'Bar Furniture'],
+            ['Bar Stools & Counter Chairs', 'bar-stools-counter-chairs', 'Bar Furniture'],
+            ['Serving Trolleys & Carts', 'serving-trolleys-carts', 'Bar Furniture'],
+            ['Wine Racks & Glasses', 'wine-racks-glasses', 'Bar Furniture'],
+        ] as [$name, $slug, $group]) {
+            $subs[$slug] = $this->subcategory($dining, $name, $slug, $group, ++$sort);
+        }
 
-        $this->subcategory($furnishings, 'Designer Cushion Covers', 'designer-cushion-covers', 'Cushions & Curtains', 1);
+        $sort = 0;
+        foreach ([
+            // Furnishings — Bedding & Sheets
+            ['100% Cotton Double Bedsheets', 'cotton-double-bedsheets', 'Bedding & Sheets'],
+            ['King & Queen Bedding Sets', 'king-queen-bedding-sets', 'Bedding & Sheets'],
+            ['Pillows & Memory Foam Fillers', 'pillows-memory-foam-fillers', 'Bedding & Sheets'],
+            ['Quilts, Comforters & Dohars', 'quilts-comforters-dohars', 'Bedding & Sheets'],
+            // Furnishings — Cushions & Curtains
+            ['Designer Cushion Covers', 'designer-cushion-covers', 'Cushions & Curtains'],
+            ['Filled Floor Cushions', 'filled-floor-cushions', 'Cushions & Curtains'],
+            ['Door & Window Curtains', 'door-window-curtains', 'Cushions & Curtains'],
+            ['Blackout Blinds & Rods', 'blackout-blinds-rods', 'Cushions & Curtains'],
+            // Furnishings — Rugs & Coverings
+            ['Handwoven Wool Carpets', 'handwoven-wool-carpets', 'Rugs & Coverings'],
+            ['Traditional Dhurries & Rugs', 'traditional-dhurries-rugs', 'Rugs & Coverings'],
+            ['Anti-Skid Doormats', 'anti-skid-doormats', 'Rugs & Coverings'],
+            ['Protective Sofa Covers', 'protective-sofa-covers', 'Rugs & Coverings'],
+        ] as [$name, $slug, $group]) {
+            $subs[$slug] = $this->subcategory($furnishings, $name, $slug, $group, ++$sort);
+        }
+
+        $img = fn (string $id) => "https://images.unsplash.com/{$id}?auto=format&fit=crop&q=80&w=800";
 
         $rows = [
-            ['SF001', 'Alanis Metal Frame 3-Seater Velvet Sofa', 'alanis-metal-frame-3-seater-velvet-sofa', $threeSeater, 42000, 38999, 54999, true, true, 'CRCA Steel & Emerald Velvet', 'Metal frame three-seater with emerald velvet.', ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800', 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['SF002', 'Four Seater Family Sofa', 'four-seater-family-sofa', $sectionals, 62000, 58999, 74999, false, false, 'Solid Teak & Linen', 'Family sofa with removable cushions.', ['https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['SF003', 'Nordic Modular Sectional Steel Sofa', 'nordic-modular-sectional-steel-sofa', $sectionals, 78000, 72999, 94999, true, true, 'Powder Coated Steel', 'Corner sectional for the living room.', ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['BD001', 'Queen Size Solid Teak Bed', 'queen-size-solid-teak-bed', $queenBeds, 38000, 35999, 49999, true, false, 'Solid Teak Wood', 'Queen teak bed with storage drawers.', ['https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['BD002', 'Godwin Imperial Heavy Duty Metal & Teak King Bed', 'godwin-imperial-heavy-duty-metal-teak-king-bed', $kingBeds, 45000, 42999, 59999, true, true, 'CRCA Steel & Seasoned Teak', 'King bed with heavy CRCA frame and teak accents.', ['https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800', 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['DN001', 'Imperial 6-Seater Steel Dining Set', 'imperial-6-seater-steel-dining-set', $sixSeater, 54000, 51999, 69999, true, true, 'CRCA Heavy Steel', 'Dining set with six matching chairs.', ['https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['DN002', 'Godwin Compact 4-Seater Dining Set', 'godwin-compact-4-seater-dining-set', $fourSeater, 42000, 39999, 54999, false, false, 'Solid Teak Wood', 'Compact dining set for an apartment.', ['https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['CH001', 'Italian Leather & Steel Accent Chair', 'italian-leather-steel-accent-chair', $accentChairs, 12500, 10999, 15999, true, false, 'Italian Leather', 'Single accent chair for the living room.', ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['CH002', 'Godwin Steel & Velvet Recliner Chair', 'godwin-steel-velvet-recliner-chair', $recliners, 18500, 16999, 22999, false, false, 'CRCA Steel & Velvet', 'Cushioned recliner for a lounge corner.', ['https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['ST001', 'Godwin 2-Door Swing Wardrobe', 'godwin-2-door-swing-wardrobe', $wardrobes, 36000, 33999, 45999, false, false, 'Solid Teak Wood', 'Wardrobe with hanging space and shelves.', ['https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['ST002', 'Industrial Steel & Teak TV Console', 'industrial-steel-teak-tv-console', $tvUnits, 18500, 16999, 24999, true, false, 'Powder Coated Steel', 'Low TV unit with drawers.', ['https://images.unsplash.com/photo-1532372576444-dda954194ad0?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
-            ['OT001', 'Floor Ottoman Stool', 'floor-ottoman-stool', $ottoman, 4500, null, null, false, false, 'Fabric', 'Display sample, not for sale yet.', [], Product::STATUS_INACTIVE],
+            // Existing codes (stock / sales flows depend on these)
+            ['SF001', 'Alanis Metal Frame 3-Seater Velvet Sofa', 'alanis-metal-frame-3-seater-velvet-sofa', $subs['3-seater-sofas'], 42000, 38999, 54999, true, true, 'CRCA Steel & Emerald Velvet', 'Metal frame three-seater with emerald velvet.', [$img('photo-1555041469-a586c61ea9bc'), $img('photo-1493663284031-b7e3aefcae8e')], Product::STATUS_ACTIVE],
+            ['SF002', 'Four Seater Family Sofa', 'four-seater-family-sofa', $subs['sofa-sets-sectionals'], 62000, 58999, 74999, true, false, 'Solid Teak & Linen', 'Family sofa with removable cushions.', [$img('photo-1493663284031-b7e3aefcae8e')], Product::STATUS_ACTIVE],
+            ['SF003', 'Nordic Modular Sectional Steel Sofa', 'nordic-modular-sectional-steel-sofa', $subs['sofa-sets-sectionals'], 78000, 72999, 94999, true, true, 'Powder Coated Steel', 'Corner sectional for the living room.', [$img('photo-1586023492125-27b2c045efd7')], Product::STATUS_ACTIVE],
+            ['BD001', 'Queen Size Solid Teak Bed', 'queen-size-solid-teak-bed', $subs['queen-size-solid-teak-beds'], 38000, 35999, 49999, true, false, 'Solid Teak Wood', 'Queen teak bed with storage drawers.', [$img('photo-1505693314120-0d443867891c')], Product::STATUS_ACTIVE],
+            ['BD002', 'Godwin Imperial Heavy Duty Metal & Teak King Bed', 'godwin-imperial-heavy-duty-metal-teak-king-bed', $subs['king-size-hydraulic-beds'], 45000, 42999, 59999, true, true, 'CRCA Steel & Seasoned Teak', 'King bed with heavy CRCA frame and teak accents.', [$img('photo-1505693314120-0d443867891c'), $img('photo-1524758631624-e2822e304c36')], Product::STATUS_ACTIVE],
+            ['DN001', 'Imperial 6-Seater Steel Dining Set', 'imperial-6-seater-steel-dining-set', $subs['6-seater-solid-teak-sets'], 54000, 51999, 69999, true, true, 'CRCA Heavy Steel', 'Dining set with six matching chairs.', [$img('photo-1617806118233-18e1de247200')], Product::STATUS_ACTIVE],
+            ['DN002', 'Godwin Compact 4-Seater Dining Set', 'godwin-compact-4-seater-dining-set', $subs['4-seater-dining-sets'], 42000, 39999, 54999, true, false, 'Solid Teak Wood', 'Compact dining set for an apartment.', [$img('photo-1577140917170-285929fb55b7')], Product::STATUS_ACTIVE],
+            ['CH001', 'Italian Leather & Steel Accent Chair', 'italian-leather-steel-accent-chair', $subs['accent-folding-chairs'], 12500, 10999, 15999, true, false, 'Italian Leather', 'Single accent chair for the living room.', [$img('photo-1586023492125-27b2c045efd7')], Product::STATUS_ACTIVE],
+            ['CH002', 'Godwin Steel & Velvet Recliner Chair', 'godwin-steel-velvet-recliner-chair', $subs['leather-fabric-recliners'], 18500, 16999, 22999, true, false, 'CRCA Steel & Velvet', 'Cushioned recliner for a lounge corner.', [$img('photo-1567538096630-e0c55bd6374c')], Product::STATUS_ACTIVE],
+            ['ST001', 'Godwin 2-Door Swing Wardrobe', 'godwin-2-door-swing-wardrobe', $subs['2-door-swing-wardrobes'], 36000, 33999, 45999, true, false, 'Solid Teak Wood', 'Wardrobe with hanging space and shelves.', [$img('photo-1595428774223-ef52624120d2')], Product::STATUS_ACTIVE],
+            ['ST002', 'Industrial Steel & Teak TV Console', 'industrial-steel-teak-tv-console', $subs['tv-consoles-media-units'], 18500, 16999, 24999, true, false, 'Powder Coated Steel', 'Low TV unit with drawers.', [$img('photo-1532372576444-dda954194ad0')], Product::STATUS_ACTIVE],
+            ['OT001', 'Floor Ottoman Stool', 'floor-ottoman-stool', $subs['benches-ottoman-stools'], 4500, null, null, false, false, 'Fabric', 'Display sample, not for sale yet.', [], Product::STATUS_INACTIVE],
+
+            // Extra catalog products (cover more static subcategories)
+            ['SF004', 'Compact 2-Seater Lounge Sofa', 'compact-2-seater-lounge-sofa', $subs['2-seater-sofas'], 28000, 25999, 34999, true, true, 'Fabric & Steel', 'Two-seater sofa for apartments.', [$img('photo-1555041469-a586c61ea9bc')], Product::STATUS_ACTIVE],
+            ['SF005', 'Single Seater Reading Sofa', 'single-seater-reading-sofa', $subs['1-seater-sofas'], 16000, 14999, 19999, true, false, 'Velvet', 'Deep single seat for reading corners.', [$img('photo-1567538096630-e0c55bd6374c')], Product::STATUS_ACTIVE],
+            ['SF006', 'Corner Sofa Cum Bed', 'corner-sofa-cum-bed', $subs['sofa-cum-beds-corner-sofas'], 52000, 48999, 64999, true, true, 'Fabric & Foam', 'L-shaped sofa that converts to a bed.', [$img('photo-1493663284031-b7e3aefcae8e')], Product::STATUS_ACTIVE],
+            ['CH003', 'Twin Leather Recliner Set', 'twin-leather-recliner-set', $subs['recliner-sets'], 42000, 39999, 52999, true, false, 'Leather', 'Matching pair of recliners.', [$img('photo-1567538096630-e0c55bd6374c')], Product::STATUS_ACTIVE],
+            ['TB001', 'Round Teak Coffee Table', 'round-teak-coffee-table', $subs['centre-coffee-tables'], 14500, 12999, 17999, true, false, 'Solid Teak', 'Centre table with lower shelf.', [$img('photo-1532372576444-dda954194ad0')], Product::STATUS_ACTIVE],
+            ['BD003', 'Single Poster Teak Bed', 'single-poster-teak-bed', $subs['single-poster-beds'], 22000, 19999, 27999, true, false, 'Solid Teak', 'Single bed with tall posts.', [$img('photo-1540518614846-7ede433c5163')], Product::STATUS_ACTIVE],
+            ['BD004', 'Metal Bunk Bed Twin', 'metal-bunk-bed-twin', $subs['heavy-duty-metal-bunk-beds'], 31000, 28999, 37999, true, true, 'CRCA Steel', 'Heavy duty bunk for kids rooms.', [$img('photo-1505693314120-0d443867891c')], Product::STATUS_ACTIVE],
+            ['ST003', '4 Door Sliding Wardrobe', '4-door-sliding-wardrobe', $subs['sliding-door-wardrobes'], 58000, 54999, 69999, true, false, 'Engineered Wood', 'Sliding wardrobe with mirror panel.', [$img('photo-1595428774223-ef52624120d2')], Product::STATUS_ACTIVE],
+            ['MT001', 'Orthopedic Memory Foam Mattress', 'orthopedic-memory-foam-mattress', $subs['memory-foam-mattresses'], 24000, 21999, 29999, true, true, 'Memory Foam', 'Queen memory foam mattress.', [$img('photo-1522771739844-6a9f6d5f14af')], Product::STATUS_ACTIVE],
+            ['DN003', 'Grand 8-Seater Dining Set', 'grand-8-seater-dining-set', $subs['8-seater-grand-dining-sets'], 86000, 81999, 99999, true, true, 'Solid Teak', 'Formal dining for large families.', [$img('photo-1617806118233-18e1de247200')], Product::STATUS_ACTIVE],
+            ['DN004', 'Industrial Steel Dining Set', 'industrial-steel-dining-set', $subs['industrial-steel-dining-sets'], 48000, 44999, 57999, true, false, 'Powder Coated Steel', 'Six-seater industrial dining.', [$img('photo-1577140917170-285929fb55b7')], Product::STATUS_ACTIVE],
+            ['BA001', 'Godwin Bar Cabinet', 'godwin-bar-cabinet', $subs['luxury-bar-cabinets'], 32000, 29999, 39999, true, false, 'Teak & Glass', 'Bar cabinet with glass doors.', [$img('photo-1514933651103-005eec06c04b')], Product::STATUS_ACTIVE],
+            ['FN001', 'Cotton Double Bedsheet Set', 'cotton-double-bedsheet-set', $subs['cotton-double-bedsheets'], 2499, 1999, 3499, true, true, '100% Cotton', 'Double bedsheet with two pillow covers.', [$img('photo-1522771739844-6a9f6d5f14af')], Product::STATUS_ACTIVE],
+            ['FN002', 'Designer Cushion Cover Pack', 'designer-cushion-cover-pack', $subs['designer-cushion-covers'], 1299, 999, 1799, true, false, 'Cotton Blend', 'Pack of four cushion covers.', [$img('photo-1584100936595-c0654b55a2e2')], Product::STATUS_ACTIVE],
+            ['FN003', 'Handwoven Wool Carpet', 'handwoven-wool-carpet', $subs['handwoven-wool-carpets'], 8999, 7999, 11999, true, false, 'Wool', 'Living room carpet in warm tones.', [$img('photo-1600121848594-d8644e57abab')], Product::STATUS_ACTIVE],
         ];
 
         $products = [];
