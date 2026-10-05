@@ -20,6 +20,25 @@ class StorefrontCatalogTest extends TestCase
     use CreatesCatalog;
     use RefreshDatabase;
 
+    public function test_home_mega_menu_uses_catalog_categories(): void
+    {
+        $category = $this->subcategory();
+
+        $this->get(route('store.home'))
+            ->assertOk()
+            ->assertSee('Living Room')
+            ->assertSee('3 Seater Sofas')
+            ->assertSee('Sofas & Seating')
+            ->assertSee('Open Living Room menu', false)
+            ->assertSee(route('store.catalog', ['category' => $category->parent->slug], false))
+            ->assertSee(route('store.catalog', ['category' => $category->slug], false));
+
+        $this->get(route('store.catalog'))
+            ->assertOk()
+            ->assertSee('Living Room')
+            ->assertSee('3 Seater Sofas');
+    }
+
     public function test_catalog_lists_online_products_with_mrp(): void
     {
         $category = $this->subcategory();

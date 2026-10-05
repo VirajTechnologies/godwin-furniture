@@ -78,23 +78,7 @@
     </header>
 
     <!-- Sticky Navigation Menu Bar (Centered Mega Menu Navigation) -->
-    <nav class="sticky-top luxury-menubar-bg py-2 d-none d-lg-block" style="z-index: 1050;">
-        <div class="container-fluid px-4 px-xl-5">
-            <ul class="nav justify-content-center align-items-center gap-3 gap-xl-4 main-nav-luxury position-relative m-0">
-                <li class="nav-item"><a class="nav-link text-danger fw-bold d-flex align-items-center" href="{{ route('store.catalog', ['sort' => 'popular']) }}"><span class="nav-sale-icon-badge me-2"><i class="fas fa-percent"></i></span> Sale 🔥</a></li>
-                @foreach ($storeMenu ?? [] as $room)
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center {{ request('category') === $room->slug ? 'active' : '' }}" href="{{ route('store.catalog', ['category' => $room->slug]) }}">
-                            @if ($room->image_url)
-                                <img src="{{ $room->image_url }}" class="nav-heading-thumb me-2" alt="{{ $room->name }}">
-                            @endif
-                            {{ $room->name }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-    </nav>
+    @include('store.partials.mega-nav')
 
 
     

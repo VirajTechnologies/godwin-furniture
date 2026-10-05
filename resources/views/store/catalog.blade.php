@@ -56,16 +56,26 @@
                         </div>
                         <div class="mb-4">
                             <label class="font-heading fw-bold small text-dark mb-2 d-block">Category</label>
-                            <div class="d-flex flex-column gap-2">
+                            <div class="d-flex flex-column gap-3">
                                 @foreach ($rooms as $room)
-                                    @foreach ($room->children as $child)
-                                        <label class="form-check-label small d-flex justify-content-between align-items-center">
-                                            <span>
-                                                <input type="radio" class="form-check-input me-2" name="category" value="{{ $child->slug }}" @checked($filters['category'] === $child->slug)>
-                                                {{ $child->name }}
-                                            </span>
-                                        </label>
-                                    @endforeach
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="font-heading fw-bold small text-dark">{{ $room->name }}</span>
+                                            <a href="{{ route('store.catalog', ['category' => $room->slug]) }}" class="text-amber small text-decoration-none">All</a>
+                                        </div>
+                                        <div class="d-flex flex-column gap-2 ps-1">
+                                            @forelse ($room->children as $child)
+                                                <label class="form-check-label small d-flex justify-content-between align-items-center">
+                                                    <span>
+                                                        <input type="radio" class="form-check-input me-2" name="category" value="{{ $child->slug }}" @checked($filters['category'] === $child->slug)>
+                                                        {{ $child->name }}
+                                                    </span>
+                                                </label>
+                                            @empty
+                                                <span class="text-muted small">No subcategories</span>
+                                            @endforelse
+                                        </div>
+                                    </div>
                                 @endforeach
                             </div>
                         </div>

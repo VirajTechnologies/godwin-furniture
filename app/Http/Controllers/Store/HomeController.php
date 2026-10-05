@@ -27,7 +27,11 @@ class HomeController extends Controller
             'featuredProducts' => (clone $online)->where('is_featured', true)->orderBy('name')->limit(8)->get(),
             'newProducts' => (clone $online)->orderByDesc('id')->limit(8)->get(),
             'rooms' => Category::query()
-                ->with(['children' => fn ($query) => $query->where('status', Category::STATUS_ACTIVE)])
+                ->with(['children' => fn ($query) => $query
+                    ->where('status', Category::STATUS_ACTIVE)
+                    ->orderBy('menu_group')
+                    ->orderBy('sort_order')
+                    ->orderBy('name')])
                 ->whereNull('parent_id')
                 ->where('status', Category::STATUS_ACTIVE)
                 ->orderBy('sort_order')
@@ -39,7 +43,11 @@ class HomeController extends Controller
     public function catalog(Request $request): View
     {
         $rooms = Category::query()
-            ->with(['children' => fn ($query) => $query->where('status', Category::STATUS_ACTIVE)])
+            ->with(['children' => fn ($query) => $query
+                ->where('status', Category::STATUS_ACTIVE)
+                ->orderBy('menu_group')
+                ->orderBy('sort_order')
+                ->orderBy('name')])
             ->whereNull('parent_id')
             ->where('status', Category::STATUS_ACTIVE)
             ->orderBy('sort_order')
@@ -153,10 +161,14 @@ class HomeController extends Controller
         return view('store.register');
     }
 
-    private function menu()
+        private function menu()
     {
         return Category::query()
-            ->with(['children' => fn ($query) => $query->where('status', Category::STATUS_ACTIVE)->orderBy('sort_order')->orderBy('name')])
+            ->with(['children' => fn ($query) => $query
+                ->where('status', Category::STATUS_ACTIVE)
+                ->orderBy('menu_group')
+                ->orderBy('sort_order')
+                ->orderBy('name')])
             ->whereNull('parent_id')
             ->where('status', Category::STATUS_ACTIVE)
             ->orderBy('sort_order')

@@ -169,252 +169,27 @@
         </div>
     </header>
 
-    <!-- 3. Sticky Navigation Menu Bar (Centered Mega Menu Navigation) -->
-    <nav class="sticky-top luxury-menubar-bg py-2 d-none d-lg-block" style="z-index: 1050;">
-        <div class="container-fluid px-4 px-xl-5">
-            <ul class="nav justify-content-center align-items-center gap-3 gap-xl-4 main-nav-luxury position-relative m-0">
-                
-                <!-- Sale -->
-                <li class="nav-item">
-                    <a class="nav-link text-danger fw-bold d-flex align-items-center" href="{{ route('store.catalog', ['sale' => '1']) }}"><span class="nav-sale-icon-badge me-2"><i class="fas fa-percent"></i></span> Sale 🔥</a>
-                </li>
-
-                <!-- Living Room Mega Menu -->
-                <li class="nav-item dropdown position-static">
-                    <a class="nav-link dropdown-toggle active d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'living']) }}" data-bs-toggle="dropdown">
-                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Living Room"> Living Room
-                    </a>
-                    <div class="dropdown-menu mega-menu-panel border-0 shadow-lg">
-                        <div class="row g-4 align-items-center">
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Sofas"> Sofas & Seating</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">3 Seater Sofas <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">2 Seater Sofas <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">1 Seater Sofas <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Sofa Sets & Sectionals <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Sofa Cum Beds & Corner Sofas <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Recliners"> Recliners & Chairs</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">Leather & Fabric Recliners <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Recliner Sets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Accent & Folding Chairs <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Benches & Ottoman Stools <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Bean Bags & Pouffes <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1532372576444-dda954194ad0?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Tables"> Tables & Storage</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">Centre & Coffee Tables <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">End & Console Tables <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">TV Consoles & Media Units <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Wall Shelves & Home Mandir <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Shoe Racks & Cabinets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <div class="mega-menu-banner rounded-3 overflow-hidden position-relative">
-                                    <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=500" alt="Special Offer Ad" class="img-fluid w-100" style="height: 210px; object-fit: cover;">
-                                    <div class="position-absolute bottom-0 start-0 end-0 p-3 bg-dark bg-opacity-85 text-white">
-                                        <span class="badge bg-danger text-white mb-1 fw-bold" style="font-size: 10px;"><i class="fas fa-bolt me-1"></i> SPECIAL AD OFFER</span>
-                                        <h6 class="m-0 text-white font-heading fw-bold">Flat 40% OFF Living Room Deals</h6>
-                                        <a href="{{ route('store.catalog', ['sale' => '1']) }}" class="small text-warning text-decoration-none fw-semibold">Claim Offer Deals &rarr;</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-
-                <!-- Bedroom Mega Menu -->
-                <li class="nav-item dropdown position-static">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'bedroom']) }}" data-bs-toggle="dropdown">
-                        <img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Bedroom"> Bedroom
-                    </a>
-                    <div class="dropdown-menu mega-menu-panel border-0 shadow-lg">
-                        <div class="row g-4 align-items-center">
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Beds"> Beds & Frames</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">King Size Hydraulic Beds <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Queen Size Solid Teak Beds <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Single & Poster Beds <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Heavy Duty Metal Bunk Beds <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Wardrobes"> Wardrobes & Storage</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">2 Door Swing Wardrobes <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">3 & 4 Door Wardrobes <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Sliding Door Wardrobes <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Bedside Tables & Nightstands <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1616046229478-9901c5536a45?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Mattresses"> Mattresses & Dressers</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">Memory Foam Mattresses <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Spring & Orthopedic Mattresses <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Chest of Drawers <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Dresser Mirrors & Vanities <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <div class="mega-menu-banner rounded-3 overflow-hidden position-relative">
-                                    <img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=500" alt="Special Offer Ad" class="img-fluid w-100" style="height: 210px; object-fit: cover;">
-                                    <div class="position-absolute bottom-0 start-0 end-0 p-3 bg-dark bg-opacity-85 text-white">
-                                        <span class="badge bg-danger text-white mb-1 fw-bold" style="font-size: 10px;"><i class="fas fa-percentage me-1"></i> MEGA DEALS AD</span>
-                                        <h6 class="m-0 text-white font-heading fw-bold">Up to 50% OFF Bedroom Suites</h6>
-                                        <a href="{{ route('store.catalog', ['sale' => '1']) }}" class="small text-warning text-decoration-none fw-semibold">Explore Ad Discounts &rarr;</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-
-                <!-- Dining Room Mega Menu -->
-                <li class="nav-item dropdown position-static">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'dining']) }}" data-bs-toggle="dropdown">
-                        <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Dining Room"> Dining Room
-                    </a>
-                    <div class="dropdown-menu mega-menu-panel border-0 shadow-lg">
-                        <div class="row g-4 align-items-center">
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Dining Sets"> Dining Sets</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">4-Seater Dining Sets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">6-Seater Solid Teak Sets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">8-Seater Grand Dining Sets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Industrial Steel Dining Sets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Chairs & Tables"> Chairs & Tables</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">Teak & Marble Dining Tables <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Upholstered Dining Chairs <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Solid Wood Dining Benches <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Crockery Cabinets & Curios <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Bar Furniture"> Bar Furniture</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">Luxury Bar Cabinets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Bar Stools & Counter Chairs <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Serving Trolleys & Carts <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Wine Racks & Glasses <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <div class="mega-menu-banner rounded-3 overflow-hidden position-relative">
-                                    <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=500" alt="Special Offer Ad" class="img-fluid w-100" style="height: 210px; object-fit: cover;">
-                                    <div class="position-absolute bottom-0 start-0 end-0 p-3 bg-dark bg-opacity-85 text-white">
-                                        <span class="badge bg-danger text-white mb-1 fw-bold" style="font-size: 10px;"><i class="fas fa-tag me-1"></i> FLASH SALE AD</span>
-                                        <h6 class="m-0 text-white font-heading fw-bold">Extra 15% OFF Dining Sets</h6>
-                                        <a href="{{ route('store.catalog', ['sale' => '1']) }}" class="small text-warning text-decoration-none fw-semibold">Claim Special Offer &rarr;</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-
-                <!-- Furnishings Mega Menu -->
-                <li class="nav-item dropdown position-static">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'furnishings']) }}" data-bs-toggle="dropdown">
-                        <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Furnishings"> Furnishings
-                    </a>
-                    <div class="dropdown-menu mega-menu-panel border-0 shadow-lg">
-                        <div class="row g-4 align-items-center">
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Bedding"> Bedding & Sheets</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">100% Cotton Double Bedsheets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">King & Queen Bedding Sets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Pillows & Memory Foam Fillers <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Quilts, Comforters & Dohars <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Cushions"> Cushions & Curtains</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">Designer Cushion Covers <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Filled Floor Cushions <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Door & Window Curtains <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Blackout Blinds & Rods <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <h6 class="mega-menu-title d-flex align-items-center gap-2"><img src="https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&q=80&w=80" class="mega-title-thumb" alt="Rugs"> Rugs & Coverings</h6>
-                                <ul class="mega-menu-list">
-                                    <li><a href="{{ route('store.catalog') }}">Handwoven Wool Carpets <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Traditional Dhurries & Rugs <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Anti-Skid Doormats <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                    <li><a href="{{ route('store.catalog') }}">Protective Sofa Covers <i class="fas fa-chevron-right small text-muted"></i></a></li>
-                                </ul>
-                            </div>
-                            <div class="col-3">
-                                <div class="mega-menu-banner rounded-3 overflow-hidden position-relative">
-                                    <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=500" alt="Special Offer Ad" class="img-fluid w-100" style="height: 210px; object-fit: cover;">
-                                    <div class="position-absolute bottom-0 start-0 end-0 p-3 bg-dark bg-opacity-85 text-white">
-                                        <span class="badge bg-danger text-white mb-1 fw-bold" style="font-size: 10px;"><i class="fas fa-gift me-1"></i> FESTIVE AD OFFER</span>
-                                        <h6 class="m-0 text-white font-heading fw-bold">Buy 1 Get 1 OFF Furnishings</h6>
-                                        <a href="{{ route('store.catalog', ['sale' => '1']) }}" class="small text-warning text-decoration-none fw-semibold">Shop Special Ads &rarr;</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-
-            </ul>
-        </div>
-    </nav>
+    @include('store.partials.mega-nav')
 
     <!-- Mobile Story Ring Categories (Instagram / App Style) -->
     <div class="d-lg-none mt-2">
         <div class="mobile-story-container">
-            <a href="{{ route('store.catalog') }}" class="mobile-story-item">
-                <div class="mobile-story-ring"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=200" class="mobile-story-img" alt="Sofas"></div>
-                <span class="mobile-story-label">Sofas</span>
-            </a>
-            <a href="{{ route('store.catalog') }}" class="mobile-story-item">
-                <div class="mobile-story-ring"><img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=200" class="mobile-story-img" alt="Metal Beds"></div>
-                <span class="mobile-story-label">Metal Beds</span>
-            </a>
-            <a href="{{ route('store.catalog') }}" class="mobile-story-item">
-                <div class="mobile-story-ring"><img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=200" class="mobile-story-img" alt="Dining"></div>
-                <span class="mobile-story-label">Dining</span>
-            </a>
-            <a href="{{ route('store.catalog') }}" class="mobile-story-item">
-                <div class="mobile-story-ring"><img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=200" class="mobile-story-img" alt="Desks"></div>
-                <span class="mobile-story-label">Desks</span>
-            </a>
-            <a href="{{ route('store.catalog') }}" class="mobile-story-item">
-                <div class="mobile-story-ring"><img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=200" class="mobile-story-img" alt="Almirahs"></div>
-                <span class="mobile-story-label">Almirahs</span>
-            </a>
-            <a href="{{ route('store.catalog') }}" class="mobile-story-item">
-                <div class="mobile-story-ring"><img src="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&q=80&w=200" class="mobile-story-img" alt="Decor"></div>
-                <span class="mobile-story-label">Decor</span>
-            </a>
+            @foreach ($storeMenu ?? [] as $room)
+                <a href="{{ route('store.catalog', ['category' => $room->slug]) }}" class="mobile-story-item">
+                    <div class="mobile-story-ring">
+                        <img src="{{ $room->image_url ?: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=200' }}" class="mobile-story-img" alt="{{ $room->name }}">
+                    </div>
+                    <span class="mobile-story-label">{{ $room->name }}</span>
+                </a>
+            @endforeach
         </div>
 
         <!-- Mobile Quick Chips Filter Bar -->
         <div class="mobile-chips-bar">
-            <a href="{{ route('store.catalog') }}" class="mobile-chip active">🔥 All Deals</a>
-            <a href="{{ route('store.catalog') }}" class="mobile-chip">🛋️ Sofas</a>
-            <a href="{{ route('store.catalog') }}" class="mobile-chip">🛏️ Metal Beds</a>
-            <a href="{{ route('store.catalog') }}" class="mobile-chip">🍽️ Dining Sets</a>
-            <a href="{{ route('store.catalog') }}" class="mobile-chip">💼 Desks</a>
-            <a href="{{ route('store.catalog') }}" class="mobile-chip">🗄️ Almirahs</a>
+            <a href="{{ route('store.catalog') }}" class="mobile-chip {{ request()->routeIs('store.catalog') && ! request('category') ? 'active' : '' }}">🔥 All</a>
+            @foreach ($storeMenu ?? [] as $room)
+                <a href="{{ route('store.catalog', ['category' => $room->slug]) }}" class="mobile-chip {{ request('category') === $room->slug ? 'active' : '' }}">{{ $room->name }}</a>
+            @endforeach
         </div>
     </div>
 
@@ -1548,11 +1323,24 @@
         <div class="offcanvas-body p-4">
             <h6 class="font-heading fw-bold text-muted small text-uppercase mb-3">Browse Categories</h6>
             <ul class="nav flex-column gap-2 font-heading">
-                <li class="nav-item"><a class="nav-link text-dark fw-semibold" href="{{ route('store.catalog') }}"><i class="fas fa-couch text-amber me-2"></i> Living Room Sofas</a></li>
-                <li class="nav-item"><a class="nav-link text-dark fw-semibold" href="{{ route('store.catalog') }}"><i class="fas fa-bed text-amber me-2"></i> Heavy Duty Metal Beds</a></li>
-                <li class="nav-item"><a class="nav-link text-dark fw-semibold" href="{{ route('store.catalog') }}"><i class="fas fa-utensils text-amber me-2"></i> Steel Dining Sets</a></li>
-                <li class="nav-item"><a class="nav-link text-dark fw-semibold" href="{{ route('store.catalog') }}"><i class="fas fa-laptop-house text-amber me-2"></i> Executive Desks</a></li>
-                <li class="nav-item"><a class="nav-link text-dark fw-semibold" href="{{ route('store.catalog') }}"><i class="fas fa-archive text-amber me-2"></i> Heavy Steel Almirahs</a></li>
+                @forelse ($storeMenu ?? [] as $room)
+                    <li class="nav-item">
+                        <a class="nav-link text-dark fw-semibold" href="{{ route('store.catalog', ['category' => $room->slug]) }}">
+                            <i class="fas fa-couch text-amber me-2"></i> {{ $room->name }}
+                        </a>
+                        @if ($room->children->isNotEmpty())
+                            <ul class="list-unstyled ps-4 mb-2">
+                                @foreach ($room->children->take(6) as $child)
+                                    <li>
+                                        <a class="nav-link py-1 small text-muted" href="{{ route('store.catalog', ['category' => $child->slug]) }}">{{ $child->name }}</a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </li>
+                @empty
+                    <li class="nav-item"><a class="nav-link text-dark fw-semibold" href="{{ route('store.catalog') }}">Furniture Catalog</a></li>
+                @endforelse
             </ul>
             <hr class="my-4">
             <h6 class="font-heading fw-bold text-muted small text-uppercase mb-3"><i class="fas fa-ellipsis-v me-2 text-amber"></i> More Services & Info</h6>

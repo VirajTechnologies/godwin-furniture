@@ -34,11 +34,22 @@ class SampleDataCommandTest extends TestCase
         $this->assertDatabaseHas('categories', ['slug' => '8-seater-grand-dining-sets']);
         $this->assertDatabaseHas('categories', ['slug' => 'handwoven-wool-carpets']);
         $this->assertDatabaseHas('products', ['code' => 'SF001', 'is_online' => true]);
-        $this->assertDatabaseHas('products', ['code' => 'SF004', 'is_online' => true]);
-        $this->assertDatabaseHas('products', ['code' => 'FN001', 'is_online' => true]);
         $this->assertDatabaseHas('products', ['code' => 'OT001', 'status' => 'inactive']);
+        $this->assertDatabaseHas('products', ['code' => 'GX0001']);
         $this->assertGreaterThanOrEqual(40, \App\Models\Category::query()->whereNotNull('parent_id')->count());
-        $this->assertGreaterThanOrEqual(20, \App\Models\Product::query()->where('is_online', true)->count());
+        $this->assertGreaterThanOrEqual(200, \App\Models\Product::query()->where('is_online', true)->count());
+
+        \App\Models\Category::query()
+            ->whereNotNull('parent_id')
+            ->withCount('products')
+            ->get()
+            ->each(function (\App\Models\Category $category): void {
+                $this->assertGreaterThanOrEqual(
+                    5,
+                    $category->products_count,
+                    "Expected at least 5 products under {$category->name}"
+                );
+            });
         $this->assertDatabaseHas('stock_transfers', ['code' => 'TR004', 'status' => 'dispatched']);
         $this->assertDatabaseHas('stock_transfers', ['code' => 'TR006', 'status' => 'cancelled']);
         $this->assertDatabaseHas('customers', ['phone' => '9848011001']);

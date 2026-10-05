@@ -625,7 +625,47 @@ nav.sticky-top {
     position: relative;
 }
 
-.main-nav-luxury .nav-item.dropdown:hover .dropdown-menu {
+.main-nav-luxury .nav-room-item {
+    border-radius: 25px;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.main-nav-luxury .nav-room-item .nav-link {
+    padding-right: 6px;
+}
+
+.main-nav-luxury .nav-room-caret {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ws-dark);
+    font-size: 10px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.22s ease;
+}
+
+.main-nav-luxury .nav-room-item:hover,
+.main-nav-luxury .nav-room-item.active,
+.main-nav-luxury .nav-item.dropdown:hover .nav-room-item {
+    background-color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.main-nav-luxury .nav-room-item:hover .nav-room-caret,
+.main-nav-luxury .nav-item.dropdown.show .nav-room-caret {
+    background-color: rgba(15, 23, 42, 0.06);
+}
+
+.main-nav-luxury .nav-item.dropdown:hover .dropdown-menu,
+.main-nav-luxury .nav-item.dropdown .dropdown-menu.show {
     display: block !important;
     margin-top: 0;
     opacity: 1;
