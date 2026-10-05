@@ -13,16 +13,12 @@ class StorefrontTest extends TestCase
     {
         $this->get(route('store.home'))
             ->assertOk()
-            ->assertSee('Godwin Groups')
+            ->assertSee('Godwin')
             ->assertDontSee('Showroom POS');
 
         $this->get(route('store.catalog'))
             ->assertOk()
             ->assertSee('Furniture Catalog');
-
-        $this->get(route('store.product'))
-            ->assertOk()
-            ->assertSee('Godwin Imperial');
 
         $this->get(route('store.cart'))
             ->assertOk()

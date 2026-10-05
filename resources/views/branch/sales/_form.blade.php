@@ -64,7 +64,7 @@
                     <select class="form-select sale-product @error('items.'.$index.'.product_id') is-invalid @enderror" name="items[{{ $index }}][product_id]" required>
                         <option value="">Select Product</option>
                         @foreach ($stocks as $stock)
-                            <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->selling_price }}" data-available="{{ $stock->quantity }}" @selected((string) ($line['product_id'] ?? '') === (string) $stock->product_id)>{{ $stock->product->code }} · {{ $stock->product->name }}</option>
+                            <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch(auth()->user()->employee->branch_id) }}" data-available="{{ $stock->quantity }}" @selected((string) ($line['product_id'] ?? '') === (string) $stock->product_id)>{{ $stock->product->code }} · {{ $stock->product->name }}</option>
                         @endforeach
                     </select>
                     @error('items.'.$index.'.product_id')
@@ -107,7 +107,7 @@
             <select class="form-select sale-product" name="items[__INDEX__][product_id]" required>
                 <option value="">Select Product</option>
                 @foreach ($stocks as $stock)
-                    <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->selling_price }}" data-available="{{ $stock->quantity }}">{{ $stock->product->code }} · {{ $stock->product->name }}</option>
+                    <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch(auth()->user()->employee->branch_id) }}" data-available="{{ $stock->quantity }}">{{ $stock->product->code }} · {{ $stock->product->name }}</option>
                 @endforeach
             </select>
         </div>

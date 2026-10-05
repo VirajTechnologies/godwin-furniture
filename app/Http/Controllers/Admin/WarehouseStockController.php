@@ -19,7 +19,7 @@ class WarehouseStockController extends Controller
     {
         $stocks = Stock::query()
             ->whereNotNull('warehouse_id')
-            ->with(['product.category', 'warehouse'])
+            ->with(['product.category.parent', 'warehouse'])
             ->orderBy('warehouse_id')
             ->orderBy('product_id')
             ->paginate(15);

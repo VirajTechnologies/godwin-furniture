@@ -27,6 +27,7 @@
                                         <th>Code</th>
                                         <th>Product</th>
                                         <th>Category</th>
+                                        <th>Subcategory</th>
                                         <th>Quantity</th>
                                         <th>Updated</th>
                                     </tr>
@@ -37,6 +38,7 @@
                                             <td>{{ $stocks->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium">{{ $stock->product?->code }}</td>
                                             <td>{{ $stock->product?->name }}</td>
+                                            <td>{{ $stock->product?->category?->parent?->name ?? '—' }}</td>
                                             <td>{{ $stock->product?->category?->name ?? '—' }}</td>
                                             <td>{{ $stock->quantity }}</td>
                                             <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>

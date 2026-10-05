@@ -116,9 +116,11 @@ class SaleController extends Controller
 
     private function stocks(Request $request)
     {
+        $branchId = $request->user()->employee->branch_id;
+
         return Stock::query()
-            ->with('product')
-            ->where('branch_id', $request->user()->employee->branch_id)
+            ->with(['product.branchPrices' => fn ($query) => $query->where('branch_id', $branchId)])
+            ->where('branch_id', $branchId)
             ->whereNull('warehouse_id')
             ->where('quantity', '>', 0)
             ->whereHas('product', function ($query): void {

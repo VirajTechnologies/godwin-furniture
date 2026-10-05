@@ -81,13 +81,20 @@
     <nav class="sticky-top luxury-menubar-bg py-2 d-none d-lg-block" style="z-index: 1050;">
         <div class="container-fluid px-4 px-xl-5">
             <ul class="nav justify-content-center align-items-center gap-3 gap-xl-4 main-nav-luxury position-relative m-0">
-                <li class="nav-item"><a class="nav-link text-danger fw-bold d-flex align-items-center" href="{{ route('store.catalog', ['sale' => '1']) }}"><span class="nav-sale-icon-badge me-2"><i class="fas fa-percent"></i></span> Sale 🔥</a></li>
-                <li class="nav-item"><a class="nav-link active d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'living']) }}"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Living Room"> Living Room</a></li>
-                <li class="nav-item"><a class="nav-link d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'bedroom']) }}"><img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Bedroom"> Bedroom</a></li>
-                <li class="nav-item"><a class="nav-link d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'dining']) }}"><img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Dining Room"> Dining Room</a></li>
-                <li class="nav-item"><a class="nav-link d-flex align-items-center" href="{{ route('store.catalog', ['category' => 'furnishings']) }}"><img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=100" class="nav-heading-thumb me-2" alt="Furnishings"> Furnishings</a></li>
+                <li class="nav-item"><a class="nav-link text-danger fw-bold d-flex align-items-center" href="{{ route('store.catalog', ['sort' => 'popular']) }}"><span class="nav-sale-icon-badge me-2"><i class="fas fa-percent"></i></span> Sale 🔥</a></li>
+                @foreach ($storeMenu ?? [] as $room)
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center {{ request('category') === $room->slug ? 'active' : '' }}" href="{{ route('store.catalog', ['category' => $room->slug]) }}">
+                            @if ($room->image_url)
+                                <img src="{{ $room->image_url }}" class="nav-heading-thumb me-2" alt="{{ $room->name }}">
+                            @endif
+                            {{ $room->name }}
+                        </a>
+                    </li>
+                @endforeach
             </ul>
         </div>
     </nav>
+
 
     

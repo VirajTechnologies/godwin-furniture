@@ -29,6 +29,7 @@
                                         <th>Code</th>
                                         <th>Product</th>
                                         <th>Category</th>
+                                        <th>Subcategory</th>
                                         <th>Branch</th>
                                         <th>Quantity</th>
                                         <th>Updated</th>
@@ -40,6 +41,7 @@
                                             <td>{{ $stocks->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium">{{ $stock->product?->code }}</td>
                                             <td>{{ $stock->product?->name }}</td>
+                                            <td>{{ $stock->product?->category?->parent?->name ?? '—' }}</td>
                                             <td>{{ $stock->product?->category?->name ?? '—' }}</td>
                                             <td>{{ $stock->branch?->name ?? '—' }}</td>
                                             <td>{{ $stock->quantity }}</td>

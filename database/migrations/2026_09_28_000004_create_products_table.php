@@ -12,11 +12,16 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
             $table->string('code', 20)->unique();
+            $table->string('slug', 160)->unique();
             $table->string('name', 150);
             $table->text('description')->nullable();
+            $table->string('material', 100)->nullable();
             $table->string('unit', 30)->default('Piece');
             $table->decimal('selling_price', 12, 2);
+            $table->decimal('compare_at_price', 12, 2)->nullable();
+            $table->decimal('online_price', 12, 2)->nullable();
             $table->boolean('is_online')->default(false);
+            $table->boolean('is_featured')->default(false);
             $table->string('status')->default('active');
             $table->timestamps();
         });

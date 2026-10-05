@@ -33,8 +33,9 @@
                                         <th>Code</th>
                                         <th>Name</th>
                                         <th>Category</th>
+                                        <th>Subcategory</th>
                                         <th>Selling Price</th>
-                                        <th>Store</th>
+                                        <th>Online Price</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -45,11 +46,12 @@
                                             <td>{{ $products->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium">{{ $product->code }}</td>
                                             <td>{{ $product->name }}</td>
+                                            <td>{{ $product->category?->parent?->name ?? '—' }}</td>
                                             <td>{{ $product->category?->name ?? '—' }}</td>
                                             <td>₹{{ number_format((float) $product->selling_price, 2) }}</td>
                                             <td>
                                                 @if ($product->is_online)
-                                                    <span class="badge bg-info-subtle text-info">Online</span>
+                                                    ₹{{ number_format($product->storePrice(), 2) }}
                                                 @else
                                                     —
                                                 @endif

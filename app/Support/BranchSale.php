@@ -53,7 +53,7 @@ class BranchSale
                     throw new InsufficientStock($product->name, $available, $line['quantity'], 'branch');
                 }
 
-                $unitPrice = (float) $product->selling_price;
+                $unitPrice = $product->priceForBranch($branch);
                 $lineTotal = round($unitPrice * $line['quantity'], 2);
                 $total += $lineTotal;
 

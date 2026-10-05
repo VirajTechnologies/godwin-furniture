@@ -12,7 +12,7 @@ class BranchStockController extends Controller
     {
         $stocks = Stock::query()
             ->whereNotNull('branch_id')
-            ->with(['product.category', 'branch'])
+            ->with(['product.category.parent', 'branch'])
             ->orderBy('branch_id')
             ->orderBy('product_id')
             ->paginate(15);

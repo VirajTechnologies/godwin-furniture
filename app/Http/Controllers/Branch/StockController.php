@@ -12,7 +12,7 @@ class StockController extends Controller
     public function index(Request $request): View
     {
         $stocks = Stock::query()
-            ->with('product.category')
+            ->with('product.category.parent')
             ->where('branch_id', $request->user()->employee->branch_id)
             ->whereNull('warehouse_id')
             ->orderBy('product_id')

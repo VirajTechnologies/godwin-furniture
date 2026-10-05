@@ -4,7 +4,6 @@
 @section('body_class', '')
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function toggleHotspot(id) {
             var card = document.getElementById(id);
@@ -27,8 +26,20 @@
                 drawer.classList.toggle('active');
             }
         }
+        function slideProductCarousel(carouselId, direction, event) {
+            if (event) { event.preventDefault(); event.stopPropagation(); }
+            var elem = document.getElementById(carouselId);
+            if (!elem || typeof bootstrap === 'undefined') return;
+            var carousel = bootstrap.Carousel.getOrCreateInstance(elem, { interval: false });
+            direction === 'prev' ? carousel.prev() : carousel.next();
+        }
+        function goToProductSlide(carouselId, index, event) {
+            if (event) { event.preventDefault(); event.stopPropagation(); }
+            var elem = document.getElementById(carouselId);
+            if (!elem || typeof bootstrap === 'undefined') return;
+            bootstrap.Carousel.getOrCreateInstance(elem, { interval: false }).to(index);
+        }
     </script>
-
 @endpush
 @section('content')
 <!-- 1. Top Announcement Ticker Bar -->
@@ -598,224 +609,37 @@
     <section class="container-fluid px-4 px-lg-5 my-5">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div class="section-title-editorial m-0">
-                <span class="subtitle">LATEST 2026 DESIGNS</span>
-                <h2>New Arrivals ✨</h2>
+                <span class="subtitle">FROM THE FACTORY FLOOR</span>
+                <h2>New Arrivals</h2>
             </div>
-            <a href="{{ route('store.catalog') }}" class="btn btn-outline-dark rounded-pill px-4 font-heading fw-semibold">View All New <i class="fas fa-arrow-right ms-1"></i></a>
+            <a href="{{ route('store.catalog', ['sort' => 'newest']) }}" class="btn btn-outline-dark rounded-pill px-4 font-heading fw-semibold">View All New <i class="fas fa-arrow-right ms-1"></i></a>
         </div>
         <div class="row g-4">
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.05em;">
-                            ✨ NEW 2026
-                        </span>
-                        <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 4.9                        </span>
-                        <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 210px;" alt="Imperial 6-Seater Steel Dining Set">
-                    </div>
-                    <div class="card-body p-3 bg-white">
-                        <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Industrial Steel & Solid Wood</span>
-                        <h5 class="font-heading fw-bold text-dark fs-6 mb-3 text-truncate" title="Imperial 6-Seater Steel Dining Set" style="line-height: 1.4;">Imperial 6-Seater Steel Dining Set</h5>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold fs-5 text-dark">₹34,999</span>
-                                <span class="text-muted text-decoration-line-through small ms-1">₹49,999</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Add To Bag</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.05em;">
-                            ✨ NEW 2026
-                        </span>
-                        <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 4.8                        </span>
-                        <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 210px;" alt="Godwin Executive Ergonomic Steel Desk">
-                    </div>
-                    <div class="card-body p-3 bg-white">
-                        <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">CRCA Metal Frame & Walnut Finish</span>
-                        <h5 class="font-heading fw-bold text-dark fs-6 mb-3 text-truncate" title="Godwin Executive Ergonomic Steel Desk" style="line-height: 1.4;">Godwin Executive Ergonomic Steel Desk</h5>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold fs-5 text-dark">₹18,499</span>
-                                <span class="text-muted text-decoration-line-through small ms-1">₹24,999</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Add To Bag</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.05em;">
-                            ✨ NEW 2026
-                        </span>
-                        <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 4.9                        </span>
-                        <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 210px;" alt="Modular Powder-Coated Steel Bookshelf">
-                    </div>
-                    <div class="card-body p-3 bg-white">
-                        <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Matte Black Heavy Duty Steel</span>
-                        <h5 class="font-heading fw-bold text-dark fs-6 mb-3 text-truncate" title="Modular Powder-Coated Steel Bookshelf" style="line-height: 1.4;">Modular Powder-Coated Steel Bookshelf</h5>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold fs-5 text-dark">₹11,999</span>
-                                <span class="text-muted text-decoration-line-through small ms-1">₹16,999</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Add To Bag</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.05em;">
-                            ✨ NEW 2026
-                        </span>
-                        <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 5                        </span>
-                        <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 210px;" alt="Godwin Steel & Velvet Recliner Chair">
-                    </div>
-                    <div class="card-body p-3 bg-white">
-                        <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Gold Steel & Velvet Fabric</span>
-                        <h5 class="font-heading fw-bold text-dark fs-6 mb-3 text-truncate" title="Godwin Steel & Velvet Recliner Chair" style="line-height: 1.4;">Godwin Steel & Velvet Recliner Chair</h5>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold fs-5 text-dark">₹16,999</span>
-                                <span class="text-muted text-decoration-line-through small ms-1">₹22,999</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Add To Bag</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                    </div>
+            @forelse ($newProducts as $product)
+                @include('store.partials.product-card', ['product' => $product])
+            @empty
+                <div class="col-12"><p class="text-muted">No online products yet. Load sample data to see the catalog.</p></div>
+            @endforelse
+        </div>
     </section>
 
-    <!-- 7. Top Selling (Best Sellers) -->
+    <!-- 7. Featured Products -->
     <section class="container-fluid px-4 px-lg-5 my-5">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div class="section-title-editorial m-0">
-                <span class="subtitle">CUSTOMER FAVORITES & LEADERBOARD</span>
-                <h2>Top Selling Products 🔥</h2>
+                <span class="subtitle">CUSTOMER FAVOURITES</span>
+                <h2>Featured Pieces</h2>
             </div>
-            <a href="{{ route('store.catalog') }}" class="btn btn-outline-dark rounded-pill px-4 font-heading fw-semibold">View Best Sellers <i class="fas fa-arrow-right ms-1"></i></a>
+            <a href="{{ route('store.catalog', ['sort' => 'popular']) }}" class="btn btn-outline-dark rounded-pill px-4 font-heading fw-semibold">View Best Sellers <i class="fas fa-arrow-right ms-1"></i></a>
         </div>
         <div class="row g-4">
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-2.5 badge bg-amber text-white font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.04em;">
-                            <i class="fas fa-crown me-1 text-warning"></i> #1 BESTSELLER                        </span>
-                        <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 4.9                        </span>
-                        <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=800" class="card-img-top object-fit-cover d-block" style="height: 180px;" alt="Godwin 3-Door Heavy Metal Almirah">
-                    </div>
-                    <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="mb-2">
-                                <span class="badge bg-amber-light text-amber font-heading px-2 py-1 small fw-bold" style="font-size: 10px;"><i class="fas fa-fire me-1"></i> 1,420+ Delivered</span>
-                            </div>
-                            <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Godwin 3-Door Heavy Metal Almirah" style="font-size: 13px; line-height: 1.4;">Godwin 3-Door Heavy Metal Almirah</h5>
-                        </div>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold text-dark" style="font-size: 14px;">₹28,999</span>
-                                <span class="text-muted text-decoration-line-through small ms-1" style="font-size: 10px;">₹38,999</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-2.5 py-1 font-heading fw-semibold" style="font-size: 11px;"><i class="fas fa-shopping-bag me-1"></i> Add</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-2.5 badge bg-dark text-white font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.04em;">
-                            <i class="fas fa-crown me-1 text-warning"></i> #2 TOP RATED                        </span>
-                        <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 4.8                        </span>
-                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800" class="card-img-top object-fit-cover d-block" style="height: 180px;" alt="Chesterfield Italian Leather Sofa 3-Seater">
-                    </div>
-                    <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="mb-2">
-                                <span class="badge bg-amber-light text-amber font-heading px-2 py-1 small fw-bold" style="font-size: 10px;"><i class="fas fa-fire me-1"></i> 980+ Delivered</span>
-                            </div>
-                            <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Chesterfield Italian Leather Sofa 3-Seater" style="font-size: 13px; line-height: 1.4;">Chesterfield Italian Leather Sofa 3-Seater</h5>
-                        </div>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold text-dark" style="font-size: 14px;">₹52,999</span>
-                                <span class="text-muted text-decoration-line-through small ms-1" style="font-size: 10px;">₹74,999</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-2.5 py-1 font-heading fw-semibold" style="font-size: 11px;"><i class="fas fa-shopping-bag me-1"></i> Add</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-2.5 badge bg-secondary text-white font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.04em;">
-                            <i class="fas fa-crown me-1 text-warning"></i> #3 MOST POPULAR                        </span>
-                        <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 5                        </span>
-                        <img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800" class="card-img-top object-fit-cover d-block" style="height: 180px;" alt="Heavy Hydraulic Storage Teak Bed">
-                    </div>
-                    <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="mb-2">
-                                <span class="badge bg-amber-light text-amber font-heading px-2 py-1 small fw-bold" style="font-size: 10px;"><i class="fas fa-fire me-1"></i> 1,150+ Delivered</span>
-                            </div>
-                            <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Heavy Hydraulic Storage Teak Bed" style="font-size: 13px; line-height: 1.4;">Heavy Hydraulic Storage Teak Bed</h5>
-                        </div>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold text-dark" style="font-size: 14px;">₹48,999</span>
-                                <span class="text-muted text-decoration-line-through small ms-1" style="font-size: 10px;">₹65,999</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-2.5 py-1 font-heading fw-semibold" style="font-size: 11px;"><i class="fas fa-shopping-bag me-1"></i> Add</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bento-card">
-                    <div class="position-relative overflow-hidden">
-                        <span class="position-absolute top-0 start-0 m-2.5 badge bg-danger text-white font-heading px-2.5 py-1.5 fw-bold" style="font-size: 10px; letter-spacing: 0.04em;">
-                            <i class="fas fa-crown me-1 text-warning"></i> #4 TRENDING DEALS                        </span>
-                        <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
-                            <i class="fas fa-star text-warning me-1"></i> 4.9                        </span>
-                        <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=800" class="card-img-top object-fit-cover d-block" style="height: 180px;" alt="Industrial Steel Dining Table 6-Seater">
-                    </div>
-                    <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="mb-2">
-                                <span class="badge bg-amber-light text-amber font-heading px-2 py-1 small fw-bold" style="font-size: 10px;"><i class="fas fa-fire me-1"></i> 1,650+ Delivered</span>
-                            </div>
-                            <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Industrial Steel Dining Table 6-Seater" style="font-size: 13px; line-height: 1.4;">Industrial Steel Dining Table 6-Seater</h5>
-                        </div>
-                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold text-dark" style="font-size: 14px;">₹32,000</span>
-                                <span class="text-muted text-decoration-line-through small ms-1" style="font-size: 10px;">₹45,000</span>
-                            </div>
-                            <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-2.5 py-1 font-heading fw-semibold" style="font-size: 11px;"><i class="fas fa-shopping-bag me-1"></i> Add</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                    </div>
+            @forelse ($featuredProducts as $product)
+                @include('store.partials.product-card', ['product' => $product])
+            @empty
+                <div class="col-12"><p class="text-muted">Mark products as featured to show them here.</p></div>
+            @endforelse
+        </div>
     </section>
-
     <!-- 8. Category Wise Products Showcase -->
     <section class="container-fluid px-4 px-lg-5 my-5">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
@@ -858,14 +682,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Alanis Metal Frame 3-Seater Velvet Sofa">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">CRCA Steel & Velvet</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Alanis Metal Frame 3-Seater Velvet Sofa" style="font-size: 13px; line-height: 1.4;">Alanis Metal Frame 3-Seater Velvet Sofa</h5>
                                     </a>
                                 </div>
@@ -887,14 +711,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.8                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Chesterfield Italian Cognac Leather Sofa">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Italian Full Grain Leather</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Chesterfield Italian Cognac Leather Sofa" style="font-size: 13px; line-height: 1.4;">Chesterfield Italian Cognac Leather Sofa</h5>
                                     </a>
                                 </div>
@@ -916,14 +740,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Nordic Modular Sectional Steel Sofa">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Powder Coated Frame</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Nordic Modular Sectional Steel Sofa" style="font-size: 13px; line-height: 1.4;">Nordic Modular Sectional Steel Sofa</h5>
                                     </a>
                                 </div>
@@ -945,14 +769,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.7                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Royal Velvet Tufted Lounge Sofa">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Gold Plated Steel Legs</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Royal Velvet Tufted Lounge Sofa" style="font-size: 13px; line-height: 1.4;">Royal Velvet Tufted Lounge Sofa</h5>
                                     </a>
                                 </div>
@@ -978,14 +802,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Godwin Heavy Metal & Teak King Bed">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Steel & Teak Wood</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Godwin Heavy Metal & Teak King Bed" style="font-size: 13px; line-height: 1.4;">Godwin Heavy Metal & Teak King Bed</h5>
                                     </a>
                                 </div>
@@ -1007,14 +831,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 5                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1540518614846-7ede433c5163?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Godwin Hydraulic Storage Steel Queen Bed">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Heavy Hydraulic Lift</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Godwin Hydraulic Storage Steel Queen Bed" style="font-size: 13px; line-height: 1.4;">Godwin Hydraulic Storage Steel Queen Bed</h5>
                                     </a>
                                 </div>
@@ -1036,14 +860,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.8                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Imperial Canopy Metal Bed Frame">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Matte Black Steel</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Imperial Canopy Metal Bed Frame" style="font-size: 13px; line-height: 1.4;">Imperial Canopy Metal Bed Frame</h5>
                                     </a>
                                 </div>
@@ -1065,14 +889,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Industrial Anti-Squeak Steel Bed">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">CRCA Heavy Gauge</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Industrial Anti-Squeak Steel Bed" style="font-size: 13px; line-height: 1.4;">Industrial Anti-Squeak Steel Bed</h5>
                                     </a>
                                 </div>
@@ -1098,14 +922,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Imperial 6-Seater Steel Dining Set">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Steel & Solid Wood</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Imperial 6-Seater Steel Dining Set" style="font-size: 13px; line-height: 1.4;">Imperial 6-Seater Steel Dining Set</h5>
                                     </a>
                                 </div>
@@ -1127,14 +951,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 5                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Teak & Metal Dining Table 8-Seater">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Central Teak Top</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Teak & Metal Dining Table 8-Seater" style="font-size: 13px; line-height: 1.4;">Teak & Metal Dining Table 8-Seater</h5>
                                     </a>
                                 </div>
@@ -1156,14 +980,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.8                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Godwin Compact 4-Seater Dining Set">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Compact Steel Frame</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Godwin Compact 4-Seater Dining Set" style="font-size: 13px; line-height: 1.4;">Godwin Compact 4-Seater Dining Set</h5>
                                     </a>
                                 </div>
@@ -1185,14 +1009,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.7                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Minimalist Steel Frame Dining Benches Set">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Industrial Steel</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Minimalist Steel Frame Dining Benches Set" style="font-size: 13px; line-height: 1.4;">Minimalist Steel Frame Dining Benches Set</h5>
                                     </a>
                                 </div>
@@ -1218,14 +1042,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.8                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Godwin Executive Ergonomic Steel Desk">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Steel & Walnut Finish</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Godwin Executive Ergonomic Steel Desk" style="font-size: 13px; line-height: 1.4;">Godwin Executive Ergonomic Steel Desk</h5>
                                     </a>
                                 </div>
@@ -1247,14 +1071,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Heavy Steel Dual-Motor Standing Desk">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Motorized Height Adjust</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Heavy Steel Dual-Motor Standing Desk" style="font-size: 13px; line-height: 1.4;">Heavy Steel Dual-Motor Standing Desk</h5>
                                     </a>
                                 </div>
@@ -1276,14 +1100,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Solid Walnut & Powder Coated Desk">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">CRCA Metal Frame</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Solid Walnut & Powder Coated Desk" style="font-size: 13px; line-height: 1.4;">Solid Walnut & Powder Coated Desk</h5>
                                     </a>
                                 </div>
@@ -1305,14 +1129,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.7                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Modular Office Workstation Desk">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Heavy Steel Wire Cable Track</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Modular Office Workstation Desk" style="font-size: 13px; line-height: 1.4;">Modular Office Workstation Desk</h5>
                                     </a>
                                 </div>
@@ -1338,14 +1162,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Godwin 3-Door Heavy Metal Almirah">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Powder Coated Steel</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Godwin 3-Door Heavy Metal Almirah" style="font-size: 13px; line-height: 1.4;">Godwin 3-Door Heavy Metal Almirah</h5>
                                     </a>
                                 </div>
@@ -1367,14 +1191,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 5                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="4-Locker Security Steel Storage Almirah">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">7-Tank Treated Steel</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="4-Locker Security Steel Storage Almirah" style="font-size: 13px; line-height: 1.4;">4-Locker Security Steel Storage Almirah</h5>
                                     </a>
                                 </div>
@@ -1396,14 +1220,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Digital Vault Integrated Steel Wardrobe">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Electronic Keypad Lock</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Digital Vault Integrated Steel Wardrobe" style="font-size: 13px; line-height: 1.4;">Digital Vault Integrated Steel Wardrobe</h5>
                                     </a>
                                 </div>
@@ -1425,14 +1249,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.8                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Compact 2-Door Metal Wardrobe">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Matte Grey Powder Finish</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Compact 2-Door Metal Wardrobe" style="font-size: 13px; line-height: 1.4;">Compact 2-Door Metal Wardrobe</h5>
                                     </a>
                                 </div>
@@ -1458,14 +1282,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 5                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Godwin Steel & Velvet Recliner Chair">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Gold Steel & Velvet</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Godwin Steel & Velvet Recliner Chair" style="font-size: 13px; line-height: 1.4;">Godwin Steel & Velvet Recliner Chair</h5>
                                     </a>
                                 </div>
@@ -1487,14 +1311,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.9                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Power Motorized Leather Recliner Armchair">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Italian Cognac Leather</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Power Motorized Leather Recliner Armchair" style="font-size: 13px; line-height: 1.4;">Power Motorized Leather Recliner Armchair</h5>
                                     </a>
                                 </div>
@@ -1516,14 +1340,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.8                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Ergonomic Executive Swivel Lounge Chair">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">High Back Mesh & Steel</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Ergonomic Executive Swivel Lounge Chair" style="font-size: 13px; line-height: 1.4;">Ergonomic Executive Swivel Lounge Chair</h5>
                                     </a>
                                 </div>
@@ -1545,14 +1369,14 @@
                                 </span>
                                 <span class="position-absolute top-0 end-0 m-2.5 badge bg-white text-dark shadow-sm font-heading px-2 py-1 fw-bold" style="font-size: 10px;">
                                     <i class="fas fa-star text-warning me-1"></i> 4.7                                </span>
-                                <a href="{{ route('store.product') }}">
+                                <a href="{{ route('store.catalog') }}">
                                     <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=600" class="card-img-top object-fit-cover d-block" style="height: 190px;" alt="Industrial Steel Accented Lounge Chair">
                                 </a>
                             </div>
                             <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">Matte Black Steel</span>
-                                    <a href="{{ route('store.product') }}" class="text-decoration-none">
+                                    <a href="{{ route('store.catalog') }}" class="text-decoration-none">
                                         <h5 class="font-heading fw-bold text-dark fs-6 mb-2 text-truncate" title="Industrial Steel Accented Lounge Chair" style="font-size: 13px; line-height: 1.4;">Industrial Steel Accented Lounge Chair</h5>
                                     </a>
                                 </div>

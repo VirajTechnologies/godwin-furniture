@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Branch;
+use App\Models\BranchProductPrice;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Customer;
@@ -10,6 +11,7 @@ use App\Models\District;
 use App\Models\Employee;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\State;
 use App\Models\Stock;
 use App\Models\StockRequest;
@@ -283,42 +285,112 @@ class LoadSampleData extends Command
      */
     private function products(): array
     {
-        $sofas = Category::factory()->create(['name' => 'Sofas']);
-        $beds = Category::factory()->create(['name' => 'Beds']);
-        $dining = Category::factory()->create(['name' => 'Dining']);
-        $chairs = Category::factory()->create(['name' => 'Chairs']);
-        $storage = Category::factory()->create(['name' => 'Storage']);
+        $living = $this->room('Living Room', 'living-room', 1, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600');
+        $bedroom = $this->room('Bedroom', 'bedroom', 2, 'https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=600');
+        $dining = $this->room('Dining Room', 'dining-room', 3, 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=600');
+        $furnishings = $this->room('Furnishings', 'furnishings', 4, 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=600');
+
+        $threeSeater = $this->subcategory($living, '3 Seater Sofas', '3-seater-sofas', 'Sofas & Seating', 1);
+        $sectionals = $this->subcategory($living, 'Sofa Sets & Sectionals', 'sofa-sets-sectionals', 'Sofas & Seating', 2);
+        $recliners = $this->subcategory($living, 'Leather & Fabric Recliners', 'leather-fabric-recliners', 'Recliners & Chairs', 3);
+        $accentChairs = $this->subcategory($living, 'Accent & Folding Chairs', 'accent-folding-chairs', 'Recliners & Chairs', 4);
+        $tvUnits = $this->subcategory($living, 'TV Consoles & Media Units', 'tv-consoles-media-units', 'Tables & Storage', 5);
+        $ottoman = $this->subcategory($living, 'Benches & Ottoman Stools', 'benches-ottoman-stools', 'Recliners & Chairs', 6);
+
+        $queenBeds = $this->subcategory($bedroom, 'Queen Size Solid Teak Beds', 'queen-size-solid-teak-beds', 'Beds & Frames', 1);
+        $kingBeds = $this->subcategory($bedroom, 'King Size Hydraulic Beds', 'king-size-hydraulic-beds', 'Beds & Frames', 2);
+        $wardrobes = $this->subcategory($bedroom, '2 Door Swing Wardrobes', '2-door-swing-wardrobes', 'Wardrobes & Storage', 3);
+
+        $sixSeater = $this->subcategory($dining, '6-Seater Solid Teak Sets', '6-seater-solid-teak-sets', 'Dining Sets', 1);
+        $fourSeater = $this->subcategory($dining, '4-Seater Dining Sets', '4-seater-dining-sets', 'Dining Sets', 2);
+
+        $this->subcategory($furnishings, 'Designer Cushion Covers', 'designer-cushion-covers', 'Cushions & Curtains', 1);
 
         $rows = [
-            ['SF001', 'Three Seater Sofa', $sofas, 45000, true, 'Solid teak frame with linen upholstery.', Product::STATUS_ACTIVE],
-            ['SF002', 'Four Seater Sofa', $sofas, 62000, false, 'Family sofa with removable cushions.', Product::STATUS_ACTIVE],
-            ['SF003', 'L-Shaped Sofa', $sofas, 78000, true, 'Corner sofa for the living room.', Product::STATUS_ACTIVE],
-            ['BD001', 'Queen Size Bed', $beds, 38000, true, 'Queen teak bed with storage.', Product::STATUS_ACTIVE],
-            ['BD002', 'King Size Bed', $beds, 52000, false, 'King size bed in a sheesham finish.', Product::STATUS_ACTIVE],
-            ['DN001', 'Six Seater Dining Table', $dining, 54000, true, 'Dining table with six matching chairs.', Product::STATUS_ACTIVE],
-            ['DN002', 'Four Seater Dining Set', $dining, 42000, false, 'Compact dining set for an apartment.', Product::STATUS_ACTIVE],
-            ['CH001', 'Teak Armchair', $chairs, 8500, true, 'Single teak armchair.', Product::STATUS_ACTIVE],
-            ['CH002', 'Office Chair', $chairs, 6500, false, 'Cushioned chair for a study.', Product::STATUS_ACTIVE],
-            ['ST001', 'Two Door Wardrobe', $storage, 36000, false, 'Wardrobe with hanging space and shelves.', Product::STATUS_ACTIVE],
-            ['ST002', 'TV Unit', $storage, 18500, true, 'Low TV unit with drawers.', Product::STATUS_ACTIVE],
-            ['OT001', 'Ottoman', $sofas, 4500, false, 'Display sample, not for sale yet.', Product::STATUS_INACTIVE],
+            ['SF001', 'Alanis Metal Frame 3-Seater Velvet Sofa', 'alanis-metal-frame-3-seater-velvet-sofa', $threeSeater, 42000, 38999, 54999, true, true, 'CRCA Steel & Emerald Velvet', 'Metal frame three-seater with emerald velvet.', ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800', 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['SF002', 'Four Seater Family Sofa', 'four-seater-family-sofa', $sectionals, 62000, 58999, 74999, false, false, 'Solid Teak & Linen', 'Family sofa with removable cushions.', ['https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['SF003', 'Nordic Modular Sectional Steel Sofa', 'nordic-modular-sectional-steel-sofa', $sectionals, 78000, 72999, 94999, true, true, 'Powder Coated Steel', 'Corner sectional for the living room.', ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['BD001', 'Queen Size Solid Teak Bed', 'queen-size-solid-teak-bed', $queenBeds, 38000, 35999, 49999, true, false, 'Solid Teak Wood', 'Queen teak bed with storage drawers.', ['https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['BD002', 'Godwin Imperial Heavy Duty Metal & Teak King Bed', 'godwin-imperial-heavy-duty-metal-teak-king-bed', $kingBeds, 45000, 42999, 59999, true, true, 'CRCA Steel & Seasoned Teak', 'King bed with heavy CRCA frame and teak accents.', ['https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800', 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['DN001', 'Imperial 6-Seater Steel Dining Set', 'imperial-6-seater-steel-dining-set', $sixSeater, 54000, 51999, 69999, true, true, 'CRCA Heavy Steel', 'Dining set with six matching chairs.', ['https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['DN002', 'Godwin Compact 4-Seater Dining Set', 'godwin-compact-4-seater-dining-set', $fourSeater, 42000, 39999, 54999, false, false, 'Solid Teak Wood', 'Compact dining set for an apartment.', ['https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['CH001', 'Italian Leather & Steel Accent Chair', 'italian-leather-steel-accent-chair', $accentChairs, 12500, 10999, 15999, true, false, 'Italian Leather', 'Single accent chair for the living room.', ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['CH002', 'Godwin Steel & Velvet Recliner Chair', 'godwin-steel-velvet-recliner-chair', $recliners, 18500, 16999, 22999, false, false, 'CRCA Steel & Velvet', 'Cushioned recliner for a lounge corner.', ['https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['ST001', 'Godwin 2-Door Swing Wardrobe', 'godwin-2-door-swing-wardrobe', $wardrobes, 36000, 33999, 45999, false, false, 'Solid Teak Wood', 'Wardrobe with hanging space and shelves.', ['https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['ST002', 'Industrial Steel & Teak TV Console', 'industrial-steel-teak-tv-console', $tvUnits, 18500, 16999, 24999, true, false, 'Powder Coated Steel', 'Low TV unit with drawers.', ['https://images.unsplash.com/photo-1532372576444-dda954194ad0?auto=format&fit=crop&q=80&w=800'], Product::STATUS_ACTIVE],
+            ['OT001', 'Floor Ottoman Stool', 'floor-ottoman-stool', $ottoman, 4500, null, null, false, false, 'Fabric', 'Display sample, not for sale yet.', [], Product::STATUS_INACTIVE],
         ];
 
         $products = [];
 
-        foreach ($rows as [$code, $name, $category, $price, $online, $description, $status]) {
-            $products[$code] = Product::factory()->create([
+        foreach ($rows as [$code, $name, $slug, $category, $selling, $online, $mrp, $isOnline, $featured, $material, $description, $images, $status]) {
+            $product = Product::factory()->create([
                 'category_id' => $category->id,
                 'code' => $code,
+                'slug' => $slug,
                 'name' => $name,
                 'description' => $description,
-                'selling_price' => $price,
-                'is_online' => $online,
+                'material' => $material,
+                'selling_price' => $selling,
+                'online_price' => $online,
+                'compare_at_price' => $mrp,
+                'is_online' => $isOnline,
+                'is_featured' => $featured,
                 'status' => $status,
+            ]);
+
+            foreach ($images as $index => $url) {
+                ProductImage::query()->create([
+                    'product_id' => $product->id,
+                    'url' => $url,
+                    'sort_order' => $index,
+                ]);
+            }
+
+            $products[$code] = $product;
+        }
+
+        $vijayawada = Branch::query()->where('code', 'BR001')->first();
+        if ($vijayawada) {
+            BranchProductPrice::query()->create([
+                'branch_id' => $vijayawada->id,
+                'product_id' => $products['SF001']->id,
+                'price' => 40000,
+            ]);
+            BranchProductPrice::query()->create([
+                'branch_id' => $vijayawada->id,
+                'product_id' => $products['BD002']->id,
+                'price' => 44000,
             ]);
         }
 
         return $products;
+    }
+
+    private function room(string $name, string $slug, int $sort, string $image): Category
+    {
+        return Category::factory()->create([
+            'parent_id' => null,
+            'name' => $name,
+            'slug' => $slug,
+            'menu_group' => null,
+            'sort_order' => $sort,
+            'image_url' => $image,
+            'status' => Category::STATUS_ACTIVE,
+        ]);
+    }
+
+    private function subcategory(Category $room, string $name, string $slug, string $group, int $sort): Category
+    {
+        return Category::factory()->create([
+            'parent_id' => $room->id,
+            'name' => $name,
+            'slug' => $slug,
+            'menu_group' => $group,
+            'sort_order' => $sort,
+            'image_url' => null,
+            'status' => Category::STATUS_ACTIVE,
+        ]);
     }
 
     /**
