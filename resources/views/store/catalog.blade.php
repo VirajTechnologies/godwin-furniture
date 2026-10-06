@@ -49,35 +49,69 @@
                         <h6 class="font-heading fw-bold text-dark m-0"><i class="fas fa-sliders-h text-amber me-2"></i> Filter Products</h6>
                         <a href="{{ route('store.catalog') }}" class="text-amber small text-decoration-none fw-semibold">Reset All</a>
                     </div>
-                    <form method="GET" action="{{ route('store.catalog') }}">
-                        <div class="mb-3">
-                            <label class="font-heading fw-bold small text-dark mb-2 d-block">Search</label>
-                            <input type="text" name="q" class="form-control shadow-none" value="{{ $filters['q'] }}" placeholder="Sofa, bed, desk...">
+
+                    @php
+                        $preservedFilters = array_filter([
+                            'q' => $filters['q'] !== '' ? $filters['q'] : null,
+                            'material' => $filters['material'] !== '' ? $filters['material'] : null,
+                            'max_price' => (string) $filters['max_price'] !== '150000' ? $filters['max_price'] : null,
+                            'sort' => $filters['sort'] !== 'popular' ? $filters['sort'] : null,
+                        ], fn ($value) => $value !== null && $value !== '');
+                    @endphp
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="font-heading fw-bold small text-dark m-0">Categories</label>
+                            @if ($filters['category'] !== '')
+                                <a href="{{ route('store.catalog', $preservedFilters) }}" class="text-muted small text-decoration-none">Clear</a>
+                            @endif
                         </div>
-                        <div class="mb-4">
-                            <label class="font-heading fw-bold small text-dark mb-2 d-block">Category</label>
-                            <div class="d-flex flex-column gap-3">
-                                @foreach ($rooms as $room)
-                                    <div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="font-heading fw-bold small text-dark">{{ $room->name }}</span>
-                                            <a href="{{ route('store.catalog', ['category' => $room->slug]) }}" class="text-amber small text-decoration-none">All</a>
-                                        </div>
-                                        <div class="d-flex flex-column gap-2 ps-1">
+                        <div class="accordion accordion-flush catalog-category-accordion" id="catalogCategoryAccordion">
+                            @foreach ($rooms as $room)
+                                @php
+                                    $roomOpen = $filters['category'] === $room->slug
+                                        || $room->children->contains(fn ($child) => $child->slug === $filters['category']);
+                                    $collapseId = 'catalog-room-'.$room->id;
+                                @endphp
+                                <div class="accordion-item border-0 border-bottom">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button {{ $roomOpen ? '' : 'collapsed' }} px-0 py-2 shadow-none font-heading fw-bold small text-dark bg-transparent"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#{{ $collapseId }}"
+                                                aria-expanded="{{ $roomOpen ? 'true' : 'false' }}"
+                                                aria-controls="{{ $collapseId }}">
+                                            {{ $room->name }}
+                                        </button>
+                                    </h2>
+                                    <div id="{{ $collapseId }}" class="accordion-collapse collapse {{ $roomOpen ? 'show' : '' }}" data-bs-parent="#catalogCategoryAccordion">
+                                        <div class="accordion-body px-0 pt-0 pb-3">
+                                            <a href="{{ route('store.catalog', array_merge($preservedFilters, ['category' => $room->slug])) }}"
+                                               class="d-block small py-1 text-decoration-none {{ $filters['category'] === $room->slug ? 'text-amber fw-bold' : 'text-muted' }}">
+                                                All {{ $room->name }}
+                                            </a>
                                             @forelse ($room->children as $child)
-                                                <label class="form-check-label small d-flex justify-content-between align-items-center">
-                                                    <span>
-                                                        <input type="radio" class="form-check-input me-2" name="category" value="{{ $child->slug }}" @checked($filters['category'] === $child->slug)>
-                                                        {{ $child->name }}
-                                                    </span>
-                                                </label>
+                                                <a href="{{ route('store.catalog', array_merge($preservedFilters, ['category' => $child->slug])) }}"
+                                                   class="d-block small py-1 ps-2 text-decoration-none {{ $filters['category'] === $child->slug ? 'text-amber fw-bold' : 'text-dark' }}">
+                                                    {{ $child->name }}
+                                                </a>
                                             @empty
                                                 <span class="text-muted small">No subcategories</span>
                                             @endforelse
                                         </div>
                                     </div>
-                                @endforeach
-                            </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <form method="GET" action="{{ route('store.catalog') }}">
+                        @if ($filters['category'] !== '')
+                            <input type="hidden" name="category" value="{{ $filters['category'] }}">
+                        @endif
+                        <div class="mb-3">
+                            <label class="font-heading fw-bold small text-dark mb-2 d-block">Search</label>
+                            <input type="text" name="q" class="form-control shadow-none" value="{{ $filters['q'] }}" placeholder="Sofa, bed, desk...">
                         </div>
                         @if ($materials->isNotEmpty())
                             <div class="mb-4 border-top pt-3">

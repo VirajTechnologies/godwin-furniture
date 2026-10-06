@@ -36,6 +36,12 @@ class StorefrontCatalogTest extends TestCase
         $this->get(route('store.catalog'))
             ->assertOk()
             ->assertSee('Living Room')
+            ->assertSee('3 Seater Sofas')
+            ->assertSee('All Living Room')
+            ->assertDontSee('form-check-input', false);
+
+        $this->get(route('store.catalog', ['category' => $category->slug]))
+            ->assertOk()
             ->assertSee('3 Seater Sofas');
     }
 

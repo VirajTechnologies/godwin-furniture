@@ -1553,3 +1553,18 @@ margin-bottom: 20px;
     color: var(--ws-primary) !important;
     transform: translateX(4px);
 }
+/* Catalog sidebar category accordion */
+.catalog-category-accordion .accordion-button:not(.collapsed) {
+    color: var(--ws-dark);
+    background: transparent;
+    box-shadow: none;
+}
+.catalog-category-accordion .accordion-button:focus {
+    box-shadow: none;
+    border-color: transparent;
+}
+.catalog-category-accordion .accordion-button::after {
+    width: 0.9rem;
+    height: 0.9rem;
+    background-size: 0.9rem;
+}
