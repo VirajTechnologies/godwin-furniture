@@ -1,0 +1,10 @@
+/* Asterisk for mandatory fields: add class "required" on the label, or place
+   the label immediately before an input/select/textarea that has [required]. */
+.form-label.required::after,
+label.required::after,
+label:has(+ :is(input, select, textarea)[required])::after,
+label:has(+ .auth-pass-inputgroup :is(input)[required])::after {
+    content: " *";
+    color: #f06548;
+    font-weight: 600;
+}

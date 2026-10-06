@@ -123,15 +123,15 @@
                                 <input type="text" id="label" name="label" value="{{ old('label') }}" class="form-control font-heading" maxlength="50" placeholder="Home">
                             </div>
                             <div class="col-md-8">
-                                <label for="address_line" class="form-label font-heading small fw-semibold">Street Address</label>
+                                <label for="address_line" class="form-label font-heading small fw-semibold required">Street Address</label>
                                 <input type="text" id="address_line" name="address_line" value="{{ old('address_line') }}" class="form-control font-heading" required maxlength="2000">
                             </div>
                             <div class="col-md-6">
-                                <label for="city" class="form-label font-heading small fw-semibold">City</label>
+                                <label for="city" class="form-label font-heading small fw-semibold required">City</label>
                                 <input type="text" id="city" name="city" value="{{ old('city') }}" class="form-control font-heading" required maxlength="100">
                             </div>
                             <div class="col-md-6">
-                                <label for="pincode" class="form-label font-heading small fw-semibold">Pincode</label>
+                                <label for="pincode" class="form-label font-heading small fw-semibold required">Pincode</label>
                                 <input type="text" id="pincode" name="pincode" value="{{ old('pincode') }}" class="form-control font-heading" required maxlength="10">
                             </div>
                             <div class="col-12">
@@ -166,15 +166,15 @@
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
-                            <label for="current_password" class="form-label font-heading small fw-semibold">Current Password</label>
+                            <label for="current_password" class="form-label font-heading small fw-semibold required">Current Password</label>
                             <input type="password" id="current_password" name="current_password" class="form-control form-control-lg font-heading @error('current_password') is-invalid @enderror" required autocomplete="current-password">
                         </div>
                         <div class="mb-3">
-                            <label for="password" class="form-label font-heading small fw-semibold">New Password</label>
+                            <label for="password" class="form-label font-heading small fw-semibold required">New Password</label>
                             <input type="password" id="password" name="password" class="form-control form-control-lg font-heading @error('password') is-invalid @enderror" required autocomplete="new-password">
                         </div>
                         <div class="mb-3">
-                            <label for="password_confirmation" class="form-label font-heading small fw-semibold">Confirm New Password</label>
+                            <label for="password_confirmation" class="form-label font-heading small fw-semibold required">Confirm New Password</label>
                             <input type="password" id="password_confirmation" name="password_confirmation" class="form-control form-control-lg font-heading" required autocomplete="new-password">
                         </div>
                         <button type="submit" class="btn btn-outline-secondary font-heading fw-semibold px-4">

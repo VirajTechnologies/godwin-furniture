@@ -11,6 +11,7 @@
     <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('assets/css/required-fields.css') }}" rel="stylesheet" type="text/css">
 </head>
 <body>
     <div class="auth-page-wrapper pt-5">
@@ -50,14 +51,14 @@
                                     <form method="POST" action="{{ route('branch.login.store') }}">
                                         @csrf
                                         <div class="mb-3">
-                                            <label for="email" class="form-label">Email</label>
+                                            <label for="email" class="form-label required">Email</label>
                                             <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required autofocus>
                                             @error('email')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label" for="password-input">Password</label>
+                                            <label class="form-label required" for="password-input">Password</label>
                                             <input type="password" class="form-control @error('password') is-invalid @enderror" id="password-input" name="password" required>
                                             @error('password')
                                                 <div class="invalid-feedback">{{ $message }}</div>

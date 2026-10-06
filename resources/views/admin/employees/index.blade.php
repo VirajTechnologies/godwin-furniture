@@ -32,6 +32,7 @@
                                         <th>SR No.</th>
                                         <th>Code</th>
                                         <th>Name</th>
+                                        <th>Email</th>
                                         <th>Role</th>
                                         <th>Warehouse</th>
                                         <th>Branch</th>
@@ -46,6 +47,7 @@
                                             <td>{{ $employees->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium">{{ $employee->employee_code }}</td>
                                             <td>{{ $employee->user->name }}</td>
+                                            <td>{{ $employee->user->email ?: '—' }}</td>
                                             <td>{{ $employee->user->role?->name ?? '—' }}</td>
                                             <td>{{ $employee->warehouse?->name ?? '—' }}</td>
                                             <td>{{ $employee->branch?->name ?? '—' }}</td>

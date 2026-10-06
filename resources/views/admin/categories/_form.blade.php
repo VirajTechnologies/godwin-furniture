@@ -40,7 +40,7 @@
             @enderror
         </div>
         <div class="col-md-8">
-            <label for="name" class="form-label">Category Name</label>
+            <label for="name" class="form-label required">Category Name</label>
             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $category->name) }}" required>
             @error('name')
                 <div class="invalid-feedback">{{ $message }}</div>
@@ -55,7 +55,7 @@
             @enderror
         </div>
         <div class="col-md-4" id="menu_group_wrap">
-            <label for="menu_group_choice" class="form-label">Menu Group</label>
+            <label for="menu_group_choice" class="form-label required">Menu Group</label>
             <select class="form-select @error('menu_group_choice') is-invalid @enderror" id="menu_group_choice" name="menu_group_choice">
                 <option value="">Select a group</option>
                 <option value="__new__" @selected($selectedChoice === '__new__')>Add new group…</option>
@@ -65,7 +65,7 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <div class="mt-2 {{ $selectedChoice === '__new__' ? '' : 'd-none' }}" id="menu_group_custom_wrap">
-                <label for="menu_group" class="form-label">New Group Name</label>
+                <label for="menu_group" class="form-label required">New Group Name</label>
                 <input type="text" class="form-control @error('menu_group') is-invalid @enderror" id="menu_group" name="menu_group" value="{{ $customGroup }}" placeholder="Sofas & Seating" maxlength="100">
                 @error('menu_group')
                     <div class="invalid-feedback">{{ $message }}</div>

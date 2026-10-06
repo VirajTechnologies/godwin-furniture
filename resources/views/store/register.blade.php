@@ -56,27 +56,27 @@
             @csrf
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label for="name" class="font-heading fw-bold small text-dark mb-1">Full Name</label>
+                    <label for="name" class="font-heading fw-bold small text-dark mb-1 required">Full Name</label>
                     <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control font-heading py-2 shadow-none @error('name') is-invalid @enderror" required maxlength="150" autocomplete="name">
                 </div>
                 <div class="col-md-6">
-                    <label for="phone" class="font-heading fw-bold small text-dark mb-1">Phone Number</label>
+                    <label for="phone" class="font-heading fw-bold small text-dark mb-1 required">Phone Number</label>
                     <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="form-control font-heading py-2 shadow-none @error('phone') is-invalid @enderror" required maxlength="20" autocomplete="tel">
                 </div>
             </div>
 
             <div class="mb-3">
-                <label for="email" class="font-heading fw-bold small text-dark mb-1">Email Address</label>
+                <label for="email" class="font-heading fw-bold small text-dark mb-1 required">Email Address</label>
                 <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control font-heading py-2 shadow-none @error('email') is-invalid @enderror" required maxlength="150" autocomplete="email">
             </div>
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label for="password" class="font-heading fw-bold small text-dark mb-1">Create Password</label>
+                    <label for="password" class="font-heading fw-bold small text-dark mb-1 required">Create Password</label>
                     <input type="password" id="password" name="password" class="form-control font-heading py-2 shadow-none @error('password') is-invalid @enderror" required autocomplete="new-password">
                 </div>
                 <div class="col-md-6">
-                    <label for="password_confirmation" class="font-heading fw-bold small text-dark mb-1">Confirm Password</label>
+                    <label for="password_confirmation" class="font-heading fw-bold small text-dark mb-1 required">Confirm Password</label>
                     <input type="password" id="password_confirmation" name="password_confirmation" class="form-control font-heading py-2 shadow-none" required autocomplete="new-password">
                 </div>
             </div>

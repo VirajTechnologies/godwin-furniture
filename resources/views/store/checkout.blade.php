@@ -113,16 +113,16 @@
                                 <input type="text" id="address_label" name="address_label" value="{{ old('address_label') }}" class="form-control font-heading @error('address_label') is-invalid @enderror" maxlength="50" placeholder="Home, Office…">
                             </div>
                             <div class="col-12">
-                                <label for="shipping_address" class="form-label font-heading small fw-semibold">Street Address</label>
-                                <textarea id="shipping_address" name="shipping_address" rows="3" class="form-control font-heading @error('shipping_address') is-invalid @enderror" maxlength="2000" autocomplete="street-address">{{ old('shipping_address') }}</textarea>
+                                <label for="shipping_address" class="form-label font-heading small fw-semibold required">Street Address</label>
+                                <textarea id="shipping_address" name="shipping_address" rows="3" class="form-control font-heading @error('shipping_address') is-invalid @enderror" maxlength="2000" autocomplete="street-address" @required($defaultSource === 'new' || $addresses->isEmpty())>{{ old('shipping_address') }}</textarea>
                             </div>
                             <div class="col-md-6">
-                                <label for="shipping_city" class="form-label font-heading small fw-semibold">City</label>
-                                <input type="text" id="shipping_city" name="shipping_city" value="{{ old('shipping_city') }}" class="form-control form-control-lg font-heading @error('shipping_city') is-invalid @enderror" maxlength="100" autocomplete="address-level2">
+                                <label for="shipping_city" class="form-label font-heading small fw-semibold required">City</label>
+                                <input type="text" id="shipping_city" name="shipping_city" value="{{ old('shipping_city') }}" class="form-control form-control-lg font-heading @error('shipping_city') is-invalid @enderror" maxlength="100" autocomplete="address-level2" @required($defaultSource === 'new' || $addresses->isEmpty())>
                             </div>
                             <div class="col-md-6">
-                                <label for="shipping_pincode" class="form-label font-heading small fw-semibold">Pincode</label>
-                                <input type="text" id="shipping_pincode" name="shipping_pincode" value="{{ old('shipping_pincode') }}" class="form-control form-control-lg font-heading @error('shipping_pincode') is-invalid @enderror" maxlength="10" autocomplete="postal-code">
+                                <label for="shipping_pincode" class="form-label font-heading small fw-semibold required">Pincode</label>
+                                <input type="text" id="shipping_pincode" name="shipping_pincode" value="{{ old('shipping_pincode') }}" class="form-control form-control-lg font-heading @error('shipping_pincode') is-invalid @enderror" maxlength="10" autocomplete="postal-code" @required($defaultSource === 'new' || $addresses->isEmpty())>
                             </div>
                             <div class="col-12">
                                 <div class="form-check">
@@ -212,19 +212,28 @@
 
     const sync = () => {
         const selected = form.querySelector('.js-delivery-choice:checked');
-        if (!selected || !sourceInput || !addressIdInput) {
-            return;
+        const address = document.getElementById('shipping_address');
+        const city = document.getElementById('shipping_city');
+        const pincode = document.getElementById('shipping_pincode');
+        const needsNew = !choices.length || (selected && selected.value === 'new');
+
+        if (choices.length && selected && sourceInput && addressIdInput) {
+            if (selected.value === 'new') {
+                sourceInput.value = 'new';
+                addressIdInput.value = '';
+                newFields?.classList.remove('d-none');
+            } else {
+                sourceInput.value = 'saved';
+                addressIdInput.value = selected.value;
+                newFields?.classList.add('d-none');
+            }
         }
 
-        if (selected.value === 'new') {
-            sourceInput.value = 'new';
-            addressIdInput.value = '';
-            newFields?.classList.remove('d-none');
-        } else {
-            sourceInput.value = 'saved';
-            addressIdInput.value = selected.value;
-            newFields?.classList.add('d-none');
-        }
+        [address, city, pincode].forEach((el) => {
+            if (el) {
+                el.required = needsNew;
+            }
+        });
     };
 
     choices.forEach((radio) => radio.addEventListener('change', sync));

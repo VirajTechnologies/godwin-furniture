@@ -76,7 +76,7 @@
             @enderror
         </div>
         <div class="col-md-4">
-            <label for="warehouse_id" class="form-label">Warehouse</label>
+            <label for="warehouse_id" id="warehouse_id_label" class="form-label">Warehouse</label>
             <select class="form-select @error('warehouse_id') is-invalid @enderror" id="warehouse_id" name="warehouse_id">
                 <option value="">Select Warehouse</option>
                 @foreach ($warehouses as $warehouse)
@@ -89,7 +89,7 @@
             @enderror
         </div>
         <div class="col-md-4">
-            <label for="branch_id" class="form-label">Branch</label>
+            <label for="branch_id" id="branch_id_label" class="form-label">Branch</label>
             <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id" name="branch_id">
                 <option value="">Select Branch</option>
                 @foreach ($branches as $branch)
@@ -119,8 +119,12 @@
 
             function syncPlace() {
                 const option = roleSelect.options[roleSelect.selectedIndex];
-                warehouseSelect.required = option && option.dataset.requiresWarehouse === '1';
-                branchSelect.required = option && option.dataset.requiresBranch === '1';
+                const needsWarehouse = option && option.dataset.requiresWarehouse === '1';
+                const needsBranch = option && option.dataset.requiresBranch === '1';
+                warehouseSelect.required = needsWarehouse;
+                branchSelect.required = needsBranch;
+                document.getElementById('warehouse_id_label').classList.toggle('required', needsWarehouse);
+                document.getElementById('branch_id_label').classList.toggle('required', needsBranch);
             }
 
             roleSelect.addEventListener('change', syncPlace);

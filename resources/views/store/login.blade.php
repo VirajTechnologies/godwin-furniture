@@ -51,12 +51,12 @@
         <form action="{{ route('store.login.store') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label for="email" class="font-heading fw-bold small text-dark mb-1">Email Address</label>
+                <label for="email" class="font-heading fw-bold small text-dark mb-1 required">Email Address</label>
                 <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control font-heading py-2.5 shadow-none @error('email') is-invalid @enderror" placeholder="name@example.com" required autocomplete="email">
             </div>
 
             <div class="mb-3">
-                <label for="password" class="font-heading fw-bold small text-dark mb-1">Password</label>
+                <label for="password" class="font-heading fw-bold small text-dark mb-1 required">Password</label>
                 <input type="password" id="password" name="password" class="form-control font-heading py-2.5 shadow-none @error('password') is-invalid @enderror" required autocomplete="current-password">
             </div>
 

@@ -11,6 +11,7 @@
     <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('assets/css/required-fields.css') }}" rel="stylesheet" type="text/css">
 </head>
 <body>
     <div class="auth-page-wrapper pt-5">
@@ -52,14 +53,14 @@
                                     <form method="POST" action="{{ route('admin.login.store') }}">
                                         @csrf
                                         <div class="mb-3">
-                                            <label for="email" class="form-label">Email</label>
+                                            <label for="email" class="form-label required">Email</label>
                                             <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" placeholder="Enter email" required autofocus>
                                             @error('email')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label" for="password-input">Password</label>
+                                            <label class="form-label required" for="password-input">Password</label>
                                             <div class="position-relative auth-pass-inputgroup mb-3">
                                                 <input type="password" class="form-control pe-5 password-input @error('password') is-invalid @enderror" placeholder="Enter password" id="password-input" name="password" required>
                                                 <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" id="password-addon"><i class="ri-eye-fill align-middle"></i></button>

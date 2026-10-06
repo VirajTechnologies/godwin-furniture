@@ -43,7 +43,7 @@
             @enderror
         </div>
         <div class="col-md-8">
-            <label class="form-label d-block">Fulfilment</label>
+            <label class="form-label d-block required">Fulfilment</label>
             @php $deliveryType = old('delivery_type', \App\Models\Order::DELIVERY_PICKUP); @endphp
             <div class="d-flex flex-wrap gap-3">
                 <div class="form-check">
