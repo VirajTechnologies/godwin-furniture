@@ -75,6 +75,7 @@
         <div class="col-md-4">
             <label for="sort_order" class="form-label">Sort Order</label>
             <input type="number" class="form-control @error('sort_order') is-invalid @enderror" id="sort_order" name="sort_order" value="{{ old('sort_order', $category->sort_order ?? 0) }}" min="0" step="1">
+            <div class="form-text">Order of this subcategory inside its menu group.</div>
             @error('sort_order')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror

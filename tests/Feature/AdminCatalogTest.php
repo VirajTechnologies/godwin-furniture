@@ -90,6 +90,56 @@ class AdminCatalogTest extends TestCase
         ]);
     }
 
+    public function test_menu_groups_appear_alphabetically_with_subcategories_by_sort_order(): void
+    {
+        $room = Category::query()->create([
+            'name' => 'Living Room',
+            'slug' => 'living-room-'.uniqid(),
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+
+        Category::query()->create([
+            'parent_id' => $room->id,
+            'name' => 'Zebra Tables',
+            'slug' => 'zebra-tables-'.uniqid(),
+            'menu_group' => 'Tables & Storage',
+            'status' => 'active',
+            'sort_order' => 2,
+        ]);
+
+        Category::query()->create([
+            'parent_id' => $room->id,
+            'name' => 'Alpha Tables',
+            'slug' => 'alpha-tables-'.uniqid(),
+            'menu_group' => 'Tables & Storage',
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+
+        Category::query()->create([
+            'parent_id' => $room->id,
+            'name' => '3 Seater Sofas',
+            'slug' => '3-seater-sofas-'.uniqid(),
+            'menu_group' => 'Sofas & Seating',
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+
+        $html = $this->get(route('store.home'))->assertOk()->getContent();
+        $sofasPos = strpos($html, 'Sofas &amp; Seating');
+        $tablesPos = strpos($html, 'Tables &amp; Storage');
+        $alphaPos = strpos($html, 'Alpha Tables');
+        $zebraPos = strpos($html, 'Zebra Tables');
+
+        $this->assertNotFalse($sofasPos);
+        $this->assertNotFalse($tablesPos);
+        $this->assertLessThan($tablesPos, $sofasPos);
+        $this->assertNotFalse($alphaPos);
+        $this->assertNotFalse($zebraPos);
+        $this->assertLessThan($zebraPos, $alphaPos);
+    }
+
     public function test_a_room_does_not_keep_a_menu_group(): void
     {
         $admin = User::factory()->superAdmin()->create();

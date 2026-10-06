@@ -32,6 +32,9 @@ class LoadSampleData extends Command
 
     protected $description = 'Load sample showroom data with factories';
 
+    /** @var array<string, int> */
+    private array $menuGroupSortCounters = [];
+
     public function handle(StockLedger $ledger, StockTransferWorkflow $workflow, BranchSale $sales): int
     {
         if (Branch::query()->where('code', 'BR001')->exists()) {
@@ -291,91 +294,76 @@ class LoadSampleData extends Command
         $furnishings = $this->room('Furnishings', 'furnishings', 4, 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=600');
 
         $subs = [];
-        $sort = 0;
         foreach ([
-            // Living Room — Sofas & Seating
-            ['3 Seater Sofas', '3-seater-sofas', 'Sofas & Seating'],
-            ['2 Seater Sofas', '2-seater-sofas', 'Sofas & Seating'],
-            ['1 Seater Sofas', '1-seater-sofas', 'Sofas & Seating'],
-            ['Sofa Sets & Sectionals', 'sofa-sets-sectionals', 'Sofas & Seating'],
-            ['Sofa Cum Beds & Corner Sofas', 'sofa-cum-beds-corner-sofas', 'Sofas & Seating'],
-            // Living Room — Recliners & Chairs
+            // Living Room groups display A–Z; sort_order runs 1…n inside each group
             ['Leather & Fabric Recliners', 'leather-fabric-recliners', 'Recliners & Chairs'],
             ['Recliner Sets', 'recliner-sets', 'Recliners & Chairs'],
             ['Accent & Folding Chairs', 'accent-folding-chairs', 'Recliners & Chairs'],
             ['Benches & Ottoman Stools', 'benches-ottoman-stools', 'Recliners & Chairs'],
             ['Bean Bags & Pouffes', 'bean-bags-pouffes', 'Recliners & Chairs'],
-            // Living Room — Tables & Storage
+            ['3 Seater Sofas', '3-seater-sofas', 'Sofas & Seating'],
+            ['2 Seater Sofas', '2-seater-sofas', 'Sofas & Seating'],
+            ['1 Seater Sofas', '1-seater-sofas', 'Sofas & Seating'],
+            ['Sofa Sets & Sectionals', 'sofa-sets-sectionals', 'Sofas & Seating'],
+            ['Sofa Cum Beds & Corner Sofas', 'sofa-cum-beds-corner-sofas', 'Sofas & Seating'],
             ['Centre & Coffee Tables', 'centre-coffee-tables', 'Tables & Storage'],
             ['End & Console Tables', 'end-console-tables', 'Tables & Storage'],
             ['TV Consoles & Media Units', 'tv-consoles-media-units', 'Tables & Storage'],
             ['Wall Shelves & Home Mandir', 'wall-shelves-home-mandir', 'Tables & Storage'],
             ['Shoe Racks & Cabinets', 'shoe-racks-cabinets', 'Tables & Storage'],
         ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($living, $name, $slug, $group, ++$sort);
+            $subs[$slug] = $this->subcategory($living, $name, $slug, $group, $this->nextGroupSort($living->id, $group));
         }
 
-        $sort = 0;
         foreach ([
-            // Bedroom — Beds & Frames
             ['King Size Hydraulic Beds', 'king-size-hydraulic-beds', 'Beds & Frames'],
             ['Queen Size Solid Teak Beds', 'queen-size-solid-teak-beds', 'Beds & Frames'],
             ['Single & Poster Beds', 'single-poster-beds', 'Beds & Frames'],
             ['Heavy Duty Metal Bunk Beds', 'heavy-duty-metal-bunk-beds', 'Beds & Frames'],
-            // Bedroom — Wardrobes & Storage
-            ['2 Door Swing Wardrobes', '2-door-swing-wardrobes', 'Wardrobes & Storage'],
-            ['3 & 4 Door Wardrobes', '3-4-door-wardrobes', 'Wardrobes & Storage'],
-            ['Sliding Door Wardrobes', 'sliding-door-wardrobes', 'Wardrobes & Storage'],
-            ['Bedside Tables & Nightstands', 'bedside-tables-nightstands', 'Wardrobes & Storage'],
-            // Bedroom — Mattresses & Dressers
             ['Memory Foam Mattresses', 'memory-foam-mattresses', 'Mattresses & Dressers'],
             ['Spring & Orthopedic Mattresses', 'spring-orthopedic-mattresses', 'Mattresses & Dressers'],
             ['Chest of Drawers', 'chest-of-drawers', 'Mattresses & Dressers'],
             ['Dresser Mirrors & Vanities', 'dresser-mirrors-vanities', 'Mattresses & Dressers'],
+            ['2 Door Swing Wardrobes', '2-door-swing-wardrobes', 'Wardrobes & Storage'],
+            ['3 & 4 Door Wardrobes', '3-4-door-wardrobes', 'Wardrobes & Storage'],
+            ['Sliding Door Wardrobes', 'sliding-door-wardrobes', 'Wardrobes & Storage'],
+            ['Bedside Tables & Nightstands', 'bedside-tables-nightstands', 'Wardrobes & Storage'],
         ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($bedroom, $name, $slug, $group, ++$sort);
+            $subs[$slug] = $this->subcategory($bedroom, $name, $slug, $group, $this->nextGroupSort($bedroom->id, $group));
         }
 
-        $sort = 0;
         foreach ([
-            // Dining — Dining Sets
-            ['4-Seater Dining Sets', '4-seater-dining-sets', 'Dining Sets'],
-            ['6-Seater Solid Teak Sets', '6-seater-solid-teak-sets', 'Dining Sets'],
-            ['8-Seater Grand Dining Sets', '8-seater-grand-dining-sets', 'Dining Sets'],
-            ['Industrial Steel Dining Sets', 'industrial-steel-dining-sets', 'Dining Sets'],
-            // Dining — Chairs & Tables
-            ['Teak & Marble Dining Tables', 'teak-marble-dining-tables', 'Chairs & Tables'],
-            ['Upholstered Dining Chairs', 'upholstered-dining-chairs', 'Chairs & Tables'],
-            ['Solid Wood Dining Benches', 'solid-wood-dining-benches', 'Chairs & Tables'],
-            ['Crockery Cabinets & Curios', 'crockery-cabinets-curios', 'Chairs & Tables'],
-            // Dining — Bar Furniture
             ['Luxury Bar Cabinets', 'luxury-bar-cabinets', 'Bar Furniture'],
             ['Bar Stools & Counter Chairs', 'bar-stools-counter-chairs', 'Bar Furniture'],
             ['Serving Trolleys & Carts', 'serving-trolleys-carts', 'Bar Furniture'],
             ['Wine Racks & Glasses', 'wine-racks-glasses', 'Bar Furniture'],
+            ['Teak & Marble Dining Tables', 'teak-marble-dining-tables', 'Chairs & Tables'],
+            ['Upholstered Dining Chairs', 'upholstered-dining-chairs', 'Chairs & Tables'],
+            ['Solid Wood Dining Benches', 'solid-wood-dining-benches', 'Chairs & Tables'],
+            ['Crockery Cabinets & Curios', 'crockery-cabinets-curios', 'Chairs & Tables'],
+            ['4-Seater Dining Sets', '4-seater-dining-sets', 'Dining Sets'],
+            ['6-Seater Solid Teak Sets', '6-seater-solid-teak-sets', 'Dining Sets'],
+            ['8-Seater Grand Dining Sets', '8-seater-grand-dining-sets', 'Dining Sets'],
+            ['Industrial Steel Dining Sets', 'industrial-steel-dining-sets', 'Dining Sets'],
         ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($dining, $name, $slug, $group, ++$sort);
+            $subs[$slug] = $this->subcategory($dining, $name, $slug, $group, $this->nextGroupSort($dining->id, $group));
         }
 
-        $sort = 0;
         foreach ([
-            // Furnishings — Bedding & Sheets
             ['100% Cotton Double Bedsheets', 'cotton-double-bedsheets', 'Bedding & Sheets'],
             ['King & Queen Bedding Sets', 'king-queen-bedding-sets', 'Bedding & Sheets'],
             ['Pillows & Memory Foam Fillers', 'pillows-memory-foam-fillers', 'Bedding & Sheets'],
             ['Quilts, Comforters & Dohars', 'quilts-comforters-dohars', 'Bedding & Sheets'],
-            // Furnishings — Cushions & Curtains
             ['Designer Cushion Covers', 'designer-cushion-covers', 'Cushions & Curtains'],
             ['Filled Floor Cushions', 'filled-floor-cushions', 'Cushions & Curtains'],
             ['Door & Window Curtains', 'door-window-curtains', 'Cushions & Curtains'],
             ['Blackout Blinds & Rods', 'blackout-blinds-rods', 'Cushions & Curtains'],
-            // Furnishings — Rugs & Coverings
             ['Handwoven Wool Carpets', 'handwoven-wool-carpets', 'Rugs & Coverings'],
             ['Traditional Dhurries & Rugs', 'traditional-dhurries-rugs', 'Rugs & Coverings'],
             ['Anti-Skid Doormats', 'anti-skid-doormats', 'Rugs & Coverings'],
             ['Protective Sofa Covers', 'protective-sofa-covers', 'Rugs & Coverings'],
         ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($furnishings, $name, $slug, $group, ++$sort);
+            $subs[$slug] = $this->subcategory($furnishings, $name, $slug, $group, $this->nextGroupSort($furnishings->id, $group));
         }
 
         $img = fn (string $id) => "https://images.unsplash.com/{$id}?auto=format&fit=crop&q=80&w=800";
@@ -558,6 +546,14 @@ class LoadSampleData extends Command
             'image_url' => null,
             'status' => Category::STATUS_ACTIVE,
         ]);
+    }
+
+    private function nextGroupSort(int $roomId, string $group): int
+    {
+        $key = $roomId.'|'.$group;
+        $this->menuGroupSortCounters[$key] = ($this->menuGroupSortCounters[$key] ?? 0) + 1;
+
+        return $this->menuGroupSortCounters[$key];
     }
 
     /**

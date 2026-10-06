@@ -52,7 +52,10 @@ class Category extends Model
 
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(self::class, 'parent_id')
+            ->orderBy('menu_group')
+            ->orderBy('sort_order')
+            ->orderBy('name');
     }
 
     public function products(): HasMany
