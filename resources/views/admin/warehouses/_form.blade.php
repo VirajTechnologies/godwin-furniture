@@ -108,6 +108,16 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
+        <div class="col-md-8 d-flex align-items-end">
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="is_primary" value="1" id="is_primary" @checked(old('is_primary', $warehouse->is_primary))>
+                <label class="form-check-label" for="is_primary">Primary for online orders</label>
+            </div>
+            @error('is_primary')
+                <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+            <div class="form-text ms-4 mb-2">Online checkout and dispatch use this warehouse’s stock.</div>
+        </div>
         <div class="col-12">
             <label for="notes" class="form-label">Notes</label>
             <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3">{{ old('notes', $warehouse->notes) }}</textarea>

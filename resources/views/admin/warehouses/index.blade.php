@@ -21,7 +21,7 @@
                     @if ($warehouses->isEmpty())
                         <div class="text-center py-5">
                             <h5 class="mb-2">No warehouses yet</h5>
-                            <p class="text-muted mb-3">Add a warehouse to hold stock before transferring it to branches.</p>
+                            <p class="text-muted mb-3">Add the main warehouse for online orders. It becomes the primary warehouse. More warehouses can be added later.</p>
                             <a href="{{ route('admin.warehouses.create') }}" class="btn btn-success">Add warehouse</a>
                         </div>
                     @else
@@ -36,6 +36,7 @@
                                         <th>District</th>
                                         <th>City</th>
                                         <th>Phone</th>
+                                        <th>Primary</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -51,6 +52,13 @@
                                             <td>{{ $warehouse->city?->city_name ?? '—' }}</td>
                                             <td>{{ $warehouse->phone ?: '—' }}</td>
                                             <td>
+                                                @if ($warehouse->is_primary)
+                                                    <span class="badge bg-success-subtle text-success">Online</span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                            </td>
+                                            <td>
                                                 @if ($warehouse->isActive())
                                                     <span class="badge bg-success">Active</span>
                                                 @else
@@ -60,6 +68,12 @@
                                             <td>
                                                 <div class="d-flex flex-wrap gap-2 align-items-center">
                                                     @include('admin.partials.edit-icon', ['url' => route('admin.warehouses.edit', $warehouse)])
+                                                    @if (! $warehouse->is_primary && $warehouse->isActive())
+                                                        <form method="POST" action="{{ route('admin.warehouses.primary', $warehouse) }}">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-soft-primary">Set Primary</button>
+                                                        </form>
+                                                    @endif
                                                     @if (! $warehouse->isActive())
                                                         <form method="POST" action="{{ route('admin.warehouses.status', $warehouse) }}">
                                                             @csrf

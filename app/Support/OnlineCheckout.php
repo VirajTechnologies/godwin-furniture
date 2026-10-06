@@ -36,7 +36,7 @@ class OnlineCheckout
             throw new RuntimeException('Your bag is empty.');
         }
 
-        $warehouse = Warehouse::firstActive();
+        $warehouse = Warehouse::primaryForOnline();
 
         if ($warehouse === null) {
             throw new RuntimeException('Online orders are unavailable right now. Please try again later.');

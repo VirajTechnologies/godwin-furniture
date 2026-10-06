@@ -20,7 +20,7 @@ class AdminWarehouseTest extends TestCase
             ->assertRedirect(route('admin.login'));
     }
 
-    public function test_admin_can_create_a_warehouse(): void
+    public function test_admin_can_create_the_first_warehouse_as_primary(): void
     {
         $admin = User::factory()->superAdmin()->create();
 
@@ -45,6 +45,7 @@ class AdminWarehouseTest extends TestCase
             'state_id' => $state->id,
             'district_id' => $district->id,
             'city_id' => $city->id,
+            'is_primary' => true,
             'status' => 'active',
         ]);
     }
@@ -73,7 +74,37 @@ class AdminWarehouseTest extends TestCase
         $this->assertDatabaseMissing('warehouses', ['code' => 'WH001']);
     }
 
-    public function test_admin_can_deactivate_a_warehouse(): void
+    public function test_setting_a_second_warehouse_as_primary_clears_the_previous_one(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+
+        $first = Warehouse::query()->create([
+            'code' => 'WH001',
+            'name' => 'Main Warehouse',
+            'address_line' => 'Plot 1',
+            'pincode' => '500001',
+            'is_primary' => true,
+            'status' => 'active',
+        ]);
+
+        $second = Warehouse::query()->create([
+            'code' => 'WH002',
+            'name' => 'District Warehouse',
+            'address_line' => 'Plot 2',
+            'pincode' => '506002',
+            'is_primary' => false,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.warehouses.primary', $second))
+            ->assertRedirect();
+
+        $this->assertFalse($first->fresh()->is_primary);
+        $this->assertTrue($second->fresh()->is_primary);
+    }
+
+    public function test_primary_warehouse_cannot_be_deactivated(): void
     {
         $admin = User::factory()->superAdmin()->create();
 
@@ -82,15 +113,16 @@ class AdminWarehouseTest extends TestCase
             'name' => 'Main Warehouse',
             'address_line' => 'Plot 1',
             'pincode' => '500001',
+            'is_primary' => true,
             'status' => 'active',
         ]);
 
         $this->actingAs($admin)
             ->post(route('admin.warehouses.status', $warehouse), ['status' => 'inactive'])
             ->assertRedirect()
-            ->assertSessionHas('success');
+            ->assertSessionHas('error');
 
-        $this->assertSame('inactive', $warehouse->fresh()->status);
+        $this->assertSame('active', $warehouse->fresh()->status);
     }
 
     /**

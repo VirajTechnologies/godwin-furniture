@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Warehouse extends Model
 {
@@ -26,9 +27,20 @@ class Warehouse extends Model
         'district_id',
         'city_id',
         'pincode',
+        'is_primary',
         'status',
         'notes',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+        ];
+    }
 
     public function state(): BelongsTo
     {
@@ -55,11 +67,26 @@ class Warehouse extends Model
         return $this->hasMany(Stock::class);
     }
 
-    public static function firstActive(): ?self
+    public function markAsPrimary(): void
+    {
+        DB::transaction(function () {
+            static::query()->whereKeyNot($this->id)->update(['is_primary' => false]);
+
+            $this->forceFill([
+                'is_primary' => true,
+                'status' => self::STATUS_ACTIVE,
+            ])->save();
+        });
+    }
+
+    /**
+     * Active warehouse used to fulfil online store orders.
+     */
+    public static function primaryForOnline(): ?self
     {
         return static::query()
+            ->where('is_primary', true)
             ->where('status', self::STATUS_ACTIVE)
-            ->orderBy('id')
             ->first();
     }
 }

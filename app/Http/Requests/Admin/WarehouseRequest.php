@@ -32,6 +32,7 @@ class WarehouseRequest extends FormRequest
             'city_id' => ['required', 'integer', Rule::exists('cities', 'id')],
             'pincode' => ['required', 'string', 'max:10'],
             'status' => ['required', Rule::in([Warehouse::STATUS_ACTIVE, Warehouse::STATUS_INACTIVE])],
+            'is_primary' => ['sometimes', 'boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
 
@@ -44,17 +45,32 @@ class WarehouseRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $merge = [
+            'is_primary' => $this->boolean('is_primary'),
+        ];
+
         if ($this->filled('code')) {
-            $this->merge([
-                'code' => strtoupper((string) $this->input('code')),
-            ]);
+            $merge['code'] = strtoupper((string) $this->input('code'));
         }
+
+        $this->merge($merge);
     }
 
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
+            $isFirstWarehouse = $this->route('warehouse') === null && Warehouse::query()->doesntExist();
+            $willBePrimary = $isFirstWarehouse || $this->boolean('is_primary');
+
+            if ($willBePrimary && $this->input('status') !== Warehouse::STATUS_ACTIVE) {
+                $validator->errors()->add('status', 'The primary warehouse must stay active.');
+            }
+
             $warehouse = $this->route('warehouse');
+
+            if ($warehouse instanceof Warehouse && $warehouse->is_primary && ! $this->boolean('is_primary')) {
+                $validator->errors()->add('is_primary', 'Choose another primary warehouse before clearing this one.');
+            }
 
             $currentStateId = $warehouse instanceof Warehouse ? $warehouse->state_id : null;
             $currentDistrictId = $warehouse instanceof Warehouse ? $warehouse->district_id : null;

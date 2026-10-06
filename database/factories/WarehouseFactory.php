@@ -31,6 +31,7 @@ class WarehouseFactory extends Factory
             'district_id' => District::factory(),
             'city_id' => City::factory(),
             'pincode' => fake()->numerify('52####'),
+            'is_primary' => false,
             'status' => Warehouse::STATUS_ACTIVE,
         ];
     }
