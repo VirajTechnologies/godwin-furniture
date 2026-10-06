@@ -11,7 +11,7 @@ use Illuminate\Database\Seeder;
 class WarehouseSeeder extends Seeder
 {
     /**
-     * Seed the primary warehouse in Vijayawada.
+     * Seed the main warehouse in Vijayawada.
      */
     public function run(): void
     {
@@ -36,7 +36,6 @@ class WarehouseSeeder extends Seeder
                 'district_id' => $district->id,
                 'city_id' => $city->id,
                 'pincode' => '520001',
-                'is_primary' => true,
                 'status' => Warehouse::STATUS_ACTIVE,
             ],
         );

@@ -69,7 +69,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
         Route::get('warehouses/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('warehouses.edit');
         Route::put('warehouses/{warehouse}', [WarehouseController::class, 'update'])->name('warehouses.update');
-        Route::post('warehouses/{warehouse}/primary', [WarehouseController::class, 'makePrimary'])->name('warehouses.primary');
         Route::post('warehouses/{warehouse}/status', [WarehouseController::class, 'updateStatus'])->name('warehouses.status');
 
         Route::get('branches', [BranchController::class, 'index'])->name('branches.index');

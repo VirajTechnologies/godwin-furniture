@@ -90,7 +90,6 @@ class BranchController extends Controller
                     $query->orWhere('id', $selectedId);
                 }
             })
-            ->orderByDesc('is_primary')
             ->orderBy('name')
             ->get();
     }

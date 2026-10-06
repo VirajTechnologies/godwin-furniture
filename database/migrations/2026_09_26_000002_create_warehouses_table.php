@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('district');
             $table->string('state');
             $table->string('pincode', 10);
-            $table->boolean('is_primary')->default(false);
             $table->string('status')->default('active');
             $table->text('notes')->nullable();
             $table->timestamps();

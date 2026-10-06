@@ -27,7 +27,6 @@ class LocationMasterTest extends TestCase
         $this->assertDatabaseHas('warehouses', [
             'code' => 'WH001',
             'name' => 'Main Warehouse',
-            'is_primary' => true,
             'city_id' => \App\Models\City::query()->where('city_name', 'Vijayawada')->value('id'),
         ]);
     }

@@ -36,10 +36,7 @@ class OnlineCheckout
             throw new RuntimeException('Your bag is empty.');
         }
 
-        $warehouse = Warehouse::query()
-            ->where('is_primary', true)
-            ->where('status', Warehouse::STATUS_ACTIVE)
-            ->first();
+        $warehouse = Warehouse::firstActive();
 
         if ($warehouse === null) {
             throw new RuntimeException('Online orders are unavailable right now. Please try again later.');

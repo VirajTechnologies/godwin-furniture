@@ -244,7 +244,6 @@ class BranchSaleTest extends TestCase
             'name' => 'Main Warehouse',
             'address_line' => 'Industrial Area',
             'pincode' => '520001',
-            'is_primary' => true,
             'status' => 'active',
         ]);
         $branch = Branch::query()->create([

@@ -211,7 +211,6 @@ class StorefrontCheckoutTest extends TestCase
             'district_id' => $district->id,
             'city_id' => $city->id,
             'pincode' => '520001',
-            'is_primary' => true,
             'status' => 'active',
         ]);
     }

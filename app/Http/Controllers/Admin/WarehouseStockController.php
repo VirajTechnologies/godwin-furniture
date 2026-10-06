@@ -134,7 +134,6 @@ class WarehouseStockController extends Controller
     {
         return Warehouse::query()
             ->where('status', Warehouse::STATUS_ACTIVE)
-            ->orderByDesc('is_primary')
             ->orderBy('name')
             ->get();
     }

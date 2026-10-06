@@ -17,7 +17,6 @@ class WarehouseController extends Controller
     {
         $warehouses = Warehouse::query()
             ->with(['state', 'district', 'city'])
-            ->orderByDesc('is_primary')
             ->orderBy('name')
             ->paginate(15);
 
@@ -30,7 +29,6 @@ class WarehouseController extends Controller
     {
         $warehouse = new Warehouse([
             'status' => Warehouse::STATUS_ACTIVE,
-            'is_primary' => Warehouse::query()->doesntExist(),
         ]);
 
         return view('admin.warehouses.create', [
@@ -41,13 +39,7 @@ class WarehouseController extends Controller
 
     public function store(WarehouseRequest $request): RedirectResponse
     {
-        $makePrimary = $request->boolean('is_primary') || Warehouse::query()->doesntExist();
-
-        $warehouse = Warehouse::query()->create($request->safe()->except('is_primary'));
-
-        if ($makePrimary) {
-            $warehouse->markAsPrimary();
-        }
+        Warehouse::query()->create($request->validated());
 
         return redirect()
             ->route('admin.warehouses.index')
@@ -64,26 +56,11 @@ class WarehouseController extends Controller
 
     public function update(WarehouseRequest $request, Warehouse $warehouse): RedirectResponse
     {
-        $warehouse->update($request->safe()->except(['is_primary', 'code']));
-
-        if ($request->boolean('is_primary')) {
-            $warehouse->markAsPrimary();
-        }
+        $warehouse->update(collect($request->validated())->except('code')->all());
 
         return redirect()
             ->route('admin.warehouses.index')
             ->with('success', 'Warehouse updated.');
-    }
-
-    public function makePrimary(Warehouse $warehouse): RedirectResponse
-    {
-        if (! $warehouse->isActive()) {
-            return back()->with('error', 'Activate this warehouse before marking it as primary.');
-        }
-
-        $warehouse->markAsPrimary();
-
-        return back()->with('success', $warehouse->name.' is now the primary warehouse.');
     }
 
     public function updateStatus(Request $request, Warehouse $warehouse): RedirectResponse
@@ -91,10 +68,6 @@ class WarehouseController extends Controller
         $status = $request->validate([
             'status' => ['required', Rule::in([Warehouse::STATUS_ACTIVE, Warehouse::STATUS_INACTIVE])],
         ])['status'];
-
-        if ($status === Warehouse::STATUS_INACTIVE && $warehouse->is_primary) {
-            return back()->with('error', 'Set another warehouse as primary before deactivating this one.');
-        }
 
         $warehouse->update(['status' => $status]);
 
