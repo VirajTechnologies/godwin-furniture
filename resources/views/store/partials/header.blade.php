@@ -9,7 +9,7 @@
                 <span class="opacity-25">|</span>
                 <a href="#"><i class="fas fa-mobile-alt me-1 opacity-75"></i> Download Our Apps</a>
                 <span class="opacity-25">|</span>
-                <a href="{{ route('store.cart') }}"><i class="fas fa-truck me-1 opacity-75"></i> Track Furniture Order</a>
+                <a href="{{ auth()->check() ? route('store.orders.index') : route('store.login') }}"><i class="fas fa-truck me-1 opacity-75"></i> Track Furniture Order</a>
                 <span class="opacity-25">|</span>
                 <a href="https://wa.me/917418759171" target="_blank"><i class="fas fa-headset me-1 opacity-75"></i> Help</a>
             </div>
@@ -24,7 +24,12 @@
                     <a href="{{ route('store.home') }}" class="text-decoration-none d-flex align-items-center">
                         <img src="{{ asset('store/images/logo.png') }}" alt="Godwin Groups" style="height: 44px; max-width: 200px; object-fit: contain;">
                     </a>
-                    <a href="{{ route('store.cart') }}" class="text-dark position-relative fs-5 d-lg-none"><i class="fas fa-shopping-bag"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px;">2</span></a>
+                    <a href="{{ route('store.cart') }}" class="text-dark position-relative fs-5 d-lg-none">
+                        <i class="fas fa-shopping-bag"></i>
+                        @if (($cartCount ?? 0) > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px;">{{ $cartCount }}</span>
+                        @endif
+                    </a>
                 </div>
                 <div class="col-12 col-md-4 col-lg-4 d-none d-md-flex justify-content-center">
                     <form class="w-100 d-flex justify-content-center" action="{{ route('store.catalog') }}" method="GET">
@@ -39,14 +44,30 @@
                         <i class="far fa-heart mb-1"></i>
                         <span class="small-text fw-medium">Favourites</span>
                     </a>
-                    <a href="{{ route('store.login') }}" class="header-icon-item icon-account d-flex flex-column align-items-center justify-content-center">
-                        <i class="far fa-user mb-1"></i>
-                        <span class="small-text fw-medium">Account</span>
-                    </a>
+                    @auth
+                        <a href="{{ route('store.account') }}" class="header-icon-item icon-account d-flex flex-column align-items-center justify-content-center">
+                            <i class="far fa-user mb-1"></i>
+                            <span class="small-text fw-medium">{{ \Illuminate\Support\Str::limit(auth()->user()->name, 12) }}</span>
+                        </a>
+                        <form method="POST" action="{{ route('store.logout') }}" class="m-0">
+                            @csrf
+                            <button type="submit" class="header-icon-item border-0 bg-transparent d-flex flex-column align-items-center justify-content-center p-0" title="Sign out">
+                                <i class="fas fa-sign-out-alt mb-1"></i>
+                                <span class="small-text fw-medium">Sign out</span>
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('store.login') }}" class="header-icon-item icon-account d-flex flex-column align-items-center justify-content-center">
+                            <i class="far fa-user mb-1"></i>
+                            <span class="small-text fw-medium">Account</span>
+                        </a>
+                    @endauth
                     <a href="{{ route('store.cart') }}" class="header-icon-item icon-basket d-flex flex-column align-items-center justify-content-center">
                         <div class="d-flex align-items-center justify-content-center">
                             <i class="fas fa-shopping-bag"></i>
-                            <span class="basket-badge-count">2</span>
+                            @if (($cartCount ?? 0) > 0)
+                                <span class="basket-badge-count">{{ $cartCount }}</span>
+                            @endif
                         </div>
                         <span class="small-text fw-medium">Basket</span>
                     </a>

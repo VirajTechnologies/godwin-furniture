@@ -15,6 +15,8 @@ class Order extends Model
 
     public const STATUS_COMPLETED = 'completed';
 
+    public const STATUS_PLACED = 'placed';
+
     /**
      * @var list<string>
      */
@@ -28,6 +30,9 @@ class Order extends Model
         'total',
         'status',
         'notes',
+        'shipping_address',
+        'shipping_city',
+        'shipping_pincode',
     ];
 
     /**
@@ -68,5 +73,14 @@ class Order extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PLACED => 'Placed',
+            self::STATUS_COMPLETED => 'Completed',
+            default => ucfirst((string) $this->status),
+        };
     }
 }

@@ -38,7 +38,7 @@
                                         <tr>
                                             <td>{{ $orders->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium">{{ $order->code }}</td>
-                                            <td>{{ $order->branch?->name ?? '—' }}</td>
+                                            <td>{{ $order->branch?->name ?? ($order->channel === \App\Models\Order::CHANNEL_ONLINE ? 'Online' : '—') }}</td>
                                             <td>{{ $order->customer?->name }}</td>
                                             <td>₹{{ number_format((float) $order->total, 2) }}</td>
                                             <td>{{ $order->payment?->methodLabel() ?? '—' }}</td>

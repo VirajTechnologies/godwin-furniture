@@ -57,7 +57,11 @@
                         <span class="text-muted text-decoration-line-through small ms-1">₹{{ number_format($mrp, 0) }}</span>
                     @endif
                 </div>
-                <a href="{{ route('store.cart') }}" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Add</a>
+                <form method="POST" action="{{ route('store.cart.add') }}" class="m-0">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                    <button type="submit" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Add</button>
+                </form>
             </div>
         </div>
     </div>

@@ -13,7 +13,11 @@ class Payment extends Model
 
     public const METHOD_CARD = 'card';
 
+    public const METHOD_COD = 'cod';
+
     public const STATUS_PAID = 'paid';
+
+    public const STATUS_PENDING = 'pending';
 
     /**
      * @var list<string>
@@ -46,7 +50,17 @@ class Payment extends Model
             self::METHOD_CASH => 'Cash',
             self::METHOD_UPI => 'UPI',
             self::METHOD_CARD => 'Card',
+            self::METHOD_COD => 'Cash on Delivery',
             default => $this->method,
+        };
+    }
+
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PAID => 'Paid',
+            self::STATUS_PENDING => 'Pending',
+            default => ucfirst((string) $this->status),
         };
     }
 }

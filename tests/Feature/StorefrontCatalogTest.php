@@ -43,6 +43,12 @@ class StorefrontCatalogTest extends TestCase
         $this->get(route('store.catalog', ['category' => $category->slug]))
             ->assertOk()
             ->assertSee('3 Seater Sofas');
+
+        $this->get(route('store.cart'))
+            ->assertOk()
+            ->assertSee('Living Room')
+            ->assertSee('3 Seater Sofas')
+            ->assertSee('Open Living Room menu', false);
     }
 
     public function test_catalog_lists_online_products_with_mrp(): void

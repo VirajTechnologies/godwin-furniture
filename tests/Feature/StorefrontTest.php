@@ -30,6 +30,6 @@ class StorefrontTest extends TestCase
 
         $this->get(route('store.register'))
             ->assertOk()
-            ->assertSee('Create Priority Account');
+            ->assertSee('Create Account');
     }
 }

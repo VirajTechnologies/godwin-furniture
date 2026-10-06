@@ -24,6 +24,20 @@
                         <label class="form-label">Total</label>
                         <input type="text" class="form-control" value="₹{{ number_format((float) $order->total, 2) }}" readonly>
                     </div>
+                    @if ($order->channel === \App\Models\Order::CHANNEL_ONLINE)
+                        <div class="col-md-6">
+                            <label class="form-label">Delivery Address</label>
+                            <input type="text" class="form-control" value="{{ collect([$order->shipping_address, $order->shipping_city, $order->shipping_pincode])->filter()->implode(', ') }}" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Channel</label>
+                            <input type="text" class="form-control" value="Online" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <input type="text" class="form-control" value="{{ ucfirst($order->status) }}" readonly>
+                        </div>
+                    @endif
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">

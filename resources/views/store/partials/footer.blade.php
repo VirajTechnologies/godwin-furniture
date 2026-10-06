@@ -26,7 +26,7 @@
                     <h5 class="text-white font-heading fw-bold fs-6 mb-3">Shop</h5>
                     <ul class="list-unstyled mb-0 font-heading" style="font-size: 13px;">
                         <li><a href="{{ route('store.catalog') }}" class="footer-nav-link d-block"><i class="fas fa-shopping-cart me-1.5 text-amber"></i> E-Store Catalog</a></li>
-                        <li><a href="{{ route('store.cart') }}" class="footer-nav-link d-block"><i class="fas fa-truck me-1.5 text-amber"></i> Track Order Status</a></li>
+                        <li><a href="{{ auth()->check() ? route('store.orders.index') : route('store.login') }}" class="footer-nav-link d-block"><i class="fas fa-truck me-1.5 text-amber"></i> Track Order Status</a></li>
                         <li><a href="{{ route('store.catalog') }}" class="footer-nav-link d-block"><i class="fas fa-handshake me-1.5 text-amber"></i> B2B Wholesale</a></li>
                     </ul>
                 </div>

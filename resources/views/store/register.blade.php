@@ -30,7 +30,6 @@
             background-color: #A35220;
             color: #ffffff;
         }
-    
 </style>
 @endpush
 @section('content')
@@ -39,51 +38,47 @@
             <a href="{{ route('store.home') }}" class="d-inline-block mb-3">
                 <img src="{{ asset('store/images/logo.png') }}" alt="Godwin Groups" style="height: 48px; max-width: 220px; object-fit: contain;">
             </a>
-            <h4 class="fw-bold text-dark m-0">Create Priority Account</h4>
-            <p class="small text-muted m-0">Unlock direct factory pricing & 10-year warranty registration</p>
+            <h4 class="fw-bold text-dark m-0">Create Account</h4>
+            <p class="small text-muted m-0">Register once, then sign in to checkout anytime</p>
         </div>
 
-        <form action="{{ route('store.login') }}" method="GET">
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 rounded-3 small font-heading mb-3">
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('store.register.store') }}" method="POST">
+            @csrf
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="font-heading fw-bold small text-dark mb-1">Full Name</label>
-                    <input type="text" class="form-control font-heading py-2 shadow-none" placeholder="Vikram Godwin" required>
+                    <label for="name" class="font-heading fw-bold small text-dark mb-1">Full Name</label>
+                    <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control font-heading py-2 shadow-none @error('name') is-invalid @enderror" required maxlength="150" autocomplete="name">
                 </div>
                 <div class="col-md-6">
-                    <label class="font-heading fw-bold small text-dark mb-1">Phone Number</label>
-                    <input type="text" class="form-control font-heading py-2 shadow-none" placeholder="+91 98230 11223" required>
+                    <label for="phone" class="font-heading fw-bold small text-dark mb-1">Phone Number</label>
+                    <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="form-control font-heading py-2 shadow-none @error('phone') is-invalid @enderror" required maxlength="20" autocomplete="tel">
                 </div>
             </div>
 
             <div class="mb-3">
-                <label class="font-heading fw-bold small text-dark mb-1">Email Address</label>
-                <input type="email" class="form-control font-heading py-2 shadow-none" placeholder="vikram@godwin-groups.com" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="font-heading fw-bold small text-dark mb-1">Account Category</label>
-                <select class="form-select font-heading py-2 shadow-none">
-                    <option selected>🏡 Individual Homeowner Client</option>
-                    <option>📐 Architect / Interior Designer</option>
-                    <option>🏢 Corporate / Executive Workplace</option>
-                    <option>🏬 Authorized Retail Dealer</option>
-                </select>
+                <label for="email" class="font-heading fw-bold small text-dark mb-1">Email Address</label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control font-heading py-2 shadow-none @error('email') is-invalid @enderror" required maxlength="150" autocomplete="email">
             </div>
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="font-heading fw-bold small text-dark mb-1">Create Password</label>
-                    <input type="password" class="form-control font-heading py-2 shadow-none" placeholder="••••••••" required>
+                    <label for="password" class="font-heading fw-bold small text-dark mb-1">Create Password</label>
+                    <input type="password" id="password" name="password" class="form-control font-heading py-2 shadow-none @error('password') is-invalid @enderror" required autocomplete="new-password">
                 </div>
                 <div class="col-md-6">
-                    <label class="font-heading fw-bold small text-dark mb-1">Confirm Password</label>
-                    <input type="password" class="form-control font-heading py-2 shadow-none" placeholder="••••••••" required>
+                    <label for="password_confirmation" class="font-heading fw-bold small text-dark mb-1">Confirm Password</label>
+                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control font-heading py-2 shadow-none" required autocomplete="new-password">
                 </div>
-            </div>
-
-            <div class="form-check mb-4">
-                <input type="checkbox" class="form-check-input" id="terms" checked required>
-                <label class="form-check-label small font-heading text-dark" for="terms">I agree to Godwin's <a href="#" class="text-amber fw-semibold">Terms of Service</a> & <a href="#" class="text-amber fw-semibold">Priority Club Benefits</a></label>
             </div>
 
             <button type="submit" class="btn btn-amber w-100 py-3 rounded-3 font-heading fw-bold fs-6 mb-3 shadow-sm"><i class="fas fa-user-plus me-2"></i> Register Account</button>
@@ -93,6 +88,4 @@
             <span class="small text-muted">Already have a Godwin account? <a href="{{ route('store.login') }}" class="fw-bold text-decoration-none" style="color: #C2652B;">Sign In Here</a></span>
         </div>
     </div>
-
-
 @endsection

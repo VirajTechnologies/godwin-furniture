@@ -22,15 +22,27 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
-            return $request->is('branch', 'branch/*')
-                ? route('branch.login')
-                : route('admin.login');
+            if ($request->is('branch', 'branch/*')) {
+                return route('branch.login');
+            }
+
+            if ($request->is('admin', 'admin/*')) {
+                return route('admin.login');
+            }
+
+            return route('store.login');
         });
 
         $middleware->redirectUsersTo(function (Request $request) {
-            return $request->user()?->isBranchUser()
-                ? route('branch.home')
-                : route('admin.dashboard');
+            if ($request->is('admin', 'admin/*')) {
+                return route('admin.dashboard');
+            }
+
+            if ($request->is('branch', 'branch/*')) {
+                return route('branch.home');
+            }
+
+            return route('store.home');
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -45,12 +57,20 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 419);
             }
 
-            $branchRequest = $request->is('branch', 'branch/*');
-            $home = $branchRequest ? route('branch.home') : route('admin.dashboard');
+            if ($request->is('branch', 'branch/*')) {
+                $home = route('branch.home');
+                $login = 'branch.login';
+            } elseif ($request->is('admin', 'admin/*')) {
+                $home = route('admin.dashboard');
+                $login = 'admin.login';
+            } else {
+                $home = route('store.home');
+                $login = 'store.login';
+            }
 
             $redirect = auth()->check()
                 ? redirect()->back(fallback: $home)
-                : redirect()->route($branchRequest ? 'branch.login' : 'admin.login');
+                : redirect()->route($login);
 
             return $redirect
                 ->withInput($request->except(['password', 'password_confirmation', '_token']))

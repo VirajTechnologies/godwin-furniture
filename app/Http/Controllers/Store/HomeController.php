@@ -7,15 +7,9 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\View as ViewFacade;
 
 class HomeController extends Controller
 {
-    public function __construct()
-    {
-        ViewFacade::share('storeMenu', $this->menu());
-    }
-
     public function index(): View
     {
         $online = Product::query()
@@ -144,35 +138,5 @@ class HomeController extends Controller
             'product' => $product,
             'related' => $related,
         ]);
-    }
-
-    public function cart(): View
-    {
-        return view('store.cart');
-    }
-
-    public function login(): View
-    {
-        return view('store.login');
-    }
-
-    public function register(): View
-    {
-        return view('store.register');
-    }
-
-        private function menu()
-    {
-        return Category::query()
-            ->with(['children' => fn ($query) => $query
-                ->where('status', Category::STATUS_ACTIVE)
-                ->orderBy('menu_group')
-                ->orderBy('sort_order')
-                ->orderBy('name')])
-            ->whereNull('parent_id')
-            ->where('status', Category::STATUS_ACTIVE)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
     }
 }

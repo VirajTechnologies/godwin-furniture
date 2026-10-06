@@ -70,8 +70,23 @@
                         <p class="font-heading text-dark mb-4">{{ $product->description }}</p>
                     @endif
                     <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
-                        <a href="{{ route('store.cart') }}" class="btn btn-primary-luxury btn-lg py-3 px-4 flex-grow-1 font-heading fw-bold shadow-sm"><i class="fas fa-shopping-bag me-2"></i> Add To Bag</a>
-                        <a href="{{ route('store.cart') }}" class="btn btn-dark btn-lg py-3 px-4 font-heading fw-bold"><i class="fas fa-bolt me-2 text-warning"></i> Buy Now</a>
+                        <form method="POST" action="{{ route('store.cart.add') }}" class="flex-grow-1 m-0">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-primary-luxury btn-lg py-3 px-4 w-100 font-heading fw-bold shadow-sm">
+                                <i class="fas fa-shopping-bag me-2"></i> Add To Bag
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('store.cart.add') }}" class="m-0">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="redirect" value="cart">
+                            <button type="submit" class="btn btn-dark btn-lg py-3 px-4 font-heading fw-bold">
+                                <i class="fas fa-bolt me-2 text-warning"></i> Buy Now
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

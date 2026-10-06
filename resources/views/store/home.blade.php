@@ -53,7 +53,7 @@
                 <span class="opacity-25">|</span>
                 <a href="#"><i class="fas fa-mobile-alt me-1 opacity-75"></i> Download Our Apps</a>
                 <span class="opacity-25">|</span>
-                <a href="{{ route('store.cart') }}"><i class="fas fa-truck me-1 opacity-75"></i> Track Furniture Order</a>
+                <a href="{{ auth()->check() ? route('store.orders.index') : route('store.login') }}"><i class="fas fa-truck me-1 opacity-75"></i> Track Furniture Order</a>
                 <span class="opacity-25">|</span>
                 <a href="https://wa.me/917418759171" target="_blank"><i class="fas fa-headset me-1 opacity-75"></i> Help</a>
             </div>
@@ -77,7 +77,7 @@
 
                     <!-- Mobile Right Cart Badge -->
                     <div class="d-flex d-lg-none align-items-center gap-3">
-                        <a href="{{ route('store.cart') }}" class="text-dark position-relative fs-5"><i class="fas fa-shopping-bag"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px;">2</span></a>
+                        <a href="{{ route('store.cart') }}" class="text-dark position-relative fs-5"><i class="fas fa-shopping-bag"></i>@if (($cartCount ?? 0) > 0)<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px;">{{ $cartCount }}</span>@endif</a>
                     </div>
                 </div>
 
@@ -118,17 +118,27 @@
                     <div class="dropdown">
                         <a href="#" class="header-icon-item icon-account d-flex flex-column align-items-center justify-content-center" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="far fa-user mb-1"></i>
-                            <span class="small-text fw-medium">Account</span>
+                            <span class="small-text fw-medium">{{ auth()->check() ? \Illuminate\Support\Str::limit(auth()->user()->name, 12) : 'Account' }}</span>
                         </a>
                         <div class="dropdown-menu shadow-lg border-0 rounded-3 p-3 mt-2" style="width: 260px; right: 0; left: auto;">
-                            <div class="p-2 text-center border-bottom mb-2">
-                                <a href="{{ route('store.login') }}" class="btn btn-primary-luxury w-100 mb-2 text-decoration-none text-center d-block">SIGN IN</a>
-                                <span class="small text-muted">New Client? <a href="{{ route('store.register') }}" class="text-amber fw-semibold">Register Here</a></span>
-                            </div>
-                            <a href="#" class="dropdown-item py-2 dropdown-item-custom"><i class="far fa-id-card me-2 opacity-75"></i> My Profile</a>
-                            <a href="#" class="dropdown-item py-2 dropdown-item-custom"><i class="fas fa-box-open me-2 opacity-75"></i> My Orders</a>
-                            <a href="#" class="dropdown-item py-2 dropdown-item-custom"><i class="far fa-heart me-2 opacity-75"></i> Saved Wishlist</a>
-                            <a href="#" class="dropdown-item py-2 dropdown-item-custom"><i class="fas fa-truck me-2 opacity-75"></i> Track Order</a>
+                            @auth
+                                <div class="p-2 text-center border-bottom mb-2">
+                                    <div class="fw-semibold font-heading text-dark mb-1">{{ auth()->user()->name }}</div>
+                                    <div class="small text-muted mb-2">{{ auth()->user()->email }}</div>
+                                    <form method="POST" action="{{ route('store.logout') }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-secondary w-100 font-heading fw-semibold">Sign Out</button>
+                                    </form>
+                                </div>
+                                <a href="{{ route('store.account') }}" class="dropdown-item py-2 dropdown-item-custom"><i class="far fa-id-card me-2 opacity-75"></i> My Account</a>
+                                <a href="{{ route('store.orders.index') }}" class="dropdown-item py-2 dropdown-item-custom"><i class="fas fa-box-open me-2 opacity-75"></i> My Orders</a>
+                            @else
+                                <div class="p-2 text-center border-bottom mb-2">
+                                    <a href="{{ route('store.login') }}" class="btn btn-primary-luxury w-100 mb-2 text-decoration-none text-center d-block">SIGN IN</a>
+                                    <span class="small text-muted">New Client? <a href="{{ route('store.register') }}" class="text-amber fw-semibold">Register Here</a></span>
+                                </div>
+                            @endauth
+                            <a href="{{ route('store.cart') }}" class="dropdown-item py-2 dropdown-item-custom"><i class="fas fa-shopping-bag me-2 opacity-75"></i> My Bag</a>
                         </div>
                     </div>
 
@@ -136,7 +146,9 @@
                     <a href="{{ route('store.cart') }}" class="header-icon-item icon-basket d-flex flex-column align-items-center justify-content-center">
                         <div class="d-flex align-items-center justify-content-center">
                             <i class="fas fa-shopping-bag"></i>
-                            <span class="basket-badge-count">2</span>
+                            @if (($cartCount ?? 0) > 0)
+                                <span class="basket-badge-count">{{ $cartCount }}</span>
+                            @endif
                         </div>
                         <span class="small-text fw-medium">Basket</span>
                     </a>
