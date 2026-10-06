@@ -67,7 +67,12 @@ class AdminStockTransferTest extends TestCase
         $transferId = \App\Models\StockTransfer::query()->where('code', 'TR001')->value('id');
 
         $this->actingAs($admin)
-            ->post(route('admin.transfers.dispatch', $transferId))
+            ->post(route('admin.transfers.dispatch', $transferId), [
+                'branch_id' => $branch->id,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 2],
+                ],
+            ])
             ->assertRedirect(route('admin.transfers.edit', $transferId));
 
         $this->assertDatabaseHas('stocks', [
@@ -150,7 +155,12 @@ class AdminStockTransferTest extends TestCase
         $transferId = \App\Models\StockTransfer::query()->where('code', 'TR002')->value('id');
 
         $this->actingAs($admin)
-            ->post(route('admin.transfers.dispatch', $transferId))
+            ->post(route('admin.transfers.dispatch', $transferId), [
+                'branch_id' => $branch->id,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 4],
+                ],
+            ])
             ->assertSessionHas('error');
 
         $this->assertDatabaseHas('stock_transfers', [
@@ -209,7 +219,12 @@ class AdminStockTransferTest extends TestCase
         ]);
 
         $transferId = \App\Models\StockTransfer::query()->where('code', 'TR004')->value('id');
-        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId));
+        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
 
         $cashier = $this->branchUser($branch, Role::BRANCH_STAFF, 'Branch Staff', 'CSH001');
 
@@ -249,7 +264,12 @@ class AdminStockTransferTest extends TestCase
         ]);
 
         $transferId = \App\Models\StockTransfer::query()->where('code', 'TR005')->value('id');
-        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId));
+        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
 
         $this->actingAs($manager)
             ->post(route('branch.transfers.receive', $transferId))
@@ -258,6 +278,53 @@ class AdminStockTransferTest extends TestCase
         $this->assertDatabaseHas('stock_transfers', [
             'id' => $transferId,
             'status' => 'dispatched',
+        ]);
+    }
+
+    public function test_dispatch_saves_the_current_form_lines_before_reducing_stock(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$product, $warehouse, $branch] = $this->stocked(10);
+
+        $this->actingAs($admin)->post(route('admin.transfers.store'), [
+            'code' => 'TR006',
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
+        ]);
+
+        $transferId = \App\Models\StockTransfer::query()->where('code', 'TR006')->value('id');
+
+        $this->actingAs($admin)
+            ->post(route('admin.transfers.dispatch', $transferId), [
+                'branch_id' => $branch->id,
+                'notes' => 'Updated on dispatch',
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 4],
+                ],
+            ])
+            ->assertRedirect(route('admin.transfers.edit', $transferId));
+
+        $this->assertDatabaseHas('stock_transfer_items', [
+            'stock_transfer_id' => $transferId,
+            'product_id' => $product->id,
+            'quantity' => 4,
+        ]);
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transferId,
+            'status' => 'dispatched',
+            'notes' => 'Updated on dispatch',
+        ]);
+        $this->assertDatabaseHas('stocks', [
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 6,
+        ]);
+        $this->assertDatabaseHas('stock_movements', [
+            'type' => StockMovement::TYPE_TRANSFER_OUT,
+            'quantity_change' => -4,
+            'quantity_after' => 6,
         ]);
     }
 

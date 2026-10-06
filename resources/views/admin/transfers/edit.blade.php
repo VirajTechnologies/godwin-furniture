@@ -14,12 +14,6 @@
             <div class="card">
                 <div class="card-header d-flex align-items-center">
                     <h5 class="card-title mb-0 flex-grow-1">{{ $transfer->code }} · {{ $transfer->statusLabel() }}</h5>
-                    @if ($transfer->isDraft())
-                        <form method="POST" action="{{ route('admin.transfers.dispatch', $transfer) }}" onsubmit="return confirm('Dispatch this transfer? Warehouse stock will decrease.')">
-                            @csrf
-                            <button type="submit" class="btn btn-warning">Dispatch</button>
-                        </form>
-                    @endif
                 </div>
                 <div class="card-body">
                     @if ($transfer->isDraft())

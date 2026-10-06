@@ -94,6 +94,14 @@
 
     <div class="mt-2 d-flex gap-2">
         <button type="submit" class="btn btn-success">Save Transfer</button>
+        @if ($isEdit && $transfer->isDraft())
+            <button
+                type="submit"
+                class="btn btn-warning"
+                formaction="{{ route('admin.transfers.dispatch', $transfer) }}"
+                onclick="return confirm('Save and dispatch this transfer? Warehouse stock will decrease.')"
+            >Save &amp; Dispatch</button>
+        @endif
         <a href="{{ route('admin.transfers.index') }}" class="btn btn-light">Cancel</a>
     </div>
 </form>

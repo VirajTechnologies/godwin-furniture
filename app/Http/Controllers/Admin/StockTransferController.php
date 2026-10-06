@@ -10,7 +10,6 @@ use App\Models\Product;
 use App\Models\StockTransfer;
 use App\Support\StockTransferWorkflow;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use RuntimeException;
@@ -83,32 +82,23 @@ class StockTransferController extends Controller
             return back()->with('error', 'Only a draft transfer can be changed.');
         }
 
-        $branch = Branch::query()->findOrFail($request->integer('branch_id'));
-
-        DB::transaction(function () use ($request, $transfer, $branch) {
-            $transfer->update([
-                'warehouse_id' => $branch->warehouse_id,
-                'branch_id' => $branch->id,
-                'notes' => $request->validated('notes'),
-            ]);
-
-            $transfer->items()->delete();
-            $transfer->items()->createMany($request->lines());
-        });
+        $this->syncDraft($request, $transfer);
 
         return redirect()
             ->route('admin.transfers.edit', $transfer)
             ->with('success', 'Transfer updated.');
     }
 
-    public function dispatch(Request $request, StockTransfer $transfer, StockTransferWorkflow $workflow): RedirectResponse
+    public function dispatch(StockTransferRequest $request, StockTransfer $transfer, StockTransferWorkflow $workflow): RedirectResponse
     {
         if (! $transfer->isDraft()) {
             return back()->with('error', 'Only a draft transfer can be dispatched.');
         }
 
+        $this->syncDraft($request, $transfer);
+
         try {
-            $workflow->dispatch($transfer, (int) $request->user()->id);
+            $workflow->dispatch($transfer->fresh(['items']), (int) $request->user()->id);
         } catch (InsufficientStock $exception) {
             return back()->with('error', $exception->getMessage());
         } catch (RuntimeException $exception) {
@@ -138,6 +128,22 @@ class StockTransferController extends Controller
         return redirect()
             ->route('admin.transfers.index')
             ->with('success', $transfer->code.' cancelled.');
+    }
+
+    private function syncDraft(StockTransferRequest $request, StockTransfer $transfer): void
+    {
+        $branch = Branch::query()->findOrFail($request->integer('branch_id'));
+
+        DB::transaction(function () use ($request, $transfer, $branch) {
+            $transfer->update([
+                'warehouse_id' => $branch->warehouse_id,
+                'branch_id' => $branch->id,
+                'notes' => $request->validated('notes'),
+            ]);
+
+            $transfer->items()->delete();
+            $transfer->items()->createMany($request->lines());
+        });
     }
 
     private function branches(StockTransfer $transfer)
