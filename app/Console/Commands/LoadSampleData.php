@@ -9,6 +9,7 @@ use App\Models\City;
 use App\Models\Customer;
 use App\Models\District;
 use App\Models\Employee;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductImage;
@@ -680,7 +681,10 @@ class LoadSampleData extends Command
             $lines[] = ['product_id' => $line['product']->id, 'quantity' => $line['quantity']];
         }
 
-        $this->at($when, fn () => $sales->complete($branch, $customer, $lines, $method, $cashier->id, null));
+        $this->at($when, fn () => $sales->complete($branch, $customer, $lines, $method, $cashier->id, [
+            'delivery_type' => Order::DELIVERY_PICKUP,
+            'notes' => null,
+        ]));
     }
 
     private function at(Carbon $moment, callable $callback): mixed

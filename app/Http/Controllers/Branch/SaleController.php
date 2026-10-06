@@ -62,6 +62,7 @@ class SaleController extends Controller
             'name' => $customer->name,
             'email' => $customer->email,
             'active' => $customer->isActive(),
+            'address' => $this->defaultAddress($customer),
         ]);
     }
 
@@ -78,11 +79,6 @@ class SaleController extends Controller
                 'email' => $request->input('email'),
                 'status' => Customer::STATUS_ACTIVE,
             ]);
-        } else {
-            $customer->update([
-                'name' => $request->string('customer_name')->toString(),
-                'email' => $request->input('email') ?: $customer->email,
-            ]);
         }
 
         try {
@@ -92,7 +88,7 @@ class SaleController extends Controller
                 $request->lines(),
                 $request->string('payment_method')->toString(),
                 (int) $request->user()->id,
-                $request->filled('notes') ? $request->string('notes')->toString() : null,
+                $request->fulfilment(),
             );
         } catch (InsufficientStock $exception) {
             return back()->withInput()->with('error', $exception->getMessage());
@@ -112,6 +108,27 @@ class SaleController extends Controller
         return view('branch.sales.show', [
             'order' => $order,
         ]);
+    }
+
+    /**
+     * @return array{address_line: string, city: string, pincode: string}|null
+     */
+    private function defaultAddress(Customer $customer): ?array
+    {
+        $address = $customer->addresses()
+            ->orderByDesc('is_default')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($address === null) {
+            return null;
+        }
+
+        return [
+            'address_line' => $address->address_line,
+            'city' => $address->city,
+            'pincode' => $address->pincode,
+        ];
     }
 
     private function stocks(Request $request)

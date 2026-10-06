@@ -19,10 +19,19 @@ class BranchSale
 
     /**
      * @param  list<array{product_id: int, quantity: int}>  $lines
+     * @param  array{
+     *     delivery_type: string,
+     *     shipping_address?: string|null,
+     *     shipping_city?: string|null,
+     *     shipping_pincode?: string|null,
+     *     notes?: string|null
+     * }  $fulfilment
      */
-    public function complete(Branch $branch, Customer $customer, array $lines, string $method, int $userId, ?string $notes): Order
+    public function complete(Branch $branch, Customer $customer, array $lines, string $method, int $userId, array $fulfilment): Order
     {
-        return DB::transaction(function () use ($branch, $customer, $lines, $method, $userId, $notes) {
+        return DB::transaction(function () use ($branch, $customer, $lines, $method, $userId, $fulfilment) {
+            $isDelivery = ($fulfilment['delivery_type'] ?? Order::DELIVERY_PICKUP) === Order::DELIVERY_DELIVERY;
+
             $order = Order::query()->create([
                 'code' => 'T'.substr((string) Str::ulid(), 0, 19),
                 'channel' => Order::CHANNEL_BRANCH,
@@ -31,7 +40,12 @@ class BranchSale
                 'placed_by' => $userId,
                 'total' => 0,
                 'status' => Order::STATUS_COMPLETED,
-                'notes' => $notes,
+                'delivery_type' => $isDelivery ? Order::DELIVERY_DELIVERY : Order::DELIVERY_PICKUP,
+                'notes' => $fulfilment['notes'] ?? null,
+                'shipping_address' => $isDelivery ? ($fulfilment['shipping_address'] ?? null) : null,
+                'shipping_city' => $isDelivery ? ($fulfilment['shipping_city'] ?? null) : null,
+                'shipping_pincode' => $isDelivery ? ($fulfilment['shipping_pincode'] ?? null) : null,
+                'completed_at' => now(),
             ]);
 
             $code = 'S'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);

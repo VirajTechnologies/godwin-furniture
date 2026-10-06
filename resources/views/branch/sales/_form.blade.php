@@ -11,7 +11,7 @@
         <div class="col-md-4">
             <label for="phone" class="form-label">Phone</label>
             <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" required data-lookup-url="{{ route('branch.customers.lookup') }}">
-            <div class="form-text" id="phone-lookup-note">Enter the phone. After 10 digits, the name and email fill in if this customer has bought before.</div>
+            <div class="form-text" id="phone-lookup-note">Enter the phone. After 10 digits, the name and email fill in if this customer has bought before. Existing details are not changed here.</div>
             <div class="text-danger small mt-1 d-none" id="phone-inactive">This customer is inactive.</div>
             @error('phone')
                 <div class="invalid-feedback">{{ $message }}</div>
@@ -41,6 +41,49 @@
             @error('payment_method')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
+        </div>
+        <div class="col-md-8">
+            <label class="form-label d-block">Fulfilment</label>
+            @php $deliveryType = old('delivery_type', \App\Models\Order::DELIVERY_PICKUP); @endphp
+            <div class="d-flex flex-wrap gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="delivery_type" id="delivery_type_pickup" value="{{ \App\Models\Order::DELIVERY_PICKUP }}" @checked($deliveryType === \App\Models\Order::DELIVERY_PICKUP)>
+                    <label class="form-check-label" for="delivery_type_pickup">Collect at store</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="delivery_type" id="delivery_type_delivery" value="{{ \App\Models\Order::DELIVERY_DELIVERY }}" @checked($deliveryType === \App\Models\Order::DELIVERY_DELIVERY)>
+                    <label class="form-check-label" for="delivery_type_delivery">Door delivery</label>
+                </div>
+            </div>
+            @error('delivery_type')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="col-12 {{ $deliveryType === \App\Models\Order::DELIVERY_DELIVERY ? '' : 'd-none' }}" id="delivery-address-wrap">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="shipping_address" class="form-label">Delivery Address</label>
+                    <textarea class="form-control @error('shipping_address') is-invalid @enderror" id="shipping_address" name="shipping_address" rows="2">{{ old('shipping_address') }}</textarea>
+                    <div class="form-text" id="delivery-address-note">Required for door delivery. Fills from the customer’s saved address when available.</div>
+                    @error('shipping_address')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-3">
+                    <label for="shipping_city" class="form-label">City</label>
+                    <input type="text" class="form-control @error('shipping_city') is-invalid @enderror" id="shipping_city" name="shipping_city" value="{{ old('shipping_city') }}">
+                    @error('shipping_city')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-3">
+                    <label for="shipping_pincode" class="form-label">Pincode</label>
+                    <input type="text" class="form-control @error('shipping_pincode') is-invalid @enderror" id="shipping_pincode" name="shipping_pincode" value="{{ old('shipping_pincode') }}">
+                    @error('shipping_pincode')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
         </div>
         <div class="col-12">
             <label for="notes" class="form-label">Notes</label>
@@ -138,8 +181,49 @@
             const email = document.getElementById('email');
             const lookupNote = document.getElementById('phone-lookup-note');
             const inactiveNote = document.getElementById('phone-inactive');
+            const deliveryWrap = document.getElementById('delivery-address-wrap');
+            const shippingAddress = document.getElementById('shipping_address');
+            const shippingCity = document.getElementById('shipping_city');
+            const shippingPincode = document.getElementById('shipping_pincode');
+            const deliveryAddressNote = document.getElementById('delivery-address-note');
             let lastPhone = '';
             let filledFromLookup = false;
+            let addressFromLookup = false;
+
+            function syncDeliveryFields() {
+                const isDelivery = document.getElementById('delivery_type_delivery').checked;
+                deliveryWrap.classList.toggle('d-none', !isDelivery);
+                shippingAddress.required = isDelivery;
+                shippingCity.required = isDelivery;
+                shippingPincode.required = isDelivery;
+            }
+
+            function applyLookupAddress(address) {
+                if (! address) {
+                    return;
+                }
+                shippingAddress.value = address.address_line || '';
+                shippingCity.value = address.city || '';
+                shippingPincode.value = address.pincode || '';
+                addressFromLookup = true;
+                deliveryAddressNote.textContent = 'Filled from the customer’s saved address. Change it if this delivery goes elsewhere.';
+            }
+
+            function clearLookupAddress() {
+                if (! addressFromLookup) {
+                    return;
+                }
+                shippingAddress.value = '';
+                shippingCity.value = '';
+                shippingPincode.value = '';
+                addressFromLookup = false;
+                deliveryAddressNote.textContent = 'Required for door delivery. Fills from the customer’s saved address when available.';
+            }
+
+            function setCustomerFieldsLocked(locked) {
+                customerName.readOnly = locked;
+                email.readOnly = locked;
+            }
 
             function clearFilledCustomer() {
                 if (!filledFromLookup) {
@@ -148,6 +232,8 @@
                 customerName.value = '';
                 email.value = '';
                 filledFromLookup = false;
+                setCustomerFieldsLocked(false);
+                clearLookupAddress();
             }
 
             function lookupCustomer() {
@@ -157,7 +243,7 @@
                 if (value === '') {
                     clearFilledCustomer();
                     lastPhone = '';
-                    lookupNote.textContent = "Enter the phone. After 10 digits, the name and email fill in if this customer has bought before.";
+                    lookupNote.textContent = "Enter the phone. After 10 digits, the name and email fill in if this customer has bought before. Existing details are not changed here.";
                     return;
                 }
 
@@ -186,8 +272,14 @@
                         customerName.value = data.name || '';
                         email.value = data.email || '';
                         filledFromLookup = true;
-                        lookupNote.textContent = 'Customer found.';
+                        setCustomerFieldsLocked(true);
+                        lookupNote.textContent = 'Customer found. Name and email are read-only — customers update those in their online account.';
                         inactiveNote.classList.toggle('d-none', data.active !== false);
+                        if (data.address) {
+                            applyLookupAddress(data.address);
+                        } else {
+                            clearLookupAddress();
+                        }
                         return;
                     }
                     if (previousFill) {
@@ -195,9 +287,16 @@
                         email.value = '';
                     }
                     filledFromLookup = false;
-                    lookupNote.textContent = 'No customer has this phone. A new customer will be saved with this sale.';
+                    setCustomerFieldsLocked(false);
+                    clearLookupAddress();
+                    lookupNote.textContent = 'No customer has this phone. Enter name (and email if known); a new customer will be saved with this sale.';
                 });
             }
+
+            document.querySelectorAll('input[name="delivery_type"]').forEach(function (input) {
+                input.addEventListener('change', syncDeliveryFields);
+            });
+            syncDeliveryFields();
 
             phone.addEventListener('input', function () {
                 if (/^\d{10}$/.test(phone.value.trim())) {

@@ -30,6 +30,7 @@ class BranchSaleTest extends TestCase
             'customer_name' => 'Ravi',
             'phone' => '9000000001',
             'payment_method' => 'cash',
+            'delivery_type' => 'pickup',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 2],
             ],
@@ -45,6 +46,7 @@ class BranchSaleTest extends TestCase
             'placed_by' => $cashier->id,
             'total' => 90000,
             'status' => 'completed',
+            'delivery_type' => 'pickup',
         ]);
         $this->assertDatabaseHas('payments', [
             'method' => 'cash',
@@ -71,6 +73,7 @@ class BranchSaleTest extends TestCase
             'customer_name' => 'Ravi',
             'phone' => '9000000001',
             'payment_method' => 'upi',
+            'delivery_type' => 'pickup',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 1],
             ],
@@ -80,6 +83,7 @@ class BranchSaleTest extends TestCase
             'customer_name' => 'Ravi Kumar',
             'phone' => '9000000001',
             'payment_method' => 'upi',
+            'delivery_type' => 'pickup',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 1],
             ],
@@ -88,8 +92,55 @@ class BranchSaleTest extends TestCase
         $this->assertSame(1, Customer::query()->where('phone', '9000000001')->count());
         $this->assertDatabaseHas('customers', [
             'phone' => '9000000001',
-            'name' => 'Ravi Kumar',
+            'name' => 'Ravi',
         ]);
+    }
+
+    public function test_branch_staff_can_record_a_door_delivery_sale(): void
+    {
+        [$cashier, $product, $branch] = $this->counter(3);
+
+        $this->actingAs($cashier)->post(route('branch.sales.store'), [
+            'customer_name' => 'Sita',
+            'phone' => '9000000011',
+            'payment_method' => 'cash',
+            'delivery_type' => 'delivery',
+            'shipping_address' => '12 MG Road',
+            'shipping_city' => 'Vijayawada',
+            'shipping_pincode' => '520001',
+            'notes' => 'Call before delivery',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('orders', [
+            'branch_id' => $branch->id,
+            'channel' => 'branch',
+            'delivery_type' => 'delivery',
+            'shipping_address' => '12 MG Road',
+            'shipping_city' => 'Vijayawada',
+            'shipping_pincode' => '520001',
+            'notes' => 'Call before delivery',
+            'status' => 'completed',
+        ]);
+    }
+
+    public function test_door_delivery_requires_an_address(): void
+    {
+        [$cashier, $product] = $this->counter(2);
+
+        $this->actingAs($cashier)->post(route('branch.sales.store'), [
+            'customer_name' => 'Sita',
+            'phone' => '9000000012',
+            'payment_method' => 'cash',
+            'delivery_type' => 'delivery',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ])->assertSessionHasErrors(['shipping_address', 'shipping_city', 'shipping_pincode']);
+
+        $this->assertDatabaseCount('orders', 0);
     }
 
     public function test_leaving_the_phone_field_can_load_an_existing_customer(): void
@@ -145,6 +196,7 @@ class BranchSaleTest extends TestCase
             'customer_name' => 'Ravi',
             'phone' => '9000000001',
             'payment_method' => 'cash',
+            'delivery_type' => 'pickup',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 3],
             ],

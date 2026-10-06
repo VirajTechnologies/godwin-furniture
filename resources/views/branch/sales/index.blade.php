@@ -34,6 +34,7 @@
                                         <th>Customer</th>
                                         <th>Total</th>
                                         <th>Payment</th>
+                                        <th>Fulfilment</th>
                                         <th>Date</th>
                                         <th>Action</th>
                                     </tr>
@@ -46,6 +47,7 @@
                                             <td>{{ $order->customer?->name }}</td>
                                             <td>₹{{ number_format((float) $order->total, 2) }}</td>
                                             <td>{{ $order->payment?->methodLabel() ?? '—' }}</td>
+                                            <td>{{ $order->deliveryTypeLabel() }}</td>
                                             <td>{{ $order->created_at?->format('d M Y, h:i A') }}</td>
                                             <td>
                                                 <a href="{{ route('branch.sales.show', $order) }}" class="btn btn-sm btn-soft-primary btn-icon" title="View" aria-label="View">

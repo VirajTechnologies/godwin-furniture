@@ -66,6 +66,7 @@ class OnlineCheckout
                 'placed_by' => null,
                 'total' => 0,
                 'status' => Order::STATUS_PLACED,
+                'delivery_type' => Order::DELIVERY_DELIVERY,
                 'notes' => $shipping['notes'] ?? null,
                 'shipping_address' => $shipping['shipping_address'],
                 'shipping_city' => $shipping['shipping_city'],

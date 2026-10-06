@@ -21,6 +21,10 @@ class Order extends Model
 
     public const STATUS_DISPATCHED = 'dispatched';
 
+    public const DELIVERY_PICKUP = 'pickup';
+
+    public const DELIVERY_DELIVERY = 'delivery';
+
     /**
      * @var list<string>
      */
@@ -33,6 +37,7 @@ class Order extends Model
         'placed_by',
         'total',
         'status',
+        'delivery_type',
         'notes',
         'shipping_address',
         'shipping_city',
@@ -88,6 +93,34 @@ class Order extends Model
     public function isOnline(): bool
     {
         return $this->channel === self::CHANNEL_ONLINE;
+    }
+
+    public function isPickup(): bool
+    {
+        return $this->delivery_type === self::DELIVERY_PICKUP;
+    }
+
+    public function isDoorDelivery(): bool
+    {
+        return $this->delivery_type === self::DELIVERY_DELIVERY;
+    }
+
+    public function deliveryTypeLabel(): string
+    {
+        return match ($this->delivery_type) {
+            self::DELIVERY_PICKUP => 'Collect at store',
+            self::DELIVERY_DELIVERY => 'Door delivery',
+            default => '—',
+        };
+    }
+
+    public function shippingSummary(): ?string
+    {
+        $parts = collect([$this->shipping_address, $this->shipping_city, $this->shipping_pincode])
+            ->filter(fn ($value) => filled($value))
+            ->values();
+
+        return $parts->isEmpty() ? null : $parts->implode(', ');
     }
 
     public function statusLabel(): string

@@ -24,11 +24,17 @@
                         <label class="form-label">Total</label>
                         <input type="text" class="form-control" value="₹{{ number_format((float) $order->total, 2) }}" readonly>
                     </div>
-                    @if ($order->channel === \App\Models\Order::CHANNEL_ONLINE)
+                    <div class="col-md-3">
+                        <label class="form-label">Fulfilment</label>
+                        <input type="text" class="form-control" value="{{ $order->deliveryTypeLabel() }}" readonly>
+                    </div>
+                    @if ($order->isDoorDelivery() || $order->shippingSummary())
                         <div class="col-md-6">
                             <label class="form-label">Delivery Address</label>
-                            <input type="text" class="form-control" value="{{ collect([$order->shipping_address, $order->shipping_city, $order->shipping_pincode])->filter()->implode(', ') }}" readonly>
+                            <input type="text" class="form-control" value="{{ $order->shippingSummary() ?? '—' }}" readonly>
                         </div>
+                    @endif
+                    @if ($order->channel === \App\Models\Order::CHANNEL_ONLINE)
                         <div class="col-md-3">
                             <label class="form-label">Channel</label>
                             <input type="text" class="form-control" value="Online" readonly>
@@ -43,6 +49,12 @@
                                 <input type="text" class="form-control" value="{{ $order->warehouse->name }}" readonly>
                             </div>
                         @endif
+                    @endif
+                    @if ($order->notes)
+                        <div class="col-12">
+                            <label class="form-label">Notes</label>
+                            <input type="text" class="form-control" value="{{ $order->notes }}" readonly>
+                        </div>
                     @endif
                 </div>
                 <div class="table-responsive">
