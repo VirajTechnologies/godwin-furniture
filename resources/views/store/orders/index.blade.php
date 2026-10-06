@@ -53,7 +53,13 @@
                                     <td class="text-muted small">{{ $order->items->sum('quantity') }}</td>
                                     <td class="fw-semibold text-dark">₹{{ number_format((float) $order->total, 2) }}</td>
                                     <td>
-                                        <span class="badge {{ $order->status === \App\Models\Order::STATUS_PLACED ? 'bg-warning text-dark' : 'bg-success' }}">
+                                        <span class="badge {{ match ($order->status) {
+                                            \App\Models\Order::STATUS_PLACED => 'bg-warning text-dark',
+                                            \App\Models\Order::STATUS_CONFIRMED => 'bg-info text-dark',
+                                            \App\Models\Order::STATUS_DISPATCHED => 'bg-primary',
+                                            \App\Models\Order::STATUS_COMPLETED => 'bg-success',
+                                            default => 'bg-secondary',
+                                        } }}">
                                             {{ $order->statusLabel() }}
                                         </span>
                                     </td>

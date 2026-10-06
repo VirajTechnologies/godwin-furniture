@@ -115,5 +115,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::post('orders/{order}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
+        Route::post('orders/{order}/dispatch', [OrderController::class, 'dispatchOrder'])->name('orders.dispatch');
+        Route::post('orders/{order}/complete', [OrderController::class, 'complete'])->name('orders.complete');
     });
 });

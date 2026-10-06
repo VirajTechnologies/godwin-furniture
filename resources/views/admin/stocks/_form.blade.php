@@ -14,7 +14,7 @@
             @if ($isEdit)
                 <input type="text" class="form-control" id="product_id" value="{{ $stock->product?->code }} · {{ $stock->product?->name }}" readonly>
             @else
-                <select class="form-select @error('product_id') is-invalid @enderror" id="product_id" name="product_id" required>
+                <select class="form-select js-select2 @error('product_id') is-invalid @enderror" id="product_id" name="product_id" required data-placeholder="Select Product">
                     <option value="">Select Product</option>
                     @foreach ($products as $product)
                         <option value="{{ $product->id }}" @selected((string) old('product_id') === (string) $product->id)>{{ $product->code }} · {{ $product->name }}</option>

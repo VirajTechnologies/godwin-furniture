@@ -35,8 +35,14 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Status</label>
-                            <input type="text" class="form-control" value="{{ ucfirst($order->status) }}" readonly>
+                            <input type="text" class="form-control" value="{{ $order->statusLabel() }}" readonly>
                         </div>
+                        @if ($order->warehouse)
+                            <div class="col-md-3">
+                                <label class="form-label">Warehouse</label>
+                                <input type="text" class="form-control" value="{{ $order->warehouse->name }}" readonly>
+                            </div>
+                        @endif
                     @endif
                 </div>
                 <div class="table-responsive">

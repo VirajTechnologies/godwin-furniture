@@ -8,6 +8,8 @@ class InsufficientStock extends RuntimeException
 {
     public function __construct(string $productName, int $available, int $requested, string $place = 'warehouse')
     {
-        parent::__construct($productName.' has '.$available.' in the '.$place.'. '.$requested.' were requested.');
+        parent::__construct(
+            $productName.': need '.$requested.', but the '.$place.' has only '.$available.'.'
+        );
     }
 }
