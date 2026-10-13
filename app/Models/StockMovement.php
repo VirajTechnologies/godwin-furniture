@@ -15,6 +15,8 @@ class StockMovement extends Model
 
     public const TYPE_TRANSFER_IN = 'transfer_in';
 
+    public const TYPE_TRANSFER_RETURN = 'transfer_return';
+
     public const TYPE_SALE = 'sale';
 
     /**
@@ -57,6 +59,7 @@ class StockMovement extends Model
             self::TYPE_ADJUSTMENT => 'Adjustment',
             self::TYPE_TRANSFER_OUT => 'Transfer Out',
             self::TYPE_TRANSFER_IN => 'Transfer In',
+            self::TYPE_TRANSFER_RETURN => 'Transfer Return',
             self::TYPE_SALE => 'Sale',
             default => $this->type,
         };

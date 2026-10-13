@@ -28,6 +28,7 @@
                                         <th>Created</th>
                                         <th>Dispatched</th>
                                         <th>Received</th>
+                                        <th>Returned</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -40,6 +41,7 @@
                                             <td>{{ $transfer->created_at?->format('d M Y, h:i A') }}</td>
                                             <td>{{ $transfer->dispatched_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                             <td>{{ $transfer->received_at?->format('d M Y, h:i A') ?? '—' }}</td>
+                                            <td>{{ $transfer->returned_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

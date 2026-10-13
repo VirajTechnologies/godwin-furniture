@@ -100,4 +100,24 @@ class StockLedger
             'quantity' => 0,
         ]);
     }
+
+    public function warehouseStock(Product $product, Warehouse $warehouse): Stock
+    {
+        $stock = Stock::query()
+            ->where('product_id', $product->id)
+            ->where('warehouse_id', $warehouse->id)
+            ->whereNull('branch_id')
+            ->lockForUpdate()
+            ->first();
+
+        if ($stock) {
+            return $stock;
+        }
+
+        return Stock::query()->create([
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 0,
+        ]);
+    }
 }

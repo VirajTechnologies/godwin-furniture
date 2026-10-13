@@ -70,6 +70,7 @@ class StockRequest extends Model
             StockTransfer::STATUS_DRAFT => 'Draft Transfer',
             StockTransfer::STATUS_DISPATCHED => 'Dispatched',
             StockTransfer::STATUS_RECEIVED => 'Received',
+            StockTransfer::STATUS_RETURNED => 'Returned',
             default => 'Requested',
         };
     }

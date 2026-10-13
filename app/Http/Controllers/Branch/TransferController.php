@@ -20,7 +20,11 @@ class TransferController extends Controller
         $transfers = StockTransfer::query()
             ->with('warehouse')
             ->where('branch_id', $branch->id)
-            ->whereIn('status', [StockTransfer::STATUS_DISPATCHED, StockTransfer::STATUS_RECEIVED])
+            ->whereIn('status', [
+                StockTransfer::STATUS_DISPATCHED,
+                StockTransfer::STATUS_RECEIVED,
+                StockTransfer::STATUS_RETURNED,
+            ])
             ->orderByDesc('id')
             ->paginate(15);
 
@@ -60,6 +64,37 @@ class TransferController extends Controller
             ->with('success', $transfer->code.' received.');
     }
 
+    public function returnToWarehouse(Request $request, StockTransfer $transfer, StockTransferWorkflow $workflow): RedirectResponse
+    {
+        $branch = $this->managerBranch($request);
+        $this->ensureShowroomTransfer($transfer, $branch);
+
+        if (! $transfer->isDispatched()) {
+            return back()->with('error', 'Only a dispatched transfer can be returned.');
+        }
+
+        $validated = $request->validate([
+            'return_reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $reason = filled($validated['return_reason'] ?? null)
+            ? $validated['return_reason']
+            : null;
+
+        try {
+            $workflow->returnToWarehouse(
+                $transfer,
+                (int) $request->user()->id,
+                $reason,
+            );
+        } catch (RuntimeException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return redirect()
+            ->route('branch.transfers.show', $transfer)
+            ->with('success', $transfer->code.' returned to the warehouse.');
+    }
+
     private function managerBranch(Request $request): Branch
     {
         $user = $request->user();
@@ -81,6 +116,6 @@ class TransferController extends Controller
     private function ensureShowroomTransfer(StockTransfer $transfer, Branch $branch): void
     {
         abort_unless($transfer->branch_id === $branch->id, 404);
-        abort_unless($transfer->isDispatched() || $transfer->isReceived(), 404);
+        abort_unless($transfer->isDispatched() || $transfer->isReceived() || $transfer->isReturned(), 404);
     }
 }

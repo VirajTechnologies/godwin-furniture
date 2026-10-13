@@ -17,6 +17,8 @@ class StockTransfer extends Model
 
     public const STATUS_RECEIVED = 'received';
 
+    public const STATUS_RETURNED = 'returned';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -30,6 +32,8 @@ class StockTransfer extends Model
         'notes',
         'dispatched_at',
         'received_at',
+        'returned_at',
+        'return_reason',
         'cancelled_at',
         'created_by',
     ];
@@ -42,6 +46,7 @@ class StockTransfer extends Model
         return [
             'dispatched_at' => 'datetime',
             'received_at' => 'datetime',
+            'returned_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
     }
@@ -86,6 +91,11 @@ class StockTransfer extends Model
         return $this->status === self::STATUS_RECEIVED;
     }
 
+    public function isReturned(): bool
+    {
+        return $this->status === self::STATUS_RETURNED;
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;
@@ -97,6 +107,7 @@ class StockTransfer extends Model
             self::STATUS_DRAFT => 'Draft',
             self::STATUS_DISPATCHED => 'Dispatched',
             self::STATUS_RECEIVED => 'Received',
+            self::STATUS_RETURNED => 'Returned',
             self::STATUS_CANCELLED => 'Cancelled',
             default => $this->status,
         };

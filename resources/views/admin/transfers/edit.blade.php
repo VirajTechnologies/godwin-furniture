@@ -30,7 +30,9 @@
                         </form>
                     @else
                         @if ($transfer->isDispatched())
-                            <p class="text-muted">The branch manager receives this transfer after counting the pieces at the showroom.</p>
+                            <p class="text-muted">The branch manager receives this transfer after counting the pieces at the showroom, or returns it if the shipment cannot be accepted.</p>
+                        @elseif ($transfer->isReturned())
+                            <p class="text-muted">The branch returned this transfer. Warehouse stock was increased by the dispatched quantities.</p>
                         @endif
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
@@ -61,6 +63,12 @@
                                     <input type="text" class="form-control" value="{{ $transfer->received_at->format('d M Y, h:i A') }}" readonly>
                                 </div>
                             @endif
+                            @if ($transfer->returned_at)
+                                <div class="col-md-4">
+                                    <label class="form-label">Returned</label>
+                                    <input type="text" class="form-control" value="{{ $transfer->returned_at->format('d M Y, h:i A') }}" readonly>
+                                </div>
+                            @endif
                             @if ($transfer->cancelled_at)
                                 <div class="col-md-4">
                                     <label class="form-label">Cancelled</label>
@@ -71,6 +79,12 @@
                                 <div class="col-12">
                                     <label class="form-label">Notes</label>
                                     <textarea class="form-control" rows="2" readonly>{{ $transfer->notes }}</textarea>
+                                </div>
+                            @endif
+                            @if ($transfer->return_reason)
+                                <div class="col-12">
+                                    <label class="form-label">Return reason</label>
+                                    <textarea class="form-control" rows="2" readonly>{{ $transfer->return_reason }}</textarea>
                                 </div>
                             @endif
                         </div>

@@ -52,6 +52,9 @@
                                                     <span class="badge bg-success">Received</span>
                                                 @elseif ($transfer->status === 'dispatched')
                                                     <span class="badge bg-warning-subtle text-warning">Dispatched</span>
+                                                @elseif ($transfer->status === 'returned')
+                                                    <span class="badge bg-danger-subtle text-danger">Returned</span>
+                                                    <div class="text-muted small mt-1">{{ $transfer->returned_at?->format('d M Y, h:i A') }}</div>
                                                 @elseif ($transfer->status === 'cancelled')
                                                     <span class="badge bg-danger-subtle text-danger">Cancelled</span>
                                                     <div class="text-muted small mt-1">{{ $transfer->cancelled_at?->format('d M Y, h:i A') }}</div>

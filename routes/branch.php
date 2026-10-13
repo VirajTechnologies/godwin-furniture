@@ -40,6 +40,7 @@ Route::prefix('branch')->name('branch.')->group(function () {
 
         Route::get('transfers', [TransferController::class, 'index'])->name('transfers.index');
         Route::post('transfers/{transfer}/receive', [TransferController::class, 'receive'])->name('transfers.receive');
+        Route::post('transfers/{transfer}/return', [TransferController::class, 'returnToWarehouse'])->name('transfers.return');
         Route::get('transfers/{transfer}', [TransferController::class, 'show'])->name('transfers.show');
     });
 });

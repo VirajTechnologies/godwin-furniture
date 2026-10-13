@@ -72,4 +72,33 @@ class StockTransferWorkflow
             ]);
         });
     }
+
+    public function returnToWarehouse(StockTransfer $transfer, int $userId, ?string $reason = null): void
+    {
+        DB::transaction(function () use ($transfer, $userId, $reason) {
+            $locked = StockTransfer::query()->whereKey($transfer->id)->lockForUpdate()->firstOrFail();
+
+            if (! $locked->isDispatched()) {
+                throw new RuntimeException('Only a dispatched transfer can be returned.');
+            }
+
+            $locked->load(['items.product', 'warehouse']);
+            $note = 'Return of transfer '.$locked->code;
+
+            foreach ($locked->items as $item) {
+                $stock = $this->ledger->warehouseStock($item->product, $locked->warehouse);
+                $this->ledger->increase($stock, $item->quantity, StockMovement::TYPE_TRANSFER_RETURN, $note, $userId);
+            }
+
+            $locked->update([
+                'status' => StockTransfer::STATUS_RETURNED,
+                'returned_at' => now(),
+                'return_reason' => $reason,
+            ]);
+
+            $locked->stockRequest()?->update([
+                'stock_transfer_id' => null,
+            ]);
+        });
+    }
 }

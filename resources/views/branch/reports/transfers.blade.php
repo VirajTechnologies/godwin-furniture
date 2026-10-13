@@ -27,6 +27,7 @@
                                         <th>Created</th>
                                         <th>Dispatched</th>
                                         <th>Received</th>
+                                        <th>Returned</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -34,7 +35,7 @@
                                         <tr>
                                             <td>{{ $transfers->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium">
-                                                @if ($transfer->isDispatched() || $transfer->isReceived())
+                                                @if ($transfer->isDispatched() || $transfer->isReceived() || $transfer->isReturned())
                                                     <a href="{{ route('branch.transfers.show', $transfer) }}">{{ $transfer->code }}</a>
                                                 @else
                                                     {{ $transfer->code }}
@@ -44,6 +45,7 @@
                                             <td>{{ $transfer->created_at?->format('d M Y, h:i A') }}</td>
                                             <td>{{ $transfer->dispatched_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                             <td>{{ $transfer->received_at?->format('d M Y, h:i A') ?? '—' }}</td>
+                                            <td>{{ $transfer->returned_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

@@ -29,6 +29,7 @@
                                         <th>Status</th>
                                         <th>Dispatched</th>
                                         <th>Received</th>
+                                        <th>Returned</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -41,12 +42,15 @@
                                             <td>
                                                 @if ($transfer->isReceived())
                                                     <span class="badge bg-success">Received</span>
+                                                @elseif ($transfer->isReturned())
+                                                    <span class="badge bg-danger-subtle text-danger">Returned</span>
                                                 @else
                                                     <span class="badge bg-warning-subtle text-warning">Dispatched</span>
                                                 @endif
                                             </td>
                                             <td>{{ $transfer->dispatched_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                             <td>{{ $transfer->received_at?->format('d M Y, h:i A') ?? '—' }}</td>
+                                            <td>{{ $transfer->returned_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                             <td>
                                                 <a href="{{ route('branch.transfers.show', $transfer) }}" class="btn btn-sm btn-soft-primary btn-icon" title="View" aria-label="View">
                                                     <i class="ri-eye-fill"></i>
