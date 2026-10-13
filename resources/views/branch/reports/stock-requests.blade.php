@@ -35,7 +35,7 @@
                                             <td class="fw-medium"><a href="{{ route('branch.stock-requests.show', $stockRequest) }}">{{ $stockRequest->code }}</a></td>
                                             <td>{{ $stockRequest->label() }}</td>
                                             <td>
-                                                @if ($stockRequest->transfer && ($stockRequest->transfer->isDispatched() || $stockRequest->transfer->isReceived()))
+                                                @if ($stockRequest->transfer && ($stockRequest->transfer->isDispatched() || $stockRequest->transfer->isSettled()))
                                                     <a href="{{ route('branch.transfers.show', $stockRequest->transfer) }}">{{ $stockRequest->transfer->code }}</a>
                                                 @elseif ($stockRequest->transfer)
                                                     {{ $stockRequest->transfer->code }}

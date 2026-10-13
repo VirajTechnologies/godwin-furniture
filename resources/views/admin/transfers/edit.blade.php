@@ -30,9 +30,11 @@
                         </form>
                     @else
                         @if ($transfer->isDispatched())
-                            <p class="text-muted">The branch manager receives this transfer after counting the pieces at the showroom, or returns it if the shipment cannot be accepted.</p>
+                            <p class="text-muted">The branch manager counts each line, accepts what stays at the showroom, and returns the rest to the warehouse.</p>
                         @elseif ($transfer->isReturned())
-                            <p class="text-muted">The branch returned this transfer. Warehouse stock was increased by the dispatched quantities.</p>
+                            <p class="text-muted">The branch returned this transfer. Warehouse stock was increased by the returned quantities.</p>
+                        @elseif ($transfer->isPartial())
+                            <p class="text-muted">The branch accepted part of this transfer. Accepted pieces are on branch stock and returned pieces are back at the warehouse.</p>
                         @endif
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
@@ -95,7 +97,11 @@
                                         <th>SR No.</th>
                                         <th>Code</th>
                                         <th>Product</th>
-                                        <th>Quantity</th>
+                                        <th>Dispatched</th>
+                                        @if ($transfer->isSettled())
+                                            <th>Accepted</th>
+                                            <th>Returned</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -105,6 +111,10 @@
                                             <td class="fw-medium">{{ $item->product?->code }}</td>
                                             <td>{{ $item->product?->name }}</td>
                                             <td>{{ $item->quantity }}</td>
+                                            @if ($transfer->isSettled())
+                                                <td>{{ $item->received_quantity }}</td>
+                                                <td>{{ $item->returned_quantity }}</td>
+                                            @endif
                                         </tr>
                                     @endforeach
                                 </tbody>

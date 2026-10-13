@@ -16,6 +16,8 @@ class StockTransferItem extends Model
         'stock_transfer_id',
         'product_id',
         'quantity',
+        'received_quantity',
+        'returned_quantity',
     ];
 
     /**
@@ -25,6 +27,8 @@ class StockTransferItem extends Model
     {
         return [
             'quantity' => 'integer',
+            'received_quantity' => 'integer',
+            'returned_quantity' => 'integer',
         ];
     }
 

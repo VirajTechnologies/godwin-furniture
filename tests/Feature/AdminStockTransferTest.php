@@ -101,13 +101,13 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.transfers.edit', $transferId))
             ->assertOk()
-            ->assertSee('The branch manager receives this transfer after counting the pieces at the showroom, or returns it if the shipment cannot be accepted.')
+            ->assertSee('The branch manager counts each line, accepts what stays at the showroom, and returns the rest to the warehouse.')
             ->assertDontSee('Branch stock will increase.');
 
         $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
 
         $this->actingAs($manager)
-            ->post(route('branch.transfers.receive', $transferId))
+            ->post(route('branch.transfers.complete', $transferId), $this->completion($transferId))
             ->assertRedirect(route('branch.transfers.show', $transferId));
 
         $this->assertDatabaseHas('stock_transfers', [
@@ -192,7 +192,7 @@ class AdminStockTransferTest extends TestCase
         $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
 
         $this->actingAs($manager)
-            ->post(route('branch.transfers.receive', $transferId))
+            ->post(route('branch.transfers.complete', $transferId))
             ->assertNotFound();
 
         $this->actingAs($admin)
@@ -229,8 +229,7 @@ class AdminStockTransferTest extends TestCase
         $cashier = $this->branchUser($branch, Role::BRANCH_STAFF, 'Branch Staff', 'CSH001');
 
         $this->actingAs($cashier)->get(route('branch.transfers.index'))->assertForbidden();
-        $this->actingAs($cashier)->post(route('branch.transfers.receive', $transferId))->assertForbidden();
-        $this->actingAs($cashier)->post(route('branch.transfers.return', $transferId))->assertForbidden();
+        $this->actingAs($cashier)->post(route('branch.transfers.complete', $transferId))->assertForbidden();
 
         $this->assertDatabaseHas('stock_transfers', [
             'id' => $transferId,
@@ -273,7 +272,7 @@ class AdminStockTransferTest extends TestCase
         ]);
 
         $this->actingAs($manager)
-            ->post(route('branch.transfers.receive', $transferId))
+            ->post(route('branch.transfers.complete', $transferId))
             ->assertNotFound();
 
         $this->assertDatabaseHas('stock_transfers', [
@@ -359,9 +358,10 @@ class AdminStockTransferTest extends TestCase
         $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
 
         $this->actingAs($manager)
-            ->post(route('branch.transfers.return', $transferId), [
-                'return_reason' => 'Damaged in transit',
-            ])
+            ->post(route('branch.transfers.complete', $transferId), array_merge(
+                $this->completion($transferId, 0),
+                ['return_reason' => 'Damaged in transit'],
+            ))
             ->assertRedirect(route('branch.transfers.show', $transferId));
 
         $this->assertDatabaseHas('stock_transfers', [
@@ -413,16 +413,161 @@ class AdminStockTransferTest extends TestCase
         ]);
 
         $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
-        $this->actingAs($manager)->post(route('branch.transfers.receive', $transferId));
+        $this->actingAs($manager)->post(route('branch.transfers.complete', $transferId), $this->completion($transferId));
 
         $this->actingAs($manager)
-            ->post(route('branch.transfers.return', $transferId))
+            ->post(route('branch.transfers.complete', $transferId), array_merge(
+                $this->completion($transferId, 0),
+                ['return_reason' => 'Changed our mind'],
+            ))
             ->assertSessionHas('error');
 
         $this->assertDatabaseHas('stock_transfers', [
             'id' => $transferId,
             'status' => 'received',
         ]);
+    }
+
+    public function test_manager_can_accept_part_of_a_dispatched_transfer(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$product, $warehouse, $branch] = $this->stocked(10);
+
+        $this->actingAs($admin)->post(route('admin.transfers.store'), [
+            'code' => 'TR009',
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 4],
+            ],
+        ]);
+
+        $transferId = \App\Models\StockTransfer::query()->where('code', 'TR009')->value('id');
+        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 4],
+            ],
+        ]);
+
+        $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
+
+        $this->actingAs($manager)
+            ->post(route('branch.transfers.complete', $transferId), array_merge(
+                $this->completion($transferId, 3, 1),
+                ['return_reason' => 'One piece damaged'],
+            ))
+            ->assertRedirect(route('branch.transfers.show', $transferId));
+
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transferId,
+            'status' => 'partial',
+            'return_reason' => 'One piece damaged',
+        ]);
+        $this->assertDatabaseHas('stock_transfer_items', [
+            'stock_transfer_id' => $transferId,
+            'product_id' => $product->id,
+            'quantity' => 4,
+            'received_quantity' => 3,
+            'returned_quantity' => 1,
+        ]);
+        $this->assertDatabaseHas('stocks', [
+            'product_id' => $product->id,
+            'branch_id' => $branch->id,
+            'quantity' => 3,
+        ]);
+        $this->assertDatabaseHas('stocks', [
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 7,
+        ]);
+        $this->assertDatabaseHas('stock_movements', [
+            'type' => StockMovement::TYPE_TRANSFER_IN,
+            'quantity_change' => 3,
+        ]);
+        $this->assertDatabaseHas('stock_movements', [
+            'type' => StockMovement::TYPE_TRANSFER_RETURN,
+            'quantity_change' => 1,
+            'quantity_after' => 7,
+        ]);
+    }
+
+    public function test_a_return_requires_a_reason_and_quantities_must_add_up(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$product, $warehouse, $branch] = $this->stocked(5);
+
+        $this->actingAs($admin)->post(route('admin.transfers.store'), [
+            'code' => 'TR010',
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
+        ]);
+
+        $transferId = \App\Models\StockTransfer::query()->where('code', 'TR010')->value('id');
+        $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
+        ]);
+
+        $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');
+
+        $this->actingAs($manager)
+            ->post(route('branch.transfers.complete', $transferId), $this->completion($transferId, 1, 1))
+            ->assertSessionHasErrors('return_reason');
+
+        $this->actingAs($manager)
+            ->from(route('branch.transfers.show', $transferId))
+            ->post(route('branch.transfers.complete', $transferId), array_merge(
+                $this->completion($transferId, 2, 1),
+                ['return_reason' => 'Too many'],
+            ))
+            ->assertSessionHasErrors('items.'.$this->itemId($transferId));
+
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transferId,
+            'status' => 'dispatched',
+        ]);
+        $this->assertDatabaseHas('stocks', [
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 3,
+        ]);
+        $this->assertDatabaseMissing('stocks', [
+            'product_id' => $product->id,
+            'branch_id' => $branch->id,
+        ]);
+    }
+
+    /**
+     * @return array{items: list<array{id: int, received_quantity: int, returned_quantity: int}>}
+     */
+    private function completion(int $transferId, ?int $received = null, ?int $returned = null): array
+    {
+        $items = \App\Models\StockTransferItem::query()
+            ->where('stock_transfer_id', $transferId)
+            ->get();
+
+        return [
+            'items' => $items->map(function ($item) use ($received, $returned) {
+                $accepted = $received ?? ($returned === null ? $item->quantity : $item->quantity - $returned);
+
+                return [
+                    'id' => $item->id,
+                    'received_quantity' => $accepted,
+                    'returned_quantity' => $returned ?? ($item->quantity - $accepted),
+                ];
+            })->all(),
+        ];
+    }
+
+    private function itemId(int $transferId): int
+    {
+        return (int) \App\Models\StockTransferItem::query()
+            ->where('stock_transfer_id', $transferId)
+            ->value('id');
     }
 
     private function branchUser(Branch $branch, string $slug, string $name, string $code): User

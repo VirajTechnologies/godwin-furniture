@@ -35,7 +35,7 @@
                                         <tr>
                                             <td>{{ $transfers->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium">
-                                                @if ($transfer->isDispatched() || $transfer->isReceived() || $transfer->isReturned())
+                                                @if ($transfer->isDispatched() || $transfer->isSettled())
                                                     <a href="{{ route('branch.transfers.show', $transfer) }}">{{ $transfer->code }}</a>
                                                 @else
                                                     {{ $transfer->code }}

@@ -80,7 +80,13 @@
 
             event.preventDefault();
 
-            var submitButton = form.querySelector('[type="submit"]');
+            var submitter = event.submitter;
+
+            if (submitter && submitter.hasAttribute('formaction')) {
+                form.action = submitter.formAction;
+            }
+
+            var submitButton = submitter && submitter.type === 'submit' ? submitter : form.querySelector('[type="submit"]');
 
             if (submitButton) {
                 submitButton.disabled = true;

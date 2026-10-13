@@ -42,6 +42,8 @@
                                             <td>
                                                 @if ($transfer->isReceived())
                                                     <span class="badge bg-success">Received</span>
+                                                @elseif ($transfer->isPartial())
+                                                    <span class="badge bg-primary-subtle text-primary">Partial</span>
                                                 @elseif ($transfer->isReturned())
                                                     <span class="badge bg-danger-subtle text-danger">Returned</span>
                                                 @else

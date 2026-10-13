@@ -19,6 +19,8 @@ class StockTransfer extends Model
 
     public const STATUS_RETURNED = 'returned';
 
+    public const STATUS_PARTIAL = 'partial';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -96,6 +98,16 @@ class StockTransfer extends Model
         return $this->status === self::STATUS_RETURNED;
     }
 
+    public function isPartial(): bool
+    {
+        return $this->status === self::STATUS_PARTIAL;
+    }
+
+    public function isSettled(): bool
+    {
+        return $this->isReceived() || $this->isReturned() || $this->isPartial();
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;
@@ -108,6 +120,7 @@ class StockTransfer extends Model
             self::STATUS_DISPATCHED => 'Dispatched',
             self::STATUS_RECEIVED => 'Received',
             self::STATUS_RETURNED => 'Returned',
+            self::STATUS_PARTIAL => 'Partial',
             self::STATUS_CANCELLED => 'Cancelled',
             default => $this->status,
         };

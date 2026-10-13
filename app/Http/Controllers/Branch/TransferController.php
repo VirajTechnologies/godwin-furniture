@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Branch;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Branch\CompleteTransferRequest;
 use App\Models\Branch;
 use App\Models\StockTransfer;
 use App\Support\StockTransferWorkflow;
@@ -24,6 +25,7 @@ class TransferController extends Controller
                 StockTransfer::STATUS_DISPATCHED,
                 StockTransfer::STATUS_RECEIVED,
                 StockTransfer::STATUS_RETURNED,
+                StockTransfer::STATUS_PARTIAL,
             ])
             ->orderByDesc('id')
             ->paginate(15);
@@ -44,55 +46,36 @@ class TransferController extends Controller
         ]);
     }
 
-    public function receive(Request $request, StockTransfer $transfer, StockTransferWorkflow $workflow): RedirectResponse
+    public function complete(Request $request, StockTransfer $transfer, StockTransferWorkflow $workflow): RedirectResponse
     {
         $branch = $this->managerBranch($request);
         $this->ensureShowroomTransfer($transfer, $branch);
 
         if (! $transfer->isDispatched()) {
-            return back()->with('error', 'Only a dispatched transfer can be received.');
+            return back()->with('error', 'Only a dispatched transfer can be completed.');
         }
 
+        $form = CompleteTransferRequest::createFrom($request);
+        $form->setContainer(app())->setRedirector(app('redirect'));
+        $form->setRouteResolver(fn () => $request->route());
+        $form->validateResolved();
+
         try {
-            $workflow->receive($transfer, (int) $request->user()->id);
+            $workflow->complete($transfer, $form->lines(), (int) $request->user()->id, $form->reason());
         } catch (RuntimeException $exception) {
             return back()->with('error', $exception->getMessage());
         }
 
-        return redirect()
-            ->route('branch.transfers.show', $transfer)
-            ->with('success', $transfer->code.' received.');
-    }
-
-    public function returnToWarehouse(Request $request, StockTransfer $transfer, StockTransferWorkflow $workflow): RedirectResponse
-    {
-        $branch = $this->managerBranch($request);
-        $this->ensureShowroomTransfer($transfer, $branch);
-
-        if (! $transfer->isDispatched()) {
-            return back()->with('error', 'Only a dispatched transfer can be returned.');
-        }
-
-        $validated = $request->validate([
-            'return_reason' => ['nullable', 'string', 'max:2000'],
-        ]);
-        $reason = filled($validated['return_reason'] ?? null)
-            ? $validated['return_reason']
-            : null;
-
-        try {
-            $workflow->returnToWarehouse(
-                $transfer,
-                (int) $request->user()->id,
-                $reason,
-            );
-        } catch (RuntimeException $exception) {
-            return back()->with('error', $exception->getMessage());
-        }
+        $transfer->refresh();
+        $message = match ($transfer->status) {
+            StockTransfer::STATUS_RETURNED => $transfer->code.' returned to the warehouse.',
+            StockTransfer::STATUS_PARTIAL => $transfer->code.' completed. Accepted stock is on the branch and the rest is back at the warehouse.',
+            default => $transfer->code.' received.',
+        };
 
         return redirect()
             ->route('branch.transfers.show', $transfer)
-            ->with('success', $transfer->code.' returned to the warehouse.');
+            ->with('success', $message);
     }
 
     private function managerBranch(Request $request): Branch
@@ -116,6 +99,6 @@ class TransferController extends Controller
     private function ensureShowroomTransfer(StockTransfer $transfer, Branch $branch): void
     {
         abort_unless($transfer->branch_id === $branch->id, 404);
-        abort_unless($transfer->isDispatched() || $transfer->isReceived() || $transfer->isReturned(), 404);
+        abort_unless($transfer->isDispatched() || $transfer->isSettled(), 404);
     }
 }

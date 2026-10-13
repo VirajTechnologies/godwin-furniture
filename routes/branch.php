@@ -39,8 +39,7 @@ Route::prefix('branch')->name('branch.')->group(function () {
         Route::post('stock-requests/{stockRequest}/cancel', [StockRequestController::class, 'cancel'])->name('stock-requests.cancel');
 
         Route::get('transfers', [TransferController::class, 'index'])->name('transfers.index');
-        Route::post('transfers/{transfer}/receive', [TransferController::class, 'receive'])->name('transfers.receive');
-        Route::post('transfers/{transfer}/return', [TransferController::class, 'returnToWarehouse'])->name('transfers.return');
+        Route::post('transfers/{transfer}/complete', [TransferController::class, 'complete'])->name('transfers.complete');
         Route::get('transfers/{transfer}', [TransferController::class, 'show'])->name('transfers.show');
     });
 });
