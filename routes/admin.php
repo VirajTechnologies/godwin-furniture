@@ -84,6 +84,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('agents/create', [AgentController::class, 'create'])->name('agents.create');
         Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
         Route::post('agents/{agent}/cashiers', [AgentController::class, 'storeCashier'])->name('agents.cashiers.store');
+        Route::put('agents/{agent}/cashiers/{cashier}', [AgentController::class, 'updateCashier'])->name('agents.cashiers.update');
         Route::get('agents/{agent}/edit', [AgentController::class, 'edit'])->name('agents.edit');
         Route::put('agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
 

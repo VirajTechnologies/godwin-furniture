@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AgentCashierRequest;
+use App\Http\Requests\Admin\AgentCashierUpdateRequest;
 use App\Http\Requests\Admin\AgentRequest;
 use App\Models\Agent;
 use App\Models\Role;
@@ -95,6 +96,28 @@ class AgentController extends Controller
             ->with('success', 'Cashier saved.');
     }
 
+    public function updateCashier(AgentCashierUpdateRequest $request, Agent $agent, User $cashier): RedirectResponse
+    {
+        $cashier = $this->cashier($agent, $cashier);
+
+        $user = [
+            'name' => $request->validated('cashier_name'),
+            'email' => $request->validated('cashier_email'),
+            'phone' => $request->validated('cashier_phone'),
+            'status' => $request->validated('cashier_status'),
+        ];
+
+        if ($request->filled('cashier_password')) {
+            $user['password'] = $request->validated('cashier_password');
+        }
+
+        $cashier->update($user);
+
+        return redirect()
+            ->route('admin.agents.edit', $agent)
+            ->with('success', 'Cashier updated.');
+    }
+
     public function update(AgentRequest $request, Agent $agent): RedirectResponse
     {
         DB::transaction(function () use ($request, $agent): void {
@@ -117,6 +140,18 @@ class AgentController extends Controller
         return redirect()
             ->route('admin.agents.index')
             ->with('success', 'Agent updated.');
+    }
+
+    private function cashier(Agent $agent, User $cashier): User
+    {
+        $cashier->loadMissing('role');
+
+        abort_unless(
+            $cashier->agent_id === $agent->id && $cashier->role?->slug === Role::AGENT_STAFF,
+            404,
+        );
+
+        return $cashier;
     }
 
     private function warehouses(?int $selectedId = null)

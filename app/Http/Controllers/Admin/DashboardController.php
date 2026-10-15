@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Agent;
 use App\Models\Branch;
 use App\Models\Order;
 use App\Models\StockRequest;
@@ -14,28 +15,42 @@ class DashboardController extends Controller
     public function index(): View
     {
         $today = Order::query()
-            ->where('channel', Order::CHANNEL_BRANCH)
+            ->whereIn('channel', [Order::CHANNEL_BRANCH, Order::CHANNEL_AGENT])
             ->where('status', Order::STATUS_COMPLETED)
             ->whereDate('created_at', today());
 
         $byBranch = (clone $today)
+            ->where('channel', Order::CHANNEL_BRANCH)
             ->selectRaw('branch_id, COUNT(*) as bills, SUM(total) as amount')
             ->groupBy('branch_id')
             ->get();
 
+        $byShop = (clone $today)
+            ->where('channel', Order::CHANNEL_AGENT)
+            ->selectRaw('agent_id, COUNT(*) as bills, SUM(total) as amount')
+            ->groupBy('agent_id')
+            ->get();
+
         $branches = Branch::query()->whereIn('id', $byBranch->pluck('branch_id'))->get()->keyBy('id');
+        $agents = Agent::query()->whereIn('id', $byShop->pluck('agent_id'))->get()->keyBy('id');
+
+        $salesByPlace = $byBranch->map(fn ($row) => [
+            'place' => $branches->get($row->branch_id)?->name ?? '—',
+            'bills' => (int) $row->bills,
+            'amount' => (float) $row->amount,
+        ])->concat($byShop->map(fn ($row) => [
+            'place' => $agents->get($row->agent_id)?->name ?? '—',
+            'bills' => (int) $row->bills,
+            'amount' => (float) $row->amount,
+        ]))->sortBy('place')->values();
 
         return view('admin.dashboard', [
             'saleCount' => (clone $today)->count(),
             'saleTotal' => (clone $today)->sum('total'),
-            'salesByBranch' => $byBranch->map(fn ($row) => [
-                'branch' => $branches->get($row->branch_id)?->name ?? '—',
-                'bills' => (int) $row->bills,
-                'amount' => (float) $row->amount,
-            ]),
+            'salesByBranch' => $salesByPlace,
             'recentSales' => Order::query()
-                ->with(['branch', 'customer'])
-                ->where('channel', Order::CHANNEL_BRANCH)
+                ->with(['branch', 'agent', 'customer'])
+                ->whereIn('channel', [Order::CHANNEL_BRANCH, Order::CHANNEL_AGENT])
                 ->orderByDesc('id')
                 ->limit(8)
                 ->get(),

@@ -50,7 +50,7 @@
     <div class="row">
         <div class="col-xl-5">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">Today By Branch</h5></div>
+                <div class="card-header"><h5 class="card-title mb-0">Today By Showroom And Shop</h5></div>
                 <div class="card-body">
                     @if ($salesByBranch->isEmpty())
                         <p class="text-muted mb-0">No sales yet today.</p>
@@ -59,7 +59,7 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Branch</th>
+                                        <th>Place</th>
                                         <th>Bills</th>
                                         <th>Amount</th>
                                     </tr>
@@ -67,7 +67,7 @@
                                 <tbody>
                                     @foreach ($salesByBranch as $row)
                                         <tr>
-                                            <td>{{ $row['branch'] }}</td>
+                                            <td>{{ $row['place'] }}</td>
                                             <td>{{ $row['bills'] }}</td>
                                             <td>₹{{ number_format($row['amount'], 2) }}</td>
                                         </tr>
@@ -91,7 +91,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Code</th>
-                                        <th>Branch</th>
+                                        <th>Place</th>
                                         <th>Customer</th>
                                         <th>Total</th>
                                         <th>Date</th>
@@ -101,7 +101,7 @@
                                     @foreach ($recentSales as $order)
                                         <tr>
                                             <td class="fw-medium"><a href="{{ route('admin.orders.show', $order) }}">{{ $order->code }}</a></td>
-                                            <td>{{ $order->branch?->name ?? '—' }}</td>
+                                            <td>{{ $order->branch?->name ?? $order->agent?->name ?? '—' }}</td>
                                             <td>{{ $order->customer?->name ?? '—' }}</td>
                                             <td>₹{{ number_format((float) $order->total, 2) }}</td>
                                             <td>{{ $order->created_at?->format('d M Y, h:i A') }}</td>

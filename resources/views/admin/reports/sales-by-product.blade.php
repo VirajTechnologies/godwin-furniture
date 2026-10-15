@@ -14,6 +14,7 @@
                 <div class="card-header"><h5 class="card-title mb-0">Sales By Product</h5></div>
                 <div class="card-body">
                     @include('admin.reports._dates')
+                    <p class="text-muted">Showroom and shop bills. Commission is what the shops earned.</p>
                     @if ($rows->isEmpty())
                         <p class="text-muted mb-0">No sales in this period.</p>
                     @else
@@ -26,6 +27,7 @@
                                         <th>Product</th>
                                         <th>Quantity</th>
                                         <th>Amount</th>
+                                        <th>Commission</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -37,6 +39,7 @@
                                             <td>{{ $product?->name ?? '—' }}</td>
                                             <td>{{ $row->quantity }}</td>
                                             <td>₹{{ number_format((float) $row->amount, 2) }}</td>
+                                            <td>₹{{ number_format((float) $row->commission, 2) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
