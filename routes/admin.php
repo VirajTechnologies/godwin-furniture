@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\BranchStockController;
@@ -78,6 +79,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('branches/{branch}/edit', [BranchController::class, 'edit'])->name('branches.edit');
         Route::put('branches/{branch}', [BranchController::class, 'update'])->name('branches.update');
         Route::post('branches/{branch}/status', [BranchController::class, 'updateStatus'])->name('branches.status');
+
+        Route::get('agents', [AgentController::class, 'index'])->name('agents.index');
+        Route::get('agents/create', [AgentController::class, 'create'])->name('agents.create');
+        Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
+        Route::get('agents/{agent}/edit', [AgentController::class, 'edit'])->name('agents.edit');
+        Route::put('agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
 
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');

@@ -101,7 +101,7 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.transfers.edit', $transferId))
             ->assertOk()
-            ->assertSee('The branch manager counts each line, accepts what stays at the showroom, and returns the rest to the warehouse.')
+            ->assertSee('The shop counts each line, accepts what stays, and returns the rest to the warehouse.')
             ->assertDontSee('Branch stock will increase.');
 
         $manager = $this->branchUser($branch, Role::BRANCH_MANAGER, 'Branch Manager', 'MGR001');

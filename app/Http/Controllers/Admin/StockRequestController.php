@@ -16,7 +16,7 @@ class StockRequestController extends Controller
     public function index(): View
     {
         $requests = StockRequest::query()
-            ->with(['branch', 'transfer'])
+            ->with(['branch', 'agent', 'transfer'])
             ->orderByDesc('id')
             ->paginate(15);
 
@@ -27,7 +27,7 @@ class StockRequestController extends Controller
 
     public function show(StockRequest $stockRequest): View
     {
-        $stockRequest->load(['branch.warehouse', 'items.product', 'transfer', 'requester']);
+        $stockRequest->load(['branch.warehouse', 'agent.warehouse', 'items.product', 'transfer', 'requester']);
 
         return view('admin.stock-requests.show', [
             'stockRequest' => $stockRequest,
@@ -36,7 +36,7 @@ class StockRequestController extends Controller
 
     public function createTransfer(Request $request, StockRequest $stockRequest): RedirectResponse
     {
-        $stockRequest->load(['branch.warehouse', 'items', 'transfer']);
+        $stockRequest->load(['branch.warehouse', 'agent.warehouse', 'items', 'transfer']);
 
         if (! $stockRequest->isRequested()) {
             return back()->with('error', 'Only an open request can become a transfer.');
@@ -48,22 +48,23 @@ class StockRequestController extends Controller
                 ->with('success', 'This request already has transfer '.$stockRequest->transfer->code.'.');
         }
 
-        $branch = $stockRequest->branch;
-        $warehouse = $branch?->warehouse;
+        $holder = $stockRequest->branch ?? $stockRequest->agent;
+        $warehouse = $holder?->warehouse;
 
-        if (! $branch || ! $branch->isActive() || ! $warehouse || ! $warehouse->isActive()) {
-            return back()->with('error', 'The branch or its supplying warehouse is inactive.');
+        if (! $holder || ! $holder->isActive() || ! $warehouse || ! $warehouse->isActive()) {
+            return back()->with('error', 'The shop or its supplying warehouse is inactive.');
         }
 
         if ($stockRequest->items->isEmpty()) {
             return back()->with('error', 'This request has no lines.');
         }
 
-        $transfer = DB::transaction(function () use ($request, $stockRequest, $branch) {
+        $transfer = DB::transaction(function () use ($request, $stockRequest, $holder) {
             $transfer = StockTransfer::query()->create([
                 'code' => 'T'.substr((string) Str::ulid(), 0, 19),
-                'warehouse_id' => $branch->warehouse_id,
-                'branch_id' => $branch->id,
+                'warehouse_id' => $holder->warehouse_id,
+                'branch_id' => $stockRequest->branch_id,
+                'agent_id' => $stockRequest->agent_id,
                 'status' => StockTransfer::STATUS_DRAFT,
                 'notes' => $stockRequest->notes,
                 'created_by' => $request->user()?->id,

@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Agent;
+use App\Models\AgentProductTerm;
 use App\Models\Branch;
 use App\Models\BranchProductPrice;
 use App\Models\Category;
@@ -20,6 +22,7 @@ use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Support\AgentSale;
 use App\Support\BranchSale;
 use App\Support\StockLedger;
 use App\Support\StockTransferWorkflow;
@@ -36,7 +39,7 @@ class LoadSampleData extends Command
     /** @var array<string, int> */
     private array $menuGroupSortCounters = [];
 
-    public function handle(StockLedger $ledger, StockTransferWorkflow $workflow, BranchSale $sales): int
+    public function handle(StockLedger $ledger, StockTransferWorkflow $workflow, BranchSale $sales, AgentSale $agentSales): int
     {
         if (Branch::query()->where('code', 'BR001')->exists()) {
             $this->components->error('Sample data is already loaded. Run migrate:fresh --seed, then sample:load again.');
@@ -53,11 +56,13 @@ class LoadSampleData extends Command
             return self::FAILURE;
         }
 
-        DB::transaction(function () use ($ledger, $workflow, $sales, $warehouse, $admin): void {
+        DB::transaction(function () use ($ledger, $workflow, $sales, $agentSales, $warehouse, $admin): void {
             $places = $this->places();
             $branches = $this->branches($warehouse, $places);
             $staff = $this->staff($warehouse, $branches);
             $products = $this->products();
+            $agents = $this->agents($warehouse, $places);
+            $this->agentTerms($agents, $products);
 
             $this->at(now()->subDays(11)->setTime(10, 0), function () use ($ledger, $products, $warehouse, $admin): void {
                 foreach ($this->openingQuantities() as $code => $quantity) {
@@ -142,6 +147,26 @@ class LoadSampleData extends Command
             $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $products['SF003'], 1, Payment::METHOD_CARD, 'Anitha Rao', '9848011006', now()->subDay()->setTime(18, 10));
             $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $products['SF001'], 1, Payment::METHOD_CASH, 'Ravi Kumar', '9848011001', now()->setTime(10, 25));
 
+            $this->transferToAgent($workflow, 'TR007', $warehouse, $agents['AG001'], $staff['warehouse'], 'Opening stock for Sri Lakshmi Furniture Mart', [
+                'SF001' => 2,
+            ], $products, now()->subDays(6)->setTime(10, 0), now()->subDays(6)->setTime(15, 0));
+            $this->transferToAgent($workflow, 'TR008', $warehouse, $agents['AG002'], $staff['warehouse'], 'Opening stock for Kalanjali Home Studio', [
+                'BD001' => 2,
+            ], $products, now()->subDays(5)->setTime(10, 0), now()->subDays(5)->setTime(15, 0));
+            $this->transferToAgent($workflow, 'TR009', $warehouse, $agents['AG003'], $staff['warehouse'], 'Opening stock for Deccan Living Gallery', [
+                'CH001' => 2,
+            ], $products, now()->subDays(4)->setTime(10, 0), now()->subDays(4)->setTime(15, 0));
+
+            $this->agentSale($agentSales, $agents['AG001'], $products['SF001'], 1, 45000, Payment::METHOD_CASH, 'Meena Rao', '9848012001', now()->subDays(2)->setTime(12, 15));
+            $this->agentSale($agentSales, $agents['AG002'], $products['BD001'], 1, 39000, Payment::METHOD_UPI, 'Sai Krishna', '9848012002', now()->subDay()->setTime(16, 40));
+            $this->agentSale($agentSales, $agents['AG003'], $products['CH001'], 1, 14000, Payment::METHOD_CARD, 'Harika Devi', '9848012003', now()->setTime(11, 5));
+
+            $this->at(now()->setTime(9, 20), function () use ($agents, $products): void {
+                $this->agentStockRequest('R00005', $agents['AG003'], 'Sofa set for a walk-in customer', [
+                    'SF002' => 1,
+                ], $products);
+            });
+
             $this->at(now()->setTime(9, 40), function () use ($branches, $staff, $products): void {
                 $this->stockRequest('R00004', $branches['BR003'], $staff['managers']['BR003'], 'Dining table for a customer visit', [
                     'DN001' => 1, 'CH002' => 2,
@@ -158,6 +183,9 @@ class LoadSampleData extends Command
             ['cashier.vijayawada@godwin.test', 'password', 'Branch portal'],
             ['cashier.guntur@godwin.test', 'password', 'Branch portal'],
             ['cashier.vizag@godwin.test', 'password', 'Branch portal'],
+            ['lakshmi.mart@godwin.test', 'password', 'Sri Lakshmi Furniture Mart'],
+            ['kalanjali@godwin.test', 'password', 'Kalanjali Home Studio'],
+            ['deccan.living@godwin.test', 'password', 'Deccan Living Gallery'],
         ]);
 
         return self::SUCCESS;
@@ -231,6 +259,99 @@ class LoadSampleData extends Command
         }
 
         return $branches;
+    }
+
+    /**
+     * @param  array{vijayawada: array{state: State, district: District, city: City}, guntur: array{state: State, district: District, city: City}, vizag: array{state: State, district: District, city: City}}  $places
+     * @return array<string, Agent>
+     */
+    private function agents(Warehouse $warehouse, array $places): array
+    {
+        $rows = [
+            'AG001' => ['Sri Lakshmi Furniture Mart', 'Venkateswara Rao', '9848091001', 'lakshmi.mart@godwin.test', 'Besant Road, Governorpet', '520002', 'vijayawada'],
+            'AG002' => ['Kalanjali Home Studio', 'Swapna Reddy', '9848091002', 'kalanjali@godwin.test', 'Arundelpet, 4th Line', '522002', 'guntur'],
+            'AG003' => ['Deccan Living Gallery', 'Naresh Kumar', '9848091003', 'deccan.living@godwin.test', 'Siripuram Junction', '530003', 'vizag'],
+        ];
+
+        $agents = [];
+
+        foreach ($rows as $code => [$shop, $contact, $phone, $email, $address, $pincode, $place]) {
+            $location = $places[$place];
+            $user = User::factory()->agent()->create([
+                'name' => $contact,
+                'email' => $email,
+                'phone' => $phone,
+            ]);
+
+            $agents[$code] = Agent::query()->create([
+                'code' => $code,
+                'name' => $shop,
+                'user_id' => $user->id,
+                'warehouse_id' => $warehouse->id,
+                'contact_person' => $contact,
+                'phone' => $phone,
+                'email' => $email,
+                'address_line' => $address,
+                'state_id' => $location['state']->id,
+                'district_id' => $location['district']->id,
+                'city_id' => $location['city']->id,
+                'pincode' => $pincode,
+                'status' => Agent::STATUS_ACTIVE,
+            ]);
+        }
+
+        return $agents;
+    }
+
+    /**
+     * @param  array<string, Agent>  $agents
+     * @param  array<string, Product>  $products
+     */
+    private function agentTerms(array $agents, array $products): void
+    {
+        $rows = [
+            'SF001' => [
+                'AG001' => [40000, 5],
+                'AG002' => [43000, 8],
+                'AG003' => [41000, 6],
+            ],
+            'BD001' => [
+                'AG001' => [36000, 4],
+                'AG002' => [34000, 7],
+                'AG003' => [37000, 5],
+            ],
+            'CH001' => [
+                'AG001' => [11000, 6],
+                'AG002' => [10000, 10],
+                'AG003' => [12000, 8],
+            ],
+        ];
+
+        foreach ($rows as $productCode => $shops) {
+            foreach ($shops as $agentCode => [$minimum, $commission]) {
+                AgentProductTerm::query()->create([
+                    'agent_id' => $agents[$agentCode]->id,
+                    'product_id' => $products[$productCode]->id,
+                    'minimum_price' => $minimum,
+                    'commission_percent' => $commission,
+                ]);
+            }
+        }
+    }
+
+    private function agentSale(AgentSale $sales, Agent $agent, Product $product, int $quantity, float $price, string $method, string $customerName, string $phone, Carbon $at): void
+    {
+        $this->at($at, function () use ($sales, $agent, $product, $quantity, $price, $method, $customerName, $phone): void {
+            $customer = Customer::query()->create([
+                'name' => $customerName,
+                'phone' => $phone,
+                'status' => Customer::STATUS_ACTIVE,
+            ]);
+
+            $sales->complete($agent, $customer, [
+                ['product_id' => $product->id, 'quantity' => $quantity, 'unit_price' => $price],
+            ], $method, $agent->user_id);
+        });
     }
 
     /**
@@ -617,6 +738,72 @@ class LoadSampleData extends Command
             'notes' => $notes,
             'requested_by' => $manager->id,
             'cancelled_at' => $cancelled ? now() : null,
+        ]);
+
+        foreach ($lines as $productCode => $quantity) {
+            $request->items()->create([
+                'product_id' => $products[$productCode]->id,
+                'quantity' => $quantity,
+            ]);
+        }
+
+        return $request;
+    }
+
+    /**
+     * @param  array<string, int>  $lines
+     * @param  array<string, Product>  $products
+     */
+    private function transferToAgent(
+        StockTransferWorkflow $workflow,
+        string $code,
+        Warehouse $warehouse,
+        Agent $agent,
+        User $dispatcher,
+        string $notes,
+        array $lines,
+        array $products,
+        Carbon $dispatchedAt,
+        Carbon $receivedAt,
+    ): void {
+        $transfer = $this->at($dispatchedAt, function () use ($workflow, $code, $warehouse, $agent, $dispatcher, $notes, $lines, $products) {
+            $transfer = StockTransfer::factory()->create([
+                'code' => $code,
+                'warehouse_id' => $warehouse->id,
+                'branch_id' => null,
+                'agent_id' => $agent->id,
+                'notes' => $notes,
+                'created_by' => $dispatcher->id,
+            ]);
+
+            foreach ($lines as $productCode => $quantity) {
+                StockTransferItem::factory()->create([
+                    'stock_transfer_id' => $transfer->id,
+                    'product_id' => $products[$productCode]->id,
+                    'quantity' => $quantity,
+                ]);
+            }
+
+            $workflow->dispatch($transfer, $dispatcher->id);
+
+            return $transfer;
+        });
+
+        $this->at($receivedAt, fn () => $workflow->receive($transfer, $agent->user_id));
+    }
+
+    /**
+     * @param  array<string, int>  $lines
+     * @param  array<string, Product>  $products
+     */
+    private function agentStockRequest(string $code, Agent $agent, string $notes, array $lines, array $products): StockRequest
+    {
+        $request = StockRequest::query()->create([
+            'code' => $code,
+            'agent_id' => $agent->id,
+            'status' => StockRequest::STATUS_REQUESTED,
+            'notes' => $notes,
+            'requested_by' => $agent->user_id,
         ]);
 
         foreach ($lines as $productCode => $quantity) {

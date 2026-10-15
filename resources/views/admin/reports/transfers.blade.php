@@ -23,7 +23,7 @@
                                     <tr>
                                         <th>SR No.</th>
                                         <th>Code</th>
-                                        <th>Branch</th>
+                                        <th>Destination</th>
                                         <th>Status</th>
                                         <th>Created</th>
                                         <th>Dispatched</th>
@@ -36,7 +36,7 @@
                                         <tr>
                                             <td>{{ $transfers->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium"><a href="{{ route('admin.transfers.edit', $transfer) }}">{{ $transfer->code }}</a></td>
-                                            <td>{{ $transfer->branch?->name ?? '—' }}</td>
+                                            <td>{{ $transfer->destinationName() }}</td>
                                             <td>{{ $transfer->statusLabel() }}</td>
                                             <td>{{ $transfer->created_at?->format('d M Y, h:i A') }}</td>
                                             <td>{{ $transfer->dispatched_at?->format('d M Y, h:i A') ?? '—' }}</td>

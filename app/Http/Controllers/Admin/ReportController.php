@@ -70,7 +70,7 @@ class ReportController extends Controller
     public function stock(): View
     {
         $stocks = Stock::query()
-            ->with(['product', 'warehouse', 'branch'])
+            ->with(['product', 'warehouse', 'branch', 'agent'])
             ->orderBy('warehouse_id')
             ->orderBy('branch_id')
             ->orderBy('product_id')
@@ -86,7 +86,7 @@ class ReportController extends Controller
         [$from, $to] = $this->range($request);
 
         $transfers = StockTransfer::query()
-            ->with(['branch', 'warehouse'])
+            ->with(['branch', 'agent', 'warehouse'])
             ->whereDate('created_at', '>=', $from->toDateString())
             ->whereDate('created_at', '<=', $to->toDateString())
             ->orderByDesc('id')
@@ -105,7 +105,7 @@ class ReportController extends Controller
         [$from, $to] = $this->range($request);
 
         $requests = StockRequest::query()
-            ->with(['branch', 'transfer'])
+            ->with(['branch', 'agent', 'transfer'])
             ->whereDate('created_at', '>=', $from->toDateString())
             ->whereDate('created_at', '<=', $to->toDateString())
             ->orderByDesc('id')

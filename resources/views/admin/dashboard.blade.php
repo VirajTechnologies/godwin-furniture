@@ -129,7 +129,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Code</th>
-                                        <th>Branch</th>
+                                        <th>Destination</th>
                                         <th>Dispatched</th>
                                     </tr>
                                 </thead>
@@ -137,7 +137,7 @@
                                     @foreach ($waitingTransfers as $transfer)
                                         <tr>
                                             <td class="fw-medium"><a href="{{ route('admin.transfers.edit', $transfer) }}">{{ $transfer->code }}</a></td>
-                                            <td>{{ $transfer->branch?->name ?? '—' }}</td>
+                                            <td>{{ $transfer->destinationName() }}</td>
                                             <td>{{ $transfer->dispatched_at?->format('d M Y, h:i A') ?? '—' }}</td>
                                         </tr>
                                     @endforeach
@@ -153,14 +153,14 @@
                 <div class="card-header"><h5 class="card-title mb-0">Open Stock Requests</h5></div>
                 <div class="card-body">
                     @if ($openRequests->isEmpty())
-                        <p class="text-muted mb-0">No branch is waiting for a transfer.</p>
+                        <p class="text-muted mb-0">No shop is waiting for a transfer.</p>
                     @else
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Code</th>
-                                        <th>Branch</th>
+                                        <th>Requested By</th>
                                         <th>Requested</th>
                                     </tr>
                                 </thead>
@@ -168,7 +168,7 @@
                                     @foreach ($openRequests as $stockRequest)
                                         <tr>
                                             <td class="fw-medium"><a href="{{ route('admin.stock-requests.show', $stockRequest) }}">{{ $stockRequest->code }}</a></td>
-                                            <td>{{ $stockRequest->branch?->name ?? '—' }}</td>
+                                            <td>{{ $stockRequest->holderName() }}</td>
                                             <td>{{ $stockRequest->created_at?->format('d M Y, h:i A') }}</td>
                                         </tr>
                                     @endforeach

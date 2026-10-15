@@ -75,6 +75,11 @@ class Product extends Model
         return $this->hasMany(BranchProductPrice::class);
     }
 
+    public function agentTerms(): HasMany
+    {
+        return $this->hasMany(AgentProductTerm::class);
+    }
+
     public function priceForBranch(Branch|int $branch): float
     {
         $branchId = $branch instanceof Branch ? $branch->id : $branch;

@@ -40,7 +40,7 @@ class DashboardController extends Controller
                 ->limit(8)
                 ->get(),
             'waitingTransfers' => StockTransfer::query()
-                ->with('branch')
+                ->with(['branch', 'agent'])
                 ->where('status', StockTransfer::STATUS_DISPATCHED)
                 ->orderBy('dispatched_at')
                 ->limit(8)
@@ -48,7 +48,7 @@ class DashboardController extends Controller
             'waitingCount' => StockTransfer::query()->where('status', StockTransfer::STATUS_DISPATCHED)->count(),
             'draftCount' => StockTransfer::query()->where('status', StockTransfer::STATUS_DRAFT)->count(),
             'openRequests' => StockRequest::query()
-                ->with('branch')
+                ->with(['branch', 'agent'])
                 ->where('status', StockRequest::STATUS_REQUESTED)
                 ->whereNull('stock_transfer_id')
                 ->orderBy('id')

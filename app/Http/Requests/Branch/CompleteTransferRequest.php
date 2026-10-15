@@ -9,7 +9,9 @@ class CompleteTransferRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isBranchManager() ?? false;
+        $user = $this->user();
+
+        return (bool) ($user?->isBranchManager() || $user?->isAgent());
     }
 
     /**

@@ -26,7 +26,7 @@
                         </div>
                     @else
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
+                            <table class="table table-hover align-middle mb-0 w-100 js-datatable" data-order-column="2" data-unsearchable="0,8" data-label="products">
                                 <thead class="table-light">
                                     <tr>
                                         <th>SR No.</th>
@@ -43,20 +43,20 @@
                                 <tbody>
                                     @foreach ($products as $product)
                                         <tr>
-                                            <td>{{ $products->firstItem() + $loop->index }}</td>
+                                            <td></td>
                                             <td class="fw-medium">{{ $product->code }}</td>
                                             <td>{{ $product->name }}</td>
                                             <td>{{ $product->category?->parent?->name ?? '—' }}</td>
                                             <td>{{ $product->category?->name ?? '—' }}</td>
-                                            <td>₹{{ number_format((float) $product->selling_price, 2) }}</td>
-                                            <td>
+                                            <td data-order="{{ $product->selling_price }}">₹{{ number_format((float) $product->selling_price, 2) }}</td>
+                                            <td data-order="{{ $product->is_online ? $product->storePrice() : -1 }}">
                                                 @if ($product->is_online)
                                                     ₹{{ number_format($product->storePrice(), 2) }}
                                                 @else
                                                     —
                                                 @endif
                                             </td>
-                                            <td>
+                                            <td data-order="{{ $product->isActive() ? 1 : 0 }}">
                                                 @if ($product->isActive())
                                                     <span class="badge bg-success">Active</span>
                                                 @else
@@ -77,7 +77,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-3">{{ $products->links() }}</div>
                     @endif
                 </div>
             </div>

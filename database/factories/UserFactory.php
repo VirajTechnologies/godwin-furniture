@@ -69,6 +69,11 @@ class UserFactory extends Factory
         return $this->withRole(Role::BRANCH_STAFF, 'Branch Staff');
     }
 
+    public function agent(): static
+    {
+        return $this->withRole(Role::AGENT, 'Agent');
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

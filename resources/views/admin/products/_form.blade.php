@@ -142,6 +142,49 @@
         </div>
     @endif
 
+    @if ($agents->isNotEmpty())
+        <div class="mt-4">
+            <h6 class="mb-1">Agent Prices</h6>
+            <p class="text-muted small">Minimum price and commission are set separately for each shop. The MRP on this product is the highest price an agent can sell at. Leave a row blank if that shop does not sell this product.</p>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Shop</th>
+                            <th>Minimum Price</th>
+                            <th>Commission %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($agents as $agent)
+                            @php
+                                $oldTerms = old('agent_terms.'.$agent->id, []);
+                                $saved = $agentTerms->get($agent->id);
+                                $minimum = $oldTerms['minimum_price'] ?? $saved?->minimum_price;
+                                $commission = $oldTerms['commission_percent'] ?? $saved?->commission_percent;
+                            @endphp
+                            <tr>
+                                <td>{{ $agent->name }}</td>
+                                <td style="max-width: 180px;">
+                                    <input type="number" class="form-control @error('agent_terms.'.$agent->id.'.minimum_price') is-invalid @enderror" name="agent_terms[{{ $agent->id }}][minimum_price]" value="{{ $minimum }}" min="0" step="0.01">
+                                    @error('agent_terms.'.$agent->id.'.minimum_price')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </td>
+                                <td style="max-width: 160px;">
+                                    <input type="number" class="form-control @error('agent_terms.'.$agent->id.'.commission_percent') is-invalid @enderror" name="agent_terms[{{ $agent->id }}][commission_percent]" value="{{ $commission }}" min="0" max="100" step="0.01">
+                                    @error('agent_terms.'.$agent->id.'.commission_percent')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     <div class="mt-4 d-flex gap-2">
         <button type="submit" class="btn btn-success">Save Product</button>
         <a href="{{ route('admin.products.index') }}" class="btn btn-light">Cancel</a>

@@ -24,12 +24,12 @@
                 <div class="card-body">
                     <div class="row g-3 mb-4">
                         <div class="col-md-3">
-                            <label class="form-label">Branch</label>
-                            <input type="text" class="form-control" value="{{ $stockRequest->branch?->name }}" readonly>
+                            <label class="form-label">Requested By</label>
+                            <input type="text" class="form-control" value="{{ $stockRequest->holderName() }}" readonly>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Supplying Warehouse</label>
-                            <input type="text" class="form-control" value="{{ $stockRequest->branch?->warehouse?->name }}" readonly>
+                            <input type="text" class="form-control" value="{{ $stockRequest->branch?->warehouse?->name ?? $stockRequest->agent?->warehouse?->name }}" readonly>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Requested</label>

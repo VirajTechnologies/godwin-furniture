@@ -33,7 +33,7 @@
                                     @foreach ($stocks as $stock)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $stock->warehouse?->name ?? $stock->branch?->name ?? '—' }}</td>
+                                            <td>{{ $stock->warehouse?->name ?? $stock->branch?->name ?? $stock->agent?->name ?? '—' }}</td>
                                             <td class="fw-medium">{{ $stock->product?->code }}</td>
                                             <td>{{ $stock->product?->name }}</td>
                                             <td>{{ $stock->quantity }}</td>

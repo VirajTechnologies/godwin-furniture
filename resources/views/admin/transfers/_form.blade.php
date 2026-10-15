@@ -29,15 +29,40 @@
                 @enderror
             @endif
         </div>
+        @php
+            $destination = old('destination', $transfer->agent_id ? 'agent' : 'branch');
+        @endphp
         <div class="col-md-4">
+            <label for="destination" class="form-label">Send To</label>
+            <select class="form-select @error('destination') is-invalid @enderror" id="destination" name="destination" required>
+                <option value="branch" @selected($destination === 'branch')>Branch</option>
+                <option value="agent" @selected($destination === 'agent')>Agent</option>
+            </select>
+            @error('destination')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="col-md-4" id="branch-field">
             <label for="branch_id" class="form-label">Branch</label>
-            <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id" name="branch_id" required>
+            <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id" name="branch_id">
                 <option value="">Select Branch</option>
                 @foreach ($branches as $branch)
                     <option value="{{ $branch->id }}" data-warehouse="{{ $branch->warehouse?->name }}" @selected((string) old('branch_id', $transfer->branch_id) === (string) $branch->id)>{{ $branch->name }}</option>
                 @endforeach
             </select>
             @error('branch_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="col-md-4" id="agent-field">
+            <label for="agent_id" class="form-label">Agent</label>
+            <select class="form-select @error('agent_id') is-invalid @enderror" id="agent_id" name="agent_id">
+                <option value="">Select Agent</option>
+                @foreach ($agents as $agent)
+                    <option value="{{ $agent->id }}" data-warehouse="{{ $agent->warehouse?->name }}" @selected((string) old('agent_id', $transfer->agent_id) === (string) $agent->id)>{{ $agent->name }}</option>
+                @endforeach
+            </select>
+            @error('agent_id')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
@@ -131,22 +156,56 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const destinationSelect = document.getElementById('destination');
+            const branchField = document.getElementById('branch-field');
+            const agentField = document.getElementById('agent-field');
             const branchSelect = document.getElementById('branch_id');
+            const agentSelect = document.getElementById('agent_id');
             const warehouseInput = document.getElementById('supplying_warehouse');
             const lines = document.getElementById('transfer-lines');
             const template = document.getElementById('transfer-line-template');
             const addButton = document.getElementById('add-transfer-line');
 
-            function showWarehouse() {
-                const option = branchSelect.options[branchSelect.selectedIndex];
-                warehouseInput.value = option ? (option.dataset.warehouse || '') : '';
+            function activeSelect() {
+                return destinationSelect && destinationSelect.value === 'agent' ? agentSelect : branchSelect;
             }
 
-            if (branchSelect && warehouseInput) {
-                branchSelect.addEventListener('change', showWarehouse);
-                if (branchSelect.value) {
-                    showWarehouse();
+            function showWarehouse() {
+                const select = activeSelect();
+                const option = select ? select.options[select.selectedIndex] : null;
+                if (warehouseInput) {
+                    warehouseInput.value = option ? (option.dataset.warehouse || '') : '';
                 }
+            }
+
+            function syncDestination() {
+                const agent = destinationSelect && destinationSelect.value === 'agent';
+                if (branchField) {
+                    branchField.hidden = agent;
+                }
+                if (agentField) {
+                    agentField.hidden = !agent;
+                }
+                if (branchSelect) {
+                    branchSelect.required = !agent;
+                    branchSelect.disabled = agent;
+                }
+                if (agentSelect) {
+                    agentSelect.required = agent;
+                    agentSelect.disabled = !agent;
+                }
+                showWarehouse();
+            }
+
+            if (destinationSelect) {
+                destinationSelect.addEventListener('change', syncDestination);
+                syncDestination();
+            }
+            if (branchSelect) {
+                branchSelect.addEventListener('change', showWarehouse);
+            }
+            if (agentSelect) {
+                agentSelect.addEventListener('change', showWarehouse);
             }
 
             if (!lines || !template || !addButton) {

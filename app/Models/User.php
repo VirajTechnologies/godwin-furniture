@@ -67,6 +67,11 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
+    public function agent(): HasOne
+    {
+        return $this->hasOne(Agent::class);
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->role?->slug === Role::SUPER_ADMIN;
@@ -80,6 +85,11 @@ class User extends Authenticatable
     public function isBranchManager(): bool
     {
         return $this->role?->slug === Role::BRANCH_MANAGER;
+    }
+
+    public function isAgent(): bool
+    {
+        return $this->role?->slug === Role::AGENT;
     }
 
     public function isActive(): bool

@@ -30,6 +30,7 @@ class StockTransferWorkflow
                     ->where('product_id', $item->product_id)
                     ->where('warehouse_id', $locked->warehouse_id)
                     ->whereNull('branch_id')
+                    ->whereNull('agent_id')
                     ->lockForUpdate()
                     ->first();
 
@@ -76,7 +77,7 @@ class StockTransferWorkflow
                 throw new RuntimeException('Only a dispatched transfer can be completed.');
             }
 
-            $locked->load(['items.product', 'branch', 'warehouse']);
+            $locked->load(['items.product', 'branch', 'agent', 'warehouse']);
             $posted = collect($lines)->keyBy(fn (array $line) => (int) $line['id']);
 
             if ($posted->count() !== $locked->items->count()) {
@@ -115,8 +116,10 @@ class StockTransferWorkflow
 
             foreach ($splits as [$item, $received, $returned]) {
                 if ($received > 0) {
-                    $branchStock = $this->ledger->branchStock($item->product, $locked->branch);
-                    $this->ledger->increase($branchStock, $received, StockMovement::TYPE_TRANSFER_IN, $acceptNote, $userId);
+                    $holderStock = $locked->agent_id
+                        ? $this->ledger->agentStock($item->product, $locked->agent)
+                        : $this->ledger->branchStock($item->product, $locked->branch);
+                    $this->ledger->increase($holderStock, $received, StockMovement::TYPE_TRANSFER_IN, $acceptNote, $userId);
                 }
 
                 if ($returned > 0) {

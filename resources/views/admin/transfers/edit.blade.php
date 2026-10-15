@@ -30,16 +30,16 @@
                         </form>
                     @else
                         @if ($transfer->isDispatched())
-                            <p class="text-muted">The branch manager counts each line, accepts what stays at the showroom, and returns the rest to the warehouse.</p>
+                            <p class="text-muted">The shop counts each line, accepts what stays, and returns the rest to the warehouse.</p>
                         @elseif ($transfer->isReturned())
-                            <p class="text-muted">The branch returned this transfer. Warehouse stock was increased by the returned quantities.</p>
+                            <p class="text-muted">This transfer was returned. Warehouse stock was increased by the returned quantities.</p>
                         @elseif ($transfer->isPartial())
-                            <p class="text-muted">The branch accepted part of this transfer. Accepted pieces are on branch stock and returned pieces are back at the warehouse.</p>
+                            <p class="text-muted">Part of this transfer was accepted. Accepted pieces are at the shop and returned pieces are back at the warehouse.</p>
                         @endif
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
-                                <label class="form-label">Branch</label>
-                                <input type="text" class="form-control" value="{{ $transfer->branch?->name }}" readonly>
+                                <label class="form-label">Destination</label>
+                                <input type="text" class="form-control" value="{{ $transfer->destinationName() }}" readonly>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Supplying Warehouse</label>

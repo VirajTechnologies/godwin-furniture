@@ -21,7 +21,7 @@
                     @if ($transfers->isEmpty())
                         <div class="text-center py-5">
                             <h5 class="mb-2">No transfers yet</h5>
-                            <p class="text-muted mb-3">Send stock from a warehouse to the branch it supplies. The branch quantity increases only when the transfer is received.</p>
+                            <p class="text-muted mb-3">Send stock from a warehouse to a branch or an agent shop. Quantity at the shop increases only when the transfer is received.</p>
                             <a href="{{ route('admin.transfers.create') }}" class="btn btn-success">Add Transfer</a>
                         </div>
                     @else
@@ -31,7 +31,7 @@
                                     <tr>
                                         <th>SR No.</th>
                                         <th>Code</th>
-                                        <th>Branch</th>
+                                        <th>Destination</th>
                                         <th>Warehouse</th>
                                         <th>Status</th>
                                         <th>Created</th>
@@ -45,7 +45,7 @@
                                         <tr>
                                             <td>{{ $transfers->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium"><a href="{{ route('admin.transfers.edit', $transfer) }}">{{ $transfer->code }}</a></td>
-                                            <td>{{ $transfer->branch?->name ?? '—' }}</td>
+                                            <td>{{ $transfer->destinationName() }}</td>
                                             <td>{{ $transfer->warehouse?->name ?? '—' }}</td>
                                             <td>
                                                 @if ($transfer->status === 'received')

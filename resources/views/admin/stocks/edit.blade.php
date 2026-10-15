@@ -32,7 +32,7 @@
                                     <tr>
                                         <th>Date</th>
                                         <th>Type</th>
-                                        <th>Branch</th>
+                                        <th>Destination</th>
                                         <th>Change</th>
                                         <th>Balance</th>
                                         <th>Note</th>
@@ -43,7 +43,7 @@
                                         <tr>
                                             <td>{{ $movement->created_at?->format('d M Y, h:i A') }}</td>
                                             <td>{{ $movement->label() }}</td>
-                                            <td>{{ $movement->transfer?->branch?->name ?? '—' }}</td>
+                                            <td>{{ $movement->transfer?->destinationName() ?? '—' }}</td>
                                             <td>{{ $movement->quantity_change > 0 ? '+' : '' }}{{ $movement->quantity_change }}</td>
                                             <td>{{ $movement->quantity_after }}</td>
                                             <td>

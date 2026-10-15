@@ -67,7 +67,7 @@ class WarehouseStockController extends Controller
             ->values();
 
         $transfers = StockTransfer::query()
-            ->with('branch')
+            ->with(['branch', 'agent'])
             ->whereIn('code', $transferCodes)
             ->get()
             ->keyBy('code');

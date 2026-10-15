@@ -17,6 +17,7 @@
                         <a href="{{ route('admin.orders.index') }}" class="btn {{ $channel === '' ? 'btn-primary' : 'btn-soft-primary' }}">All</a>
                         <a href="{{ route('admin.orders.index', ['channel' => 'online']) }}" class="btn {{ $channel === 'online' ? 'btn-primary' : 'btn-soft-primary' }}">Online</a>
                         <a href="{{ route('admin.orders.index', ['channel' => 'branch']) }}" class="btn {{ $channel === 'branch' ? 'btn-primary' : 'btn-soft-primary' }}">Branch</a>
+                        <a href="{{ route('admin.orders.index', ['channel' => 'agent']) }}" class="btn {{ $channel === 'agent' ? 'btn-primary' : 'btn-soft-primary' }}">Agent</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -49,6 +50,8 @@
                                             <td>
                                                 @if ($order->channel === \App\Models\Order::CHANNEL_ONLINE)
                                                     Online
+                                                @elseif ($order->channel === \App\Models\Order::CHANNEL_AGENT)
+                                                    {{ $order->agent?->name ?? 'Agent' }}
                                                 @else
                                                     {{ $order->branch?->name ?? 'Branch' }}
                                                 @endif

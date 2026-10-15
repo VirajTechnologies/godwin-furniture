@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAgent;
 use App\Http\Middleware\EnsureBranchUser;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Foundation\Application;
@@ -19,11 +20,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'super_admin' => EnsureSuperAdmin::class,
             'branch_user' => EnsureBranchUser::class,
+            'agent' => EnsureAgent::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('branch', 'branch/*')) {
                 return route('branch.login');
+            }
+
+            if ($request->is('agent', 'agent/*')) {
+                return route('agent.login');
             }
 
             if ($request->is('admin', 'admin/*')) {
@@ -40,6 +46,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($request->is('branch', 'branch/*')) {
                 return route('branch.home');
+            }
+
+            if ($request->is('agent', 'agent/*')) {
+                return route('agent.home');
             }
 
             return route('store.home');
@@ -60,6 +70,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('branch', 'branch/*')) {
                 $home = route('branch.home');
                 $login = 'branch.login';
+            } elseif ($request->is('agent', 'agent/*')) {
+                $home = route('agent.home');
+                $login = 'agent.login';
             } elseif ($request->is('admin', 'admin/*')) {
                 $home = route('admin.dashboard');
                 $login = 'admin.login';

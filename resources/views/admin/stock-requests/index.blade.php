@@ -25,7 +25,7 @@
                                     <tr>
                                         <th>SR No.</th>
                                         <th>Code</th>
-                                        <th>Branch</th>
+                                        <th>Requested By</th>
                                         <th>Status</th>
                                         <th>Transfer</th>
                                         <th>Requested</th>
@@ -37,7 +37,7 @@
                                         <tr>
                                             <td>{{ $requests->firstItem() + $loop->index }}</td>
                                             <td class="fw-medium"><a href="{{ route('admin.stock-requests.show', $stockRequest) }}">{{ $stockRequest->code }}</a></td>
-                                            <td>{{ $stockRequest->branch?->name ?? '—' }}</td>
+                                            <td>{{ $stockRequest->holderName() }}</td>
                                             <td>{{ $stockRequest->label() }}</td>
                                             <td>
                                                 @if ($stockRequest->transfer)

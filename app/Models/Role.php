@@ -19,6 +19,8 @@ class Role extends Model
 
     public const BRANCH_STAFF = 'branch_staff';
 
+    public const AGENT = 'agent';
+
     /**
      * @return list<string>
      */

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Exceptions\InsufficientStock;
+use App\Models\Agent;
 use App\Models\Branch;
 use App\Models\Product;
 use App\Models\Stock;
@@ -87,6 +88,7 @@ class StockLedger
             ->where('product_id', $product->id)
             ->where('branch_id', $branch->id)
             ->whereNull('warehouse_id')
+            ->whereNull('agent_id')
             ->lockForUpdate()
             ->first();
 
@@ -107,6 +109,7 @@ class StockLedger
             ->where('product_id', $product->id)
             ->where('warehouse_id', $warehouse->id)
             ->whereNull('branch_id')
+            ->whereNull('agent_id')
             ->lockForUpdate()
             ->first();
 
@@ -117,6 +120,27 @@ class StockLedger
         return Stock::query()->create([
             'product_id' => $product->id,
             'warehouse_id' => $warehouse->id,
+            'quantity' => 0,
+        ]);
+    }
+
+    public function agentStock(Product $product, Agent $agent): Stock
+    {
+        $stock = Stock::query()
+            ->where('product_id', $product->id)
+            ->where('agent_id', $agent->id)
+            ->whereNull('warehouse_id')
+            ->whereNull('branch_id')
+            ->lockForUpdate()
+            ->first();
+
+        if ($stock) {
+            return $stock;
+        }
+
+        return Stock::query()->create([
+            'product_id' => $product->id,
+            'agent_id' => $agent->id,
             'quantity' => 0,
         ]);
     }

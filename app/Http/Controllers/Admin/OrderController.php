@@ -18,8 +18,8 @@ class OrderController extends Controller
         $channel = $request->string('channel')->toString();
 
         $orders = Order::query()
-            ->with(['customer', 'branch', 'payment'])
-            ->when($channel !== '' && in_array($channel, [Order::CHANNEL_ONLINE, Order::CHANNEL_BRANCH], true), function ($query) use ($channel) {
+            ->with(['customer', 'branch', 'agent', 'payment'])
+            ->when($channel !== '' && in_array($channel, [Order::CHANNEL_ONLINE, Order::CHANNEL_BRANCH, Order::CHANNEL_AGENT], true), function ($query) use ($channel) {
                 $query->where('channel', $channel);
             })
             ->orderByDesc('id')
@@ -34,7 +34,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load(['customer', 'branch', 'warehouse', 'items.product', 'payment', 'seller']);
+        $order->load(['customer', 'branch', 'agent', 'warehouse', 'items.product', 'payment', 'seller']);
 
         return view('admin.orders.show', [
             'order' => $order,

@@ -337,6 +337,30 @@ class AdminCatalogTest extends TestCase
         ]);
     }
 
+    public function test_the_product_list_includes_every_product_for_datatables(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        $first = $this->product();
+        $second = Product::query()->create([
+            'category_id' => $first->category_id,
+            'code' => 'BD001',
+            'slug' => 'teak-bed',
+            'name' => 'Queen Size Teak Bed',
+            'unit' => 'Piece',
+            'selling_price' => 36000,
+            'is_online' => false,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.products.index'))
+            ->assertOk()
+            ->assertSee($first->name)
+            ->assertSee($second->name)
+            ->assertSee('js-datatable', false)
+            ->assertSee('dataTables.bootstrap5.min.js', false);
+    }
+
     private function product(): Product
     {
         $category = $this->subcategory();

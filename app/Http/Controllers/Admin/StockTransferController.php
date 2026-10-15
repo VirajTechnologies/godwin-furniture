@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exceptions\InsufficientStock;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StockTransferRequest;
+use App\Models\Agent;
 use App\Models\Branch;
 use App\Models\Product;
 use App\Models\StockTransfer;
@@ -19,7 +20,7 @@ class StockTransferController extends Controller
     public function index(): View
     {
         $transfers = StockTransfer::query()
-            ->with(['warehouse', 'branch'])
+            ->with(['warehouse', 'branch', 'agent'])
             ->orderByDesc('id')
             ->paginate(15);
 
@@ -37,19 +38,21 @@ class StockTransferController extends Controller
         return view('admin.transfers.create', [
             'transfer' => $transfer,
             'branches' => $this->branches($transfer),
+            'agents' => $this->agents($transfer),
             'products' => $this->products($transfer),
         ]);
     }
 
     public function store(StockTransferRequest $request): RedirectResponse
     {
-        $branch = Branch::query()->findOrFail($request->integer('branch_id'));
+        [$warehouseId, $branchId, $agentId] = $this->destination($request);
 
-        $transfer = DB::transaction(function () use ($request, $branch) {
+        $transfer = DB::transaction(function () use ($request, $warehouseId, $branchId, $agentId) {
             $transfer = StockTransfer::query()->create([
                 'code' => $request->validated('code'),
-                'warehouse_id' => $branch->warehouse_id,
-                'branch_id' => $branch->id,
+                'warehouse_id' => $warehouseId,
+                'branch_id' => $branchId,
+                'agent_id' => $agentId,
                 'status' => StockTransfer::STATUS_DRAFT,
                 'notes' => $request->validated('notes'),
                 'created_by' => $request->user()?->id,
@@ -67,11 +70,12 @@ class StockTransferController extends Controller
 
     public function edit(StockTransfer $transfer): View
     {
-        $transfer->load(['items.product', 'warehouse', 'branch']);
+        $transfer->load(['items.product', 'warehouse', 'branch', 'agent']);
 
         return view('admin.transfers.edit', [
             'transfer' => $transfer,
             'branches' => $this->branches($transfer),
+            'agents' => $this->agents($transfer),
             'products' => $this->products($transfer),
         ]);
     }
@@ -130,14 +134,31 @@ class StockTransferController extends Controller
             ->with('success', $transfer->code.' cancelled.');
     }
 
-    private function syncDraft(StockTransferRequest $request, StockTransfer $transfer): void
+    /**
+     * @return array{0: int, 1: int|null, 2: int|null}
+     */
+    private function destination(StockTransferRequest $request): array
     {
+        if ($request->input('destination') === 'agent') {
+            $agent = Agent::query()->findOrFail($request->integer('agent_id'));
+
+            return [$agent->warehouse_id, null, $agent->id];
+        }
+
         $branch = Branch::query()->findOrFail($request->integer('branch_id'));
 
-        DB::transaction(function () use ($request, $transfer, $branch) {
+        return [$branch->warehouse_id, $branch->id, null];
+    }
+
+    private function syncDraft(StockTransferRequest $request, StockTransfer $transfer): void
+    {
+        [$warehouseId, $branchId, $agentId] = $this->destination($request);
+
+        DB::transaction(function () use ($request, $transfer, $warehouseId, $branchId, $agentId) {
             $transfer->update([
-                'warehouse_id' => $branch->warehouse_id,
-                'branch_id' => $branch->id,
+                'warehouse_id' => $warehouseId,
+                'branch_id' => $branchId,
+                'agent_id' => $agentId,
                 'notes' => $request->validated('notes'),
             ]);
 
@@ -154,6 +175,23 @@ class StockTransferController extends Controller
             ->with('warehouse')
             ->where(function ($query) use ($selectedId) {
                 $query->where('status', Branch::STATUS_ACTIVE);
+
+                if ($selectedId) {
+                    $query->orWhere('id', $selectedId);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function agents(StockTransfer $transfer)
+    {
+        $selectedId = (int) old('agent_id', $transfer->agent_id) ?: null;
+
+        return Agent::query()
+            ->with('warehouse')
+            ->where(function ($query) use ($selectedId) {
+                $query->where('status', Agent::STATUS_ACTIVE);
 
                 if ($selectedId) {
                     $query->orWhere('id', $selectedId);

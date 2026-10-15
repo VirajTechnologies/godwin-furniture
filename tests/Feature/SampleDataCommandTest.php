@@ -54,6 +54,28 @@ class SampleDataCommandTest extends TestCase
         $this->assertDatabaseHas('stock_transfers', ['code' => 'TR006', 'status' => 'cancelled']);
         $this->assertDatabaseHas('customers', ['phone' => '9848011001']);
         $this->assertDatabaseHas('orders', ['channel' => 'branch', 'status' => 'completed']);
+        $this->assertDatabaseHas('agents', ['code' => 'AG001', 'name' => 'Sri Lakshmi Furniture Mart']);
+        $this->assertDatabaseHas('agents', ['code' => 'AG002', 'name' => 'Kalanjali Home Studio']);
+        $this->assertDatabaseHas('agents', ['code' => 'AG003', 'name' => 'Deccan Living Gallery']);
+        $this->assertDatabaseHas('orders', ['channel' => 'agent']);
+        $this->assertDatabaseHas('order_items', ['commission_amount' => 2250]);
+
+        $lakshmi = \App\Models\Agent::query()->where('code', 'AG001')->firstOrFail();
+        $sofa = \App\Models\Product::query()->where('code', 'SF001')->firstOrFail();
+        $this->assertDatabaseHas('stock_transfers', [
+            'code' => 'TR007',
+            'agent_id' => $lakshmi->id,
+            'status' => 'received',
+        ]);
+        $this->assertDatabaseHas('stocks', [
+            'product_id' => $sofa->id,
+            'agent_id' => $lakshmi->id,
+            'quantity' => 1,
+        ]);
+        $this->assertDatabaseHas('stock_requests', [
+            'code' => 'R00005',
+            'agent_id' => \App\Models\Agent::query()->where('code', 'AG003')->value('id'),
+        ]);
 
         $this->artisan('sample:load')->assertFailed();
     }

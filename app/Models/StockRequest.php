@@ -18,6 +18,7 @@ class StockRequest extends Model
     protected $fillable = [
         'code',
         'branch_id',
+        'agent_id',
         'status',
         'notes',
         'requested_by',
@@ -38,6 +39,16 @@ class StockRequest extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
+    }
+
+    public function holderName(): string
+    {
+        return $this->branch?->name ?? $this->agent?->name ?? '—';
     }
 
     public function requester(): BelongsTo

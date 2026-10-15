@@ -47,6 +47,9 @@ class ProductRequest extends FormRequest
             'image_urls' => ['nullable', 'string', 'max:5000'],
             'branch_prices' => ['nullable', 'array'],
             'branch_prices.*' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
+            'agent_terms' => ['nullable', 'array'],
+            'agent_terms.*.minimum_price' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
+            'agent_terms.*.commission_percent' => ['nullable', 'numeric', 'min:0', 'max:100', 'decimal:0,2'],
         ];
 
         if ($product === null) {
@@ -99,6 +102,25 @@ class ProductRequest extends FormRequest
 
             if ($mrp !== null && $mrp !== '' && $selling !== null && $selling !== '' && (float) $mrp < (float) $selling) {
                 $validator->errors()->add('compare_at_price', 'MRP must be at least the selling price.');
+            }
+
+            foreach ($this->input('agent_terms', []) as $agentId => $term) {
+                if (! is_array($term)) {
+                    continue;
+                }
+
+                $minimum = $term['minimum_price'] ?? null;
+                $commission = $term['commission_percent'] ?? null;
+                $hasMinimum = $minimum !== null && $minimum !== '';
+                $hasCommission = $commission !== null && $commission !== '';
+
+                if ($hasMinimum xor $hasCommission) {
+                    $validator->errors()->add('agent_terms.'.$agentId.'.minimum_price', 'Enter both the minimum price and the commission.');
+                }
+
+                if ($hasMinimum && $mrp !== null && $mrp !== '' && (float) $minimum > (float) $mrp) {
+                    $validator->errors()->add('agent_terms.'.$agentId.'.minimum_price', 'Minimum price cannot be above the MRP.');
+                }
             }
         });
     }

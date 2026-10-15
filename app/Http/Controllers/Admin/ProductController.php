@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\UpdatesActiveStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductRequest;
+use App\Models\Agent;
+use App\Models\AgentProductTerm;
 use App\Models\Branch;
 use App\Models\BranchProductPrice;
 use App\Models\Category;
@@ -24,7 +26,7 @@ class ProductController extends Controller
         $products = Product::query()
             ->with('category.parent')
             ->orderBy('name')
-            ->paginate(15);
+            ->get();
 
         return view('admin.products.index', [
             'products' => $products,
@@ -45,6 +47,8 @@ class ProductController extends Controller
             'categories' => $this->categories($product),
             'branches' => Branch::query()->orderBy('name')->get(),
             'branchPrices' => collect(),
+            'agents' => Agent::query()->orderBy('name')->get(),
+            'agentTerms' => collect(),
             'imageUrls' => '',
         ]);
     }
@@ -52,9 +56,10 @@ class ProductController extends Controller
     public function store(ProductRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request): void {
-            $product = Product::query()->create($request->safe()->except(['image_urls', 'branch_prices']));
+            $product = Product::query()->create($request->safe()->except(['image_urls', 'branch_prices', 'agent_terms']));
             $this->syncImages($product, $request->imageUrlList());
             $this->syncBranchPrices($product, $request->input('branch_prices', []));
+            $this->syncAgentTerms($product, $request->input('agent_terms', []));
         });
 
         return redirect()->route('admin.products.index')->with('success', 'Product saved.');
@@ -62,13 +67,15 @@ class ProductController extends Controller
 
     public function edit(Product $product): View
     {
-        $product->load(['images', 'branchPrices']);
+        $product->load(['images', 'branchPrices', 'agentTerms']);
 
         return view('admin.products.edit', [
             'product' => $product,
             'categories' => $this->categories($product),
             'branches' => Branch::query()->orderBy('name')->get(),
             'branchPrices' => $product->branchPrices->pluck('price', 'branch_id'),
+            'agents' => Agent::query()->orderBy('name')->get(),
+            'agentTerms' => $product->agentTerms->keyBy('agent_id'),
             'imageUrls' => $product->images->pluck('url')->implode("\n"),
         ]);
     }
@@ -76,9 +83,10 @@ class ProductController extends Controller
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
         DB::transaction(function () use ($request, $product): void {
-            $product->update($request->safe()->except(['code', 'image_urls', 'branch_prices']));
+            $product->update($request->safe()->except(['code', 'image_urls', 'branch_prices', 'agent_terms']));
             $this->syncImages($product, $request->imageUrlList());
             $this->syncBranchPrices($product, $request->input('branch_prices', []));
+            $this->syncAgentTerms($product, $request->input('agent_terms', []));
         });
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated.');
@@ -139,6 +147,34 @@ class ProductController extends Controller
                 'product_id' => $product->id,
                 'branch_id' => (int) $branchId,
                 'price' => $price,
+            ]);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $terms
+     */
+    private function syncAgentTerms(Product $product, array $terms): void
+    {
+        $product->agentTerms()->delete();
+
+        foreach ($terms as $agentId => $term) {
+            if (! is_array($term)) {
+                continue;
+            }
+
+            $minimum = $term['minimum_price'] ?? null;
+            $commission = $term['commission_percent'] ?? null;
+
+            if ($minimum === null || $minimum === '' || $commission === null || $commission === '') {
+                continue;
+            }
+
+            AgentProductTerm::query()->create([
+                'product_id' => $product->id,
+                'agent_id' => (int) $agentId,
+                'minimum_price' => $minimum,
+                'commission_percent' => $commission,
             ]);
         }
     }

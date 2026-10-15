@@ -15,6 +15,7 @@ class Stock extends Model
         'product_id',
         'warehouse_id',
         'branch_id',
+        'agent_id',
         'quantity',
     ];
 
@@ -41,6 +42,11 @@ class Stock extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
     }
 
     public function movements(): HasMany

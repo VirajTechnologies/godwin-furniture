@@ -30,6 +30,7 @@ class StockTransfer extends Model
         'code',
         'warehouse_id',
         'branch_id',
+        'agent_id',
         'status',
         'notes',
         'dispatched_at',
@@ -61,6 +62,16 @@ class StockTransfer extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
+    }
+
+    public function destinationName(): string
+    {
+        return $this->branch?->name ?? $this->agent?->name ?? '—';
     }
 
     public function items(): HasMany

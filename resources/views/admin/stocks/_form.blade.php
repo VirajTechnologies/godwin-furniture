@@ -68,7 +68,7 @@
             <div class="col-md-4">
                 <label for="quantity" class="form-label">Opening Quantity</label>
                 <input type="number" class="form-control @error('quantity') is-invalid @enderror" id="quantity" name="quantity" value="{{ old('quantity', $stock->quantity) }}" min="0" step="1" required>
-                <div class="form-text">This is the quantity at the warehouse. A branch receives stock only through a transfer.</div>
+                <div class="form-text">This is the quantity at the warehouse. A branch or agent shop receives stock only through a transfer.</div>
                 @error('quantity')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror

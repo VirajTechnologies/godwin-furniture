@@ -43,5 +43,13 @@ class RoleSeeder extends Seeder
                 'status' => Role::STATUS_ACTIVE,
             ],
         );
+
+        Role::query()->updateOrCreate(
+            ['slug' => Role::AGENT],
+            [
+                'name' => 'Agent',
+                'status' => Role::STATUS_ACTIVE,
+            ],
+        );
     }
 }

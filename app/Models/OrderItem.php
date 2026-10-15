@@ -16,6 +16,8 @@ class OrderItem extends Model
         'quantity',
         'unit_price',
         'line_total',
+        'commission_percent',
+        'commission_amount',
     ];
 
     /**
@@ -27,6 +29,8 @@ class OrderItem extends Model
             'quantity' => 'integer',
             'unit_price' => 'decimal:2',
             'line_total' => 'decimal:2',
+            'commission_percent' => 'decimal:2',
+            'commission_amount' => 'decimal:2',
         ];
     }
 

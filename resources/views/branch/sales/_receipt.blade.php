@@ -34,6 +34,16 @@
                             <input type="text" class="form-control" value="{{ $order->shippingSummary() ?? '—' }}" readonly>
                         </div>
                     @endif
+                    @if ($order->channel === \App\Models\Order::CHANNEL_AGENT)
+                        <div class="col-md-3">
+                            <label class="form-label">Shop</label>
+                            <input type="text" class="form-control" value="{{ $order->agent?->name }}" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Commission</label>
+                            <input type="text" class="form-control" value="₹{{ number_format((float) $order->items->sum('commission_amount'), 2) }}" readonly>
+                        </div>
+                    @endif
                     @if ($order->channel === \App\Models\Order::CHANNEL_ONLINE)
                         <div class="col-md-3">
                             <label class="form-label">Channel</label>

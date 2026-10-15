@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Agent;
 use App\Models\Branch;
 use App\Models\Product;
 use App\Models\StockTransfer;
@@ -21,7 +22,9 @@ class StockTransferRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'branch_id' => ['required', 'integer', Rule::exists('branches', 'id')],
+            'destination' => ['required', Rule::in(['branch', 'agent'])],
+            'branch_id' => ['required_if:destination,branch', 'nullable', 'integer', Rule::exists('branches', 'id')],
+            'agent_id' => ['required_if:destination,agent', 'nullable', 'integer', Rule::exists('agents', 'id')],
             'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'distinct', Rule::exists('products', 'id')],
@@ -37,10 +40,24 @@ class StockTransferRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if (! $this->filled('destination')) {
+            $this->merge([
+                'destination' => $this->filled('agent_id') ? 'agent' : 'branch',
+            ]);
+        }
+
         if ($this->filled('code')) {
             $this->merge([
                 'code' => strtoupper((string) $this->input('code')),
             ]);
+        }
+
+        if ($this->input('destination') === 'agent') {
+            $this->merge(['branch_id' => null]);
+        }
+
+        if ($this->input('destination') === 'branch') {
+            $this->merge(['agent_id' => null]);
         }
     }
 
@@ -49,18 +66,31 @@ class StockTransferRequest extends FormRequest
         $validator->after(function ($validator): void {
             $transfer = $this->route('transfer');
             $currentBranchId = $transfer instanceof StockTransfer ? $transfer->branch_id : null;
+            $currentAgentId = $transfer instanceof StockTransfer ? $transfer->agent_id : null;
             $currentProductIds = $transfer instanceof StockTransfer
                 ? $transfer->items()->pluck('product_id')->map(fn ($id) => (int) $id)->all()
                 : [];
 
-            $branch = Branch::query()->with('warehouse')->find($this->integer('branch_id'));
+            if ($this->input('destination') === 'agent') {
+                $agent = Agent::query()->with('warehouse')->find($this->integer('agent_id'));
 
-            if ($branch && ! $branch->isActive() && $branch->id !== $currentBranchId) {
-                $validator->errors()->add('branch_id', 'Choose an active branch.');
-            }
+                if ($agent && ! $agent->isActive() && $agent->id !== $currentAgentId) {
+                    $validator->errors()->add('agent_id', 'Choose an active agent.');
+                }
 
-            if ($branch && $branch->warehouse && ! $branch->warehouse->isActive()) {
-                $validator->errors()->add('branch_id', 'The supplying warehouse is inactive.');
+                if ($agent && (! $agent->warehouse || ! $agent->warehouse->isActive())) {
+                    $validator->errors()->add('agent_id', 'The supplying warehouse is inactive.');
+                }
+            } else {
+                $branch = Branch::query()->with('warehouse')->find($this->integer('branch_id'));
+
+                if ($branch && ! $branch->isActive() && $branch->id !== $currentBranchId) {
+                    $validator->errors()->add('branch_id', 'Choose an active branch.');
+                }
+
+                if ($branch && $branch->warehouse && ! $branch->warehouse->isActive()) {
+                    $validator->errors()->add('branch_id', 'The supplying warehouse is inactive.');
+                }
             }
 
             foreach ($this->input('items', []) as $index => $item) {

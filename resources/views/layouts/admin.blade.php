@@ -14,6 +14,7 @@
     <link href="{{ asset('assets/css/required-fields.css') }}" rel="stylesheet" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    @include('partials.datatables', ['part' => 'styles'])
     @stack('styles')
 </head>
 <body>
@@ -121,6 +122,11 @@
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}" href="{{ route('admin.employees.index') }}">
                                 <i class="ri-team-line"></i> <span>Employees</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('admin.agents.*') ? 'active' : '' }}" href="{{ route('admin.agents.index') }}">
+                                <i class="ri-store-2-line"></i> <span>Agents</span>
                             </a>
                         </li>
                         @php
@@ -264,6 +270,7 @@
     <script src="{{ asset('assets/js/app.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    @include('partials.datatables')
     @include('partials.csrf-refresh', ['requiresAuth' => true])
     @stack('scripts')
     <script>

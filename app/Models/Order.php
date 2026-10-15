@@ -13,6 +13,8 @@ class Order extends Model
 
     public const CHANNEL_ONLINE = 'online';
 
+    public const CHANNEL_AGENT = 'agent';
+
     public const STATUS_COMPLETED = 'completed';
 
     public const STATUS_PLACED = 'placed';
@@ -33,6 +35,7 @@ class Order extends Model
         'channel',
         'customer_id',
         'branch_id',
+        'agent_id',
         'warehouse_id',
         'placed_by',
         'total',
@@ -63,6 +66,11 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
     }
 
     public function branch(): BelongsTo
