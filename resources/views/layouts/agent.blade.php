@@ -89,6 +89,32 @@
                                 <i class="ri-archive-line"></i> <span>Stock</span>
                             </a>
                         </li>
+                        @php
+                            $reportsOpen = request()->routeIs('agent.reports.*');
+                        @endphp
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="#sidebarAgentReports" data-bs-toggle="collapse" role="button" aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}" aria-controls="sidebarAgentReports">
+                                <i class="ri-bar-chart-2-line"></i> <span>Reports</span>
+                            </a>
+                            <div class="collapse menu-dropdown {{ $reportsOpen ? 'show' : '' }}" id="sidebarAgentReports">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a href="{{ route('agent.reports.sales-by-product') }}" class="nav-link {{ request()->routeIs('agent.reports.sales-by-product') ? 'active' : '' }}">Sales By Product</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('agent.reports.stock') }}" class="nav-link {{ request()->routeIs('agent.reports.stock') ? 'active' : '' }}">Stock On Hand</a>
+                                    </li>
+                                    @if (auth()->user()?->isAgentManager())
+                                        <li class="nav-item">
+                                            <a href="{{ route('agent.reports.transfers') }}" class="nav-link {{ request()->routeIs('agent.reports.transfers') ? 'active' : '' }}">Transfers</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a href="{{ route('agent.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('agent.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </div>
+                        </li>
                         @if (auth()->user()?->isAgentManager())
                             <li class="nav-item">
                                 <a class="nav-link menu-link {{ request()->routeIs('agent.transfers.*') ? 'active' : '' }}" href="{{ route('agent.transfers.index') }}">
