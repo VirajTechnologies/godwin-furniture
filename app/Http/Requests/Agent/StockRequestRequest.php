@@ -10,7 +10,7 @@ class StockRequestRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isAgent() ?? false;
+        return $this->user()?->isAgentManager() ?? false;
     }
 
     /**

@@ -248,6 +248,51 @@ class AgentSaleTest extends TestCase
         ]);
     }
 
+    public function test_a_cashier_can_sell_but_cannot_receive_stock(): void
+    {
+        [$agent, , $product] = $this->shops();
+        Stock::query()->create([
+            'product_id' => $product->id,
+            'agent_id' => $agent->id,
+            'quantity' => 2,
+        ]);
+        $cashier = User::factory()->agentStaff()->create([
+            'email' => 'cashier.lakshmi@godwin.test',
+            'agent_id' => $agent->id,
+        ]);
+
+        $this->actingAs($cashier)
+            ->get(route('agent.sales.create'))
+            ->assertOk()
+            ->assertSee('New Sale');
+
+        $this->actingAs($cashier)
+            ->get(route('agent.transfers.index'))
+            ->assertForbidden();
+
+        $this->actingAs($cashier)
+            ->get(route('agent.stock-requests.index'))
+            ->assertForbidden();
+
+        $this->actingAs($cashier)
+            ->post(route('agent.sales.store'), [
+                'customer_name' => 'Meena Rao',
+                'phone' => '9848012099',
+                'method' => 'cash',
+                'delivery_type' => 'pickup',
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('orders', [
+            'agent_id' => $agent->id,
+            'placed_by' => $cashier->id,
+            'channel' => 'agent',
+        ]);
+    }
+
     /**
      * @return array{0: Agent, 1: Agent, 2: Product, 3: Warehouse|null}
      */
@@ -303,7 +348,7 @@ class AgentSaleTest extends TestCase
             'email' => $email,
         ]);
 
-        return Agent::query()->create([
+        $agent = Agent::query()->create([
             'code' => $code,
             'name' => $shop,
             'user_id' => $user->id,
@@ -316,5 +361,8 @@ class AgentSaleTest extends TestCase
             'pincode' => '520001',
             'status' => 'active',
         ]);
+        $user->update(['agent_id' => $agent->id]);
+
+        return $agent;
     }
 }

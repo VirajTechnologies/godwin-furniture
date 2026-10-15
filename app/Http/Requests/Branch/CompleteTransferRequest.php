@@ -11,7 +11,7 @@ class CompleteTransferRequest extends FormRequest
     {
         $user = $this->user();
 
-        return (bool) ($user?->isBranchManager() || $user?->isAgent());
+        return (bool) ($user?->isBranchManager() || $user?->isAgentManager());
     }
 
     /**

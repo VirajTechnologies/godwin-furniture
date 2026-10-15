@@ -54,14 +54,14 @@
             @enderror
         </div>
         <div class="col-md-4">
-            <label for="email" class="form-label">Login Email</label>
+            <label for="email" class="form-label">Manager Email</label>
             <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email', $agent->user?->email) }}" required>
             @error('email')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
         <div class="col-md-4">
-            <label for="password" class="form-label">Password</label>
+            <label for="password" class="form-label">Manager Password</label>
             <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" {{ $isEdit ? '' : 'required' }} autocomplete="new-password">
             @if ($isEdit)
                 <div class="form-text">Leave blank to keep the current password.</div>

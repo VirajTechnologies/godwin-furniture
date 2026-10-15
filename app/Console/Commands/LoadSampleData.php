@@ -62,6 +62,7 @@ class LoadSampleData extends Command
             $staff = $this->staff($warehouse, $branches);
             $products = $this->products();
             $agents = $this->agents($warehouse, $places);
+            $this->agentCashiers($agents);
             $this->agentTerms($agents, $products);
 
             $this->at(now()->subDays(11)->setTime(10, 0), function () use ($ledger, $products, $warehouse, $admin): void {
@@ -175,17 +176,20 @@ class LoadSampleData extends Command
         });
 
         $this->components->info('Sample data loaded.');
-        $this->table(['Email', 'Password', 'Signs in at'], [
-            ['admin@godwin.test', 'password', 'Admin'],
-            ['manager.vijayawada@godwin.test', 'password', 'Branch portal'],
-            ['manager.guntur@godwin.test', 'password', 'Branch portal'],
-            ['manager.vizag@godwin.test', 'password', 'Branch portal'],
-            ['cashier.vijayawada@godwin.test', 'password', 'Branch portal'],
-            ['cashier.guntur@godwin.test', 'password', 'Branch portal'],
-            ['cashier.vizag@godwin.test', 'password', 'Branch portal'],
-            ['lakshmi.mart@godwin.test', 'password', 'Sri Lakshmi Furniture Mart'],
-            ['kalanjali@godwin.test', 'password', 'Kalanjali Home Studio'],
-            ['deccan.living@godwin.test', 'password', 'Deccan Living Gallery'],
+        $this->table(['Email', 'Password', 'Role', 'Signs in at'], [
+            ['admin@godwin.test', 'password', 'Admin', 'Admin'],
+            ['manager.vijayawada@godwin.test', 'password', 'Manager', 'Vijayawada Showroom'],
+            ['cashier.vijayawada@godwin.test', 'password', 'Cashier', 'Vijayawada Showroom'],
+            ['manager.guntur@godwin.test', 'password', 'Manager', 'Guntur Showroom'],
+            ['cashier.guntur@godwin.test', 'password', 'Cashier', 'Guntur Showroom'],
+            ['manager.vizag@godwin.test', 'password', 'Manager', 'Visakhapatnam Showroom'],
+            ['cashier.vizag@godwin.test', 'password', 'Cashier', 'Visakhapatnam Showroom'],
+            ['manager.lakshmi@godwin.test', 'password', 'Manager', 'Sri Lakshmi Furniture Mart'],
+            ['cashier.lakshmi@godwin.test', 'password', 'Cashier', 'Sri Lakshmi Furniture Mart'],
+            ['manager.kalanjali@godwin.test', 'password', 'Manager', 'Kalanjali Home Studio'],
+            ['cashier.kalanjali@godwin.test', 'password', 'Cashier', 'Kalanjali Home Studio'],
+            ['manager.deccan@godwin.test', 'password', 'Manager', 'Deccan Living Gallery'],
+            ['cashier.deccan@godwin.test', 'password', 'Cashier', 'Deccan Living Gallery'],
         ]);
 
         return self::SUCCESS;
@@ -268,9 +272,9 @@ class LoadSampleData extends Command
     private function agents(Warehouse $warehouse, array $places): array
     {
         $rows = [
-            'AG001' => ['Sri Lakshmi Furniture Mart', 'Venkateswara Rao', '9848091001', 'lakshmi.mart@godwin.test', 'Besant Road, Governorpet', '520002', 'vijayawada'],
-            'AG002' => ['Kalanjali Home Studio', 'Swapna Reddy', '9848091002', 'kalanjali@godwin.test', 'Arundelpet, 4th Line', '522002', 'guntur'],
-            'AG003' => ['Deccan Living Gallery', 'Naresh Kumar', '9848091003', 'deccan.living@godwin.test', 'Siripuram Junction', '530003', 'vizag'],
+            'AG001' => ['Sri Lakshmi Furniture Mart', 'Venkateswara Rao', '9848091001', 'manager.lakshmi@godwin.test', 'Besant Road, Governorpet', '520002', 'vijayawada'],
+            'AG002' => ['Kalanjali Home Studio', 'Swapna Reddy', '9848091002', 'manager.kalanjali@godwin.test', 'Arundelpet, 4th Line', '522002', 'guntur'],
+            'AG003' => ['Deccan Living Gallery', 'Naresh Kumar', '9848091003', 'manager.deccan@godwin.test', 'Siripuram Junction', '530003', 'vizag'],
         ];
 
         $agents = [];
@@ -283,7 +287,7 @@ class LoadSampleData extends Command
                 'phone' => $phone,
             ]);
 
-            $agents[$code] = Agent::query()->create([
+            $agent = Agent::query()->create([
                 'code' => $code,
                 'name' => $shop,
                 'user_id' => $user->id,
@@ -298,9 +302,32 @@ class LoadSampleData extends Command
                 'pincode' => $pincode,
                 'status' => Agent::STATUS_ACTIVE,
             ]);
+            $user->update(['agent_id' => $agent->id]);
+            $agents[$code] = $agent;
         }
 
         return $agents;
+    }
+
+    /**
+     * @param  array<string, Agent>  $agents
+     */
+    private function agentCashiers(array $agents): void
+    {
+        $rows = [
+            'AG001' => ['Padmavathi', '9848092001', 'cashier.lakshmi@godwin.test'],
+            'AG002' => ['Ramesh Babu', '9848092002', 'cashier.kalanjali@godwin.test'],
+            'AG003' => ['Sirisha Rao', '9848092003', 'cashier.deccan@godwin.test'],
+        ];
+
+        foreach ($rows as $code => [$name, $phone, $email]) {
+            User::factory()->agentStaff()->create([
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+                'agent_id' => $agents[$code]->id,
+            ]);
+        }
     }
 
     /**

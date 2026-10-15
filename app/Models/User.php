@@ -26,6 +26,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'role_id',
+        'agent_id',
         'status',
     ];
 
@@ -67,7 +68,12 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
-    public function agent(): HasOne
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
+    }
+
+    public function managedAgent(): HasOne
     {
         return $this->hasOne(Agent::class);
     }
@@ -88,6 +94,11 @@ class User extends Authenticatable
     }
 
     public function isAgent(): bool
+    {
+        return in_array($this->role?->slug, Role::agentSlugs(), true);
+    }
+
+    public function isAgentManager(): bool
     {
         return $this->role?->slug === Role::AGENT;
     }

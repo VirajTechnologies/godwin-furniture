@@ -55,6 +55,7 @@ class SampleDataCommandTest extends TestCase
         $this->assertDatabaseHas('customers', ['phone' => '9848011001']);
         $this->assertDatabaseHas('orders', ['channel' => 'branch', 'status' => 'completed']);
         $this->assertDatabaseHas('agents', ['code' => 'AG001', 'name' => 'Sri Lakshmi Furniture Mart']);
+        $this->assertDatabaseHas('users', ['email' => 'cashier.lakshmi@godwin.test']);
         $this->assertDatabaseHas('agents', ['code' => 'AG002', 'name' => 'Kalanjali Home Studio']);
         $this->assertDatabaseHas('agents', ['code' => 'AG003', 'name' => 'Deccan Living Gallery']);
         $this->assertDatabaseHas('orders', ['channel' => 'agent']);

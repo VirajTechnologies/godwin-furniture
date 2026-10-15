@@ -36,6 +36,13 @@ class Agent extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function cashiers(): HasMany
+    {
+        return $this->hasMany(User::class)->whereHas('role', function ($query): void {
+            $query->where('slug', Role::AGENT_STAFF);
+        });
+    }
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);

@@ -21,12 +21,22 @@ class Role extends Model
 
     public const AGENT = 'agent';
 
+    public const AGENT_STAFF = 'agent_staff';
+
     /**
      * @return list<string>
      */
     public static function branchSlugs(): array
     {
         return [self::BRANCH_MANAGER, self::BRANCH_STAFF];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agentSlugs(): array
+    {
+        return [self::AGENT, self::AGENT_STAFF];
     }
 
     /**

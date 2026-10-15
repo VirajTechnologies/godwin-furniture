@@ -71,7 +71,12 @@ class UserFactory extends Factory
 
     public function agent(): static
     {
-        return $this->withRole(Role::AGENT, 'Agent');
+        return $this->withRole(Role::AGENT, 'Agent Manager');
+    }
+
+    public function agentStaff(): static
+    {
+        return $this->withRole(Role::AGENT_STAFF, 'Agent Cashier');
     }
 
     /**

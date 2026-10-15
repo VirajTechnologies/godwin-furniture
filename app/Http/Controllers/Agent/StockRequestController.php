@@ -102,7 +102,7 @@ class StockRequestController extends Controller
         $agent = $user?->agent;
 
         abort_unless(
-            $user?->isAgent()
+            $user?->isAgentManager()
             && $user->isActive()
             && $agent instanceof Agent
             && $agent->isActive(),

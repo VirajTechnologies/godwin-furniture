@@ -38,7 +38,7 @@
                                     <img class="rounded-circle header-profile-user" src="{{ asset('assets/images/users/avatar-1.jpg') }}" alt="">
                                     <span class="text-start ms-xl-2">
                                         <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ auth()->user()->name }}</span>
-                                        <span class="d-none d-xl-block ms-1 fs-12 user-name-sub-text">{{ auth()->user()->agent?->name }}</span>
+                                        <span class="d-none d-xl-block ms-1 fs-12 user-name-sub-text">{{ auth()->user()->isAgentManager() ? 'Manager' : 'Cashier' }} · {{ auth()->user()->agent?->name }}</span>
                                     </span>
                                 </span>
                             </button>
@@ -89,16 +89,18 @@
                                 <i class="ri-archive-line"></i> <span>Stock</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('agent.transfers.*') ? 'active' : '' }}" href="{{ route('agent.transfers.index') }}">
-                                <i class="ri-truck-line"></i> <span>Receive</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('agent.stock-requests.*') ? 'active' : '' }}" href="{{ route('agent.stock-requests.index') }}">
-                                <i class="ri-inbox-archive-line"></i> <span>Request</span>
-                            </a>
-                        </li>
+                        @if (auth()->user()?->isAgentManager())
+                            <li class="nav-item">
+                                <a class="nav-link menu-link {{ request()->routeIs('agent.transfers.*') ? 'active' : '' }}" href="{{ route('agent.transfers.index') }}">
+                                    <i class="ri-truck-line"></i> <span>Receive</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link menu-link {{ request()->routeIs('agent.stock-requests.*') ? 'active' : '' }}" href="{{ route('agent.stock-requests.index') }}">
+                                    <i class="ri-inbox-archive-line"></i> <span>Request</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>

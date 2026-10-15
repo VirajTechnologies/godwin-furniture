@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AgentCashierRequest;
 use App\Http\Requests\Admin\AgentRequest;
 use App\Models\Agent;
 use App\Models\Role;
@@ -51,10 +52,12 @@ class AgentController extends Controller
                 'status' => $request->validated('status'),
             ]);
 
-            Agent::query()->create([
+            $agent = Agent::query()->create([
                 ...$request->safe()->except(['email', 'password']),
                 'user_id' => $user->id,
             ]);
+
+            $user->update(['agent_id' => $agent->id]);
         });
 
         return redirect()
@@ -64,13 +67,32 @@ class AgentController extends Controller
 
     public function edit(Agent $agent): View
     {
-        $agent->load('user');
+        $agent->load(['user', 'cashiers']);
 
         return view('admin.agents.edit', [
             'agent' => $agent,
             'warehouses' => $this->warehouses((int) old('warehouse_id', $agent->warehouse_id) ?: null),
             ...$this->locationChoices($agent),
         ]);
+    }
+
+    public function storeCashier(AgentCashierRequest $request, Agent $agent): RedirectResponse
+    {
+        $role = Role::query()->where('slug', Role::AGENT_STAFF)->firstOrFail();
+
+        User::query()->create([
+            'name' => $request->validated('cashier_name'),
+            'email' => $request->validated('cashier_email'),
+            'phone' => $request->validated('cashier_phone'),
+            'password' => $request->validated('cashier_password'),
+            'role_id' => $role->id,
+            'agent_id' => $agent->id,
+            'status' => 'active',
+        ]);
+
+        return redirect()
+            ->route('admin.agents.edit', $agent)
+            ->with('success', 'Cashier saved.');
     }
 
     public function update(AgentRequest $request, Agent $agent): RedirectResponse
