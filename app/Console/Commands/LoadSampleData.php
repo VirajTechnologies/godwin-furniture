@@ -158,9 +158,9 @@ class LoadSampleData extends Command
                 'CH001' => 2,
             ], $products, now()->subDays(4)->setTime(10, 0), now()->subDays(4)->setTime(15, 0));
 
-            $this->agentSale($agentSales, $agents['AG001'], $products['SF001'], 1, 45000, Payment::METHOD_CASH, 'Meena Rao', '9848012001', now()->subDays(2)->setTime(12, 15));
-            $this->agentSale($agentSales, $agents['AG002'], $products['BD001'], 1, 39000, Payment::METHOD_UPI, 'Sai Krishna', '9848012002', now()->subDay()->setTime(16, 40));
-            $this->agentSale($agentSales, $agents['AG003'], $products['CH001'], 1, 14000, Payment::METHOD_CARD, 'Harika Devi', '9848012003', now()->setTime(11, 5));
+            $this->agentSale($agentSales, $agents['AG001'], $products['SF001'], 1, Payment::METHOD_CASH, 'Meena Rao', '9848012001', now()->subDays(2)->setTime(12, 15));
+            $this->agentSale($agentSales, $agents['AG002'], $products['BD001'], 1, Payment::METHOD_UPI, 'Sai Krishna', '9848012002', now()->subDay()->setTime(16, 40));
+            $this->agentSale($agentSales, $agents['AG003'], $products['CH001'], 1, Payment::METHOD_CARD, 'Harika Devi', '9848012003', now()->setTime(11, 5));
 
             $this->at(now()->setTime(9, 20), function () use ($agents, $products): void {
                 $this->agentStockRequest('R00005', $agents['AG003'], 'Sofa set for a walk-in customer', [
@@ -272,14 +272,14 @@ class LoadSampleData extends Command
     private function agents(Warehouse $warehouse, array $places): array
     {
         $rows = [
-            'AG001' => ['Sri Lakshmi Furniture Mart', 'Venkateswara Rao', '9848091001', 'manager.lakshmi@godwin.test', 'Besant Road, Governorpet', '520002', 'vijayawada'],
-            'AG002' => ['Kalanjali Home Studio', 'Swapna Reddy', '9848091002', 'manager.kalanjali@godwin.test', 'Arundelpet, 4th Line', '522002', 'guntur'],
-            'AG003' => ['Deccan Living Gallery', 'Naresh Kumar', '9848091003', 'manager.deccan@godwin.test', 'Siripuram Junction', '530003', 'vizag'],
+            'AG001' => ['Sri Lakshmi Furniture Mart', 'Venkateswara Rao', '9848091001', 'manager.lakshmi@godwin.test', 'Besant Road, Governorpet', '520002', 'vijayawada', 5],
+            'AG002' => ['Kalanjali Home Studio', 'Swapna Reddy', '9848091002', 'manager.kalanjali@godwin.test', 'Arundelpet, 4th Line', '522002', 'guntur', 8],
+            'AG003' => ['Deccan Living Gallery', 'Naresh Kumar', '9848091003', 'manager.deccan@godwin.test', 'Siripuram Junction', '530003', 'vizag', 6],
         ];
 
         $agents = [];
 
-        foreach ($rows as $code => [$shop, $contact, $phone, $email, $address, $pincode, $place]) {
+        foreach ($rows as $code => [$shop, $contact, $phone, $email, $address, $pincode, $place, $commission]) {
             $location = $places[$place];
             $user = User::factory()->agent()->create([
                 'name' => $contact,
@@ -300,6 +300,7 @@ class LoadSampleData extends Command
                 'district_id' => $location['district']->id,
                 'city_id' => $location['city']->id,
                 'pincode' => $pincode,
+                'commission_percent' => $commission,
                 'status' => Agent::STATUS_ACTIVE,
             ]);
             $user->update(['agent_id' => $agent->id]);
@@ -355,20 +356,22 @@ class LoadSampleData extends Command
         ];
 
         foreach ($rows as $productCode => $shops) {
-            foreach ($shops as $agentCode => [$minimum, $commission]) {
+            foreach ($shops as $agentCode => [$price, $commission]) {
+                $shopRate = (float) $agents[$agentCode]->commission_percent;
+
                 AgentProductTerm::query()->create([
                     'agent_id' => $agents[$agentCode]->id,
                     'product_id' => $products[$productCode]->id,
-                    'minimum_price' => $minimum,
-                    'commission_percent' => $commission,
+                    'price' => $price,
+                    'commission_percent' => (float) $commission === $shopRate ? null : $commission,
                 ]);
             }
         }
     }
 
-    private function agentSale(AgentSale $sales, Agent $agent, Product $product, int $quantity, float $price, string $method, string $customerName, string $phone, Carbon $at): void
+    private function agentSale(AgentSale $sales, Agent $agent, Product $product, int $quantity, string $method, string $customerName, string $phone, Carbon $at): void
     {
-        $this->at($at, function () use ($sales, $agent, $product, $quantity, $price, $method, $customerName, $phone): void {
+        $this->at($at, function () use ($sales, $agent, $product, $quantity, $method, $customerName, $phone): void {
             $customer = Customer::query()->create([
                 'name' => $customerName,
                 'phone' => $phone,
@@ -376,7 +379,7 @@ class LoadSampleData extends Command
             ]);
 
             $sales->complete($agent, $customer, [
-                ['product_id' => $product->id, 'quantity' => $quantity, 'unit_price' => $price],
+                ['product_id' => $product->id, 'quantity' => $quantity],
             ], $method, $agent->user_id);
         });
     }

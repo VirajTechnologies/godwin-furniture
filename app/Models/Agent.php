@@ -22,6 +22,7 @@ class Agent extends Model
         'contact_person',
         'phone',
         'email',
+        'commission_percent',
         'address_line',
         'state_id',
         'district_id',
@@ -30,6 +31,16 @@ class Agent extends Model
         'status',
         'notes',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'commission_percent' => 'decimal:2',
+        ];
+    }
 
     public function user(): BelongsTo
     {

@@ -13,7 +13,7 @@ class AgentProductTerm extends Model
     protected $fillable = [
         'agent_id',
         'product_id',
-        'minimum_price',
+        'price',
         'commission_percent',
     ];
 
@@ -23,7 +23,7 @@ class AgentProductTerm extends Model
     protected function casts(): array
     {
         return [
-            'minimum_price' => 'decimal:2',
+            'price' => 'decimal:2',
             'commission_percent' => 'decimal:2',
         ];
     }

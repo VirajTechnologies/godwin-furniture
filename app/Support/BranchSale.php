@@ -12,13 +12,14 @@ use App\Models\Stock;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class BranchSale
 {
     public function __construct(private StockLedger $ledger) {}
 
     /**
-     * @param  list<array{product_id: int, quantity: int}>  $lines
+     * @param  list<array{product_id: int, quantity: int, unit_price?: float|int|string}>  $lines
      * @param  array{
      *     delivery_type: string,
      *     shipping_address?: string|null,
@@ -67,7 +68,13 @@ class BranchSale
                     throw new InsufficientStock($product->name, $available, $line['quantity'], 'branch');
                 }
 
-                $unitPrice = $product->priceForBranch($branch);
+                $floor = round($product->priceForBranch($branch), 2);
+                $unitPrice = isset($line['unit_price']) ? round((float) $line['unit_price'], 2) : $floor;
+
+                if ($unitPrice < $floor) {
+                    throw new RuntimeException($product->name.' cannot be sold below ₹'.number_format($floor, 2).'.');
+                }
+
                 $lineTotal = round($unitPrice * $line['quantity'], 2);
                 $total += $lineTotal;
 

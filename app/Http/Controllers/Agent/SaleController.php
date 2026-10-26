@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agent;
 use App\Http\Controllers\Controller;
 use App\Exceptions\InsufficientStock;
 use App\Http\Requests\Agent\SaleRequest;
-use App\Models\AgentProductTerm;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Stock;
@@ -35,24 +34,21 @@ class SaleController extends Controller
 
     public function create(Request $request): View
     {
-        $agentId = $request->user()->agent->id;
+        $agent = $request->user()->agent;
         $stocks = Stock::query()
-            ->where('agent_id', $agentId)
+            ->with(['product.agentTerms' => fn ($query) => $query->where('agent_id', $agent->id)])
+            ->where('agent_id', $agent->id)
             ->where('quantity', '>', 0)
-            ->pluck('quantity', 'product_id');
-
-        $terms = AgentProductTerm::query()
-            ->with('product')
-            ->where('agent_id', $agentId)
-            ->whereIn('product_id', $stocks->keys())
+            ->whereNull('warehouse_id')
+            ->whereNull('branch_id')
             ->whereHas('product', fn ($query) => $query->where('status', 'active'))
             ->get()
-            ->sortBy(fn (AgentProductTerm $term) => $term->product?->name)
+            ->sortBy(fn (Stock $stock) => $stock->product?->name)
             ->values();
 
         return view('agent.sales.create', [
-            'terms' => $terms,
             'stocks' => $stocks,
+            'agent' => $agent,
         ]);
     }
 

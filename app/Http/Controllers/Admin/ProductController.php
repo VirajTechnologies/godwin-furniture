@@ -163,18 +163,20 @@ class ProductController extends Controller
                 continue;
             }
 
-            $minimum = $term['minimum_price'] ?? null;
+            $price = $term['price'] ?? null;
             $commission = $term['commission_percent'] ?? null;
+            $hasPrice = $price !== null && $price !== '';
+            $hasCommission = $commission !== null && $commission !== '';
 
-            if ($minimum === null || $minimum === '' || $commission === null || $commission === '') {
+            if (! $hasPrice && ! $hasCommission) {
                 continue;
             }
 
             AgentProductTerm::query()->create([
                 'product_id' => $product->id,
                 'agent_id' => (int) $agentId,
-                'minimum_price' => $minimum,
-                'commission_percent' => $commission,
+                'price' => $hasPrice ? $price : null,
+                'commission_percent' => $hasCommission ? $commission : null,
             ]);
         }
     }

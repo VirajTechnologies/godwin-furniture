@@ -12,13 +12,13 @@
     <div class="card">
         <div class="card-header"><h5 class="card-title mb-0">Sale Details</h5></div>
         <div class="card-body">
-            @if ($terms->isEmpty())
-                <p class="text-muted mb-0">There is nothing to sell yet. A product appears here after head office sets its minimum price and commission, and this shop receives stock.</p>
+            @if ($stocks->isEmpty())
+                <p class="text-muted mb-0">There is nothing to sell yet. A product appears here after this shop receives stock.</p>
             @else
                 @php
                     $lines = old('items');
                     if (! is_array($lines) || $lines === []) {
-                        $lines = [['product_id' => '', 'quantity' => 1, 'unit_price' => '']];
+                        $lines = [['product_id' => '', 'quantity' => 1]];
                     }
                     $deliveryType = old('delivery_type', \App\Models\Order::DELIVERY_PICKUP);
                 @endphp
@@ -124,8 +124,7 @@
                                 <tr>
                                     <th>Product</th>
                                     <th>On Hand</th>
-                                    <th>Minimum</th>
-                                    <th>MRP</th>
+                                    <th>Price</th>
                                     <th>Commission</th>
                                     <th>Quantity</th>
                                     <th>Selling Price</th>
@@ -135,39 +134,37 @@
                             <tbody id="sale-lines">
                                 @foreach ($lines as $index => $line)
                                     @php
-                                        $selected = $terms->firstWhere('product_id', (int) ($line['product_id'] ?? 0));
+                                        $selected = $stocks->firstWhere('product_id', (int) ($line['product_id'] ?? 0));
                                     @endphp
                                     <tr class="sale-line">
                                         <td style="min-width: 240px;">
                                             <select class="form-select agent-product @error('items.'.$index.'.product_id') is-invalid @enderror" name="items[{{ $index }}][product_id]" required>
                                                 <option value="">Select Product</option>
-                                                @foreach ($terms as $term)
+                                                @foreach ($stocks as $stock)
                                                     <option
-                                                        value="{{ $term->product_id }}"
-                                                        data-stock="{{ $stocks[$term->product_id] ?? 0 }}"
-                                                        data-min="{{ $term->minimum_price }}"
-                                                        data-mrp="{{ $term->product?->mrp() }}"
-                                                        data-commission="{{ $term->commission_percent }}"
-                                                        @selected((string) ($line['product_id'] ?? '') === (string) $term->product_id)
-                                                    >{{ $term->product?->code }} · {{ $term->product?->name }}</option>
+                                                        value="{{ $stock->product_id }}"
+                                                        data-stock="{{ $stock->quantity }}"
+                                                        data-price="{{ $stock->product->priceForAgent($agent) }}"
+                                                        data-commission="{{ $stock->product->commissionPercentForAgent($agent) }}"
+                                                        @selected((string) ($line['product_id'] ?? '') === (string) $stock->product_id)
+                                                    >{{ $stock->product?->code }} · {{ $stock->product?->name }}</option>
                                                 @endforeach
                                             </select>
                                             @error('items.'.$index.'.product_id')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </td>
-                                        <td class="agent-stock">{{ $selected ? ($stocks[$selected->product_id] ?? '—') : '—' }}</td>
-                                        <td class="agent-min">{{ $selected ? '₹'.number_format((float) $selected->minimum_price, 2) : '—' }}</td>
-                                        <td class="agent-mrp">{{ $selected?->product?->mrp() !== null ? '₹'.number_format($selected->product->mrp(), 2) : '—' }}</td>
-                                        <td class="agent-commission">{{ $selected ? rtrim(rtrim(number_format((float) $selected->commission_percent, 2), '0'), '.').'%' : '—' }}</td>
-                                        <td style="max-width: 120px;">
-                                            <input type="number" class="form-control sale-quantity @error('items.'.$index.'.quantity') is-invalid @enderror" name="items[{{ $index }}][quantity]" value="{{ $line['quantity'] ?? 1 }}" min="1" step="1" required>
+                                        <td class="agent-stock">{{ $selected ? $selected->quantity : '—' }}</td>
+                                        <td class="agent-price">{{ $selected ? '₹'.number_format($selected->product->priceForAgent($agent), 2) : '—' }}</td>
+                                        <td class="agent-commission text-nowrap">{{ $selected ? rtrim(rtrim(number_format($selected->product->commissionPercentForAgent($agent), 2), '0'), '.').'%' : '—' }}</td>
+                                        <td>
+                                            <input type="number" class="form-control sale-quantity @error('items.'.$index.'.quantity') is-invalid @enderror" name="items[{{ $index }}][quantity]" value="{{ $line['quantity'] ?? 1 }}" min="1" step="1" required style="min-width: 5.5rem;">
                                             @error('items.'.$index.'.quantity')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </td>
-                                        <td style="max-width: 160px;">
-                                            <input type="number" class="form-control sale-price @error('items.'.$index.'.unit_price') is-invalid @enderror" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? '' }}" min="0" step="0.01" required>
+                                        <td>
+                                            <input type="number" class="form-control sale-price @error('items.'.$index.'.unit_price') is-invalid @enderror" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? ($selected ? $selected->product->priceForAgent($agent) : '') }}" min="0" step="0.01" required style="min-width: 8rem;">
                                             @error('items.'.$index.'.unit_price')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -180,7 +177,8 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-end gap-4">
+                        <h5 class="mb-0">Commission <span id="sale-commission">₹0.00</span></h5>
                         <h5 class="mb-0">Total <span id="sale-total">₹0.00</span></h5>
                     </div>
                     <div class="mt-3 d-flex gap-2">
@@ -194,26 +192,24 @@
                         <td style="min-width: 240px;">
                             <select class="form-select agent-product" name="items[__INDEX__][product_id]" required>
                                 <option value="">Select Product</option>
-                                @foreach ($terms as $term)
+                                @foreach ($stocks as $stock)
                                     <option
-                                        value="{{ $term->product_id }}"
-                                        data-stock="{{ $stocks[$term->product_id] ?? 0 }}"
-                                        data-min="{{ $term->minimum_price }}"
-                                        data-mrp="{{ $term->product?->mrp() }}"
-                                        data-commission="{{ $term->commission_percent }}"
-                                    >{{ $term->product?->code }} · {{ $term->product?->name }}</option>
+                                        value="{{ $stock->product_id }}"
+                                        data-stock="{{ $stock->quantity }}"
+                                        data-price="{{ $stock->product->priceForAgent($agent) }}"
+                                        data-commission="{{ $stock->product->commissionPercentForAgent($agent) }}"
+                                    >{{ $stock->product?->code }} · {{ $stock->product?->name }}</option>
                                 @endforeach
                             </select>
                         </td>
                         <td class="agent-stock">—</td>
-                        <td class="agent-min">—</td>
-                        <td class="agent-mrp">—</td>
-                        <td class="agent-commission">—</td>
-                        <td style="max-width: 120px;">
-                            <input type="number" class="form-control sale-quantity" name="items[__INDEX__][quantity]" value="1" min="1" step="1" required>
+                        <td class="agent-price">—</td>
+                        <td class="agent-commission text-nowrap">—</td>
+                        <td>
+                            <input type="number" class="form-control sale-quantity" name="items[__INDEX__][quantity]" value="1" min="1" step="1" required style="min-width: 5.5rem;">
                         </td>
-                        <td style="max-width: 160px;">
-                            <input type="number" class="form-control sale-price" name="items[__INDEX__][unit_price]" min="0" step="0.01" required>
+                        <td>
+                            <input type="number" class="form-control sale-price" name="items[__INDEX__][unit_price]" min="0" step="0.01" required style="min-width: 8rem;">
                         </td>
                         <td>
                             <button type="button" class="btn btn-soft-danger btn-sm remove-sale-line">Remove</button>
@@ -232,6 +228,7 @@
             const template = document.getElementById('sale-line-template');
             const addButton = document.getElementById('add-sale-line');
             const total = document.getElementById('sale-total');
+            const commissionTotal = document.getElementById('sale-commission');
             const phone = document.getElementById('phone');
             if (!lines || !phone) {
                 return;
@@ -255,25 +252,63 @@
                 return Number.isFinite(amount) && value !== '' ? '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
             }
 
-            function showRow(select) {
+            function showRow(select, fillPrice) {
                 const option = select.options[select.selectedIndex];
                 const row = select.closest('tr');
-                row.querySelector('.agent-stock').textContent = option && option.dataset.stock ? option.dataset.stock : '—';
-                row.querySelector('.agent-min').textContent = option && option.dataset.min ? money(option.dataset.min) : '—';
-                row.querySelector('.agent-mrp').textContent = option && option.dataset.mrp ? money(option.dataset.mrp) : '—';
-                row.querySelector('.agent-commission').textContent = option && option.dataset.commission ? option.dataset.commission.replace(/\.00$/, '') + '%' : '—';
+                const chosen = option && option.value;
+                const price = row.querySelector('.sale-price');
+                row.querySelector('.agent-stock').textContent = chosen && option.dataset.stock ? option.dataset.stock : '—';
+                row.querySelector('.agent-price').textContent = chosen && option.dataset.price ? money(option.dataset.price) : '—';
+                price.min = chosen && option.dataset.price ? option.dataset.price : '0';
+                if (fillPrice) {
+                    price.value = chosen && option.dataset.price ? option.dataset.price : '';
+                }
+            }
+
+            function percentLabel(raw) {
+                const number = Number(raw);
+                return Number.isFinite(number) ? String(number) : raw;
+            }
+
+            function lineCommission(row) {
+                const select = row.querySelector('.agent-product');
+                const option = select.options[select.selectedIndex];
+                if (!option || !option.value || option.dataset.commission === undefined) {
+                    return null;
+                }
+                const percent = Number(option.dataset.commission);
+                const price = Number(row.querySelector('.sale-price').value || 0);
+                const count = Number(row.querySelector('.sale-quantity').value || 0);
+                if (!Number.isFinite(percent) || !Number.isFinite(price) || !Number.isFinite(count)) {
+                    return null;
+                }
+                const lineTotal = Math.round(price * count * 100) / 100;
+                return {
+                    percent: percentLabel(option.dataset.commission),
+                    amount: Math.round(lineTotal * percent) / 100
+                };
             }
 
             function refreshTotal() {
                 let sum = 0;
+                let commission = 0;
                 lines.querySelectorAll('.sale-line').forEach(function (row) {
                     const price = Number(row.querySelector('.sale-price').value || 0);
                     const count = Number(row.querySelector('.sale-quantity').value || 0);
                     if (Number.isFinite(price) && Number.isFinite(count)) {
                         sum += price * count;
                     }
+                    const earned = lineCommission(row);
+                    const cell = row.querySelector('.agent-commission');
+                    if (!earned) {
+                        cell.textContent = '—';
+                        return;
+                    }
+                    cell.textContent = earned.percent + '% · ' + money(earned.amount);
+                    commission += earned.amount;
                 });
                 total.textContent = '₹' + sum.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                commissionTotal.textContent = '₹' + commission.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
 
             function syncDeliveryFields() {
@@ -407,12 +442,14 @@
 
             lines.addEventListener('change', function (event) {
                 if (event.target.classList.contains('agent-product')) {
-                    showRow(event.target);
+                    showRow(event.target, true);
                 }
                 refreshTotal();
             });
             lines.addEventListener('input', refreshTotal);
-            lines.querySelectorAll('.agent-product').forEach(showRow);
+            lines.querySelectorAll('.agent-product').forEach(function (select) {
+                showRow(select, select.value !== '' && select.closest('tr').querySelector('.sale-price').value === '');
+            });
             refreshTotal();
         });
     </script>

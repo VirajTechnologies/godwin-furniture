@@ -37,6 +37,7 @@ class SaleRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'distinct', Rule::exists('products', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
         ];
     }
 
@@ -74,6 +75,15 @@ class SaleRequest extends FormRequest
                 if ($product && $quantity > $available) {
                     $validator->errors()->add('items.'.$index.'.quantity', $product->name.' has '.$available.' at this branch.');
                 }
+
+                if ($product && isset($item['unit_price']) && $item['unit_price'] !== '') {
+                    $floor = round($product->priceForBranch($branchId), 2);
+                    $unitPrice = round((float) $item['unit_price'], 2);
+
+                    if ($unitPrice < $floor) {
+                        $validator->errors()->add('items.'.$index.'.unit_price', $product->name.' cannot be sold below ₹'.number_format($floor, 2).'.');
+                    }
+                }
             }
         });
     }
@@ -93,7 +103,7 @@ class SaleRequest extends FormRequest
     }
 
     /**
-     * @return list<array{product_id: int, quantity: int}>
+     * @return list<array{product_id: int, quantity: int, unit_price: float}>
      */
     public function lines(): array
     {
@@ -101,6 +111,7 @@ class SaleRequest extends FormRequest
             ->map(fn (array $item) => [
                 'product_id' => (int) $item['product_id'],
                 'quantity' => (int) $item['quantity'],
+                'unit_price' => (float) $item['unit_price'],
             ])
             ->values()
             ->all();

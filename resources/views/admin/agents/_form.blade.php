@@ -70,6 +70,14 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
+        <div class="col-md-4">
+            <label for="commission_percent" class="form-label">Commission %</label>
+            <input type="number" class="form-control @error('commission_percent') is-invalid @enderror" id="commission_percent" name="commission_percent" value="{{ old('commission_percent', $agent->commission_percent) }}" min="0" max="100" step="0.01" required>
+            <div class="form-text">Usual commission for this shop. A product can use a different percent.</div>
+            @error('commission_percent')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
         <div class="col-12">
             <label for="address_line" class="form-label">Address</label>
             <textarea class="form-control @error('address_line') is-invalid @enderror" id="address_line" name="address_line" rows="3" required>{{ old('address_line', $agent->address_line) }}</textarea>

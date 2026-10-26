@@ -32,7 +32,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_id' => $product->id, 'quantity' => 2, 'unit_price' => 45000],
             ],
         ])->assertRedirect();
 
@@ -75,7 +75,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'upi',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ]);
 
@@ -85,7 +85,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'upi',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ]);
 
@@ -110,7 +110,7 @@ class BranchSaleTest extends TestCase
             'shipping_pincode' => '520001',
             'notes' => 'Call before delivery',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ])->assertRedirect();
 
@@ -136,7 +136,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'delivery',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ])->assertSessionHasErrors(['shipping_address', 'shipping_city', 'shipping_pincode']);
 
@@ -185,7 +185,12 @@ class BranchSaleTest extends TestCase
         $this->actingAs($cashier)
             ->get(route('branch.sales.create'))
             ->assertOk()
-            ->assertSee('After 10 digits, the name and email fill in', false);
+            ->assertSee('After 10 digits, the name and email fill in', false)
+            ->assertSee('On Hand')
+            ->assertSee('>Price<', false)
+            ->assertSee('Selling Price')
+            ->assertSee('data-available="1"', false)
+            ->assertSee('data-price="45000"', false);
     }
 
     public function test_a_sale_is_rejected_when_the_branch_does_not_have_enough(): void
@@ -198,7 +203,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 3],
+                ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 45000],
             ],
         ])->assertSessionHasErrors('items.0.quantity');
 
@@ -206,6 +211,42 @@ class BranchSaleTest extends TestCase
         $this->assertDatabaseHas('stocks', [
             'product_id' => $product->id,
             'quantity' => 1,
+        ]);
+    }
+
+    public function test_a_branch_sale_can_exceed_mrp_but_not_the_showroom_price(): void
+    {
+        [$cashier, $product] = $this->counter(2);
+        $product->update(['compare_at_price' => 50000]);
+
+        $this->actingAs($cashier)->post(route('branch.sales.store'), [
+            'customer_name' => 'Ravi',
+            'phone' => '9000000001',
+            'payment_method' => 'cash',
+            'delivery_type' => 'pickup',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 44000],
+            ],
+        ])->assertSessionHasErrors('items.0.unit_price');
+
+        $this->assertDatabaseCount('orders', 0);
+
+        $this->actingAs($cashier)->post(route('branch.sales.store'), [
+            'customer_name' => 'Ravi',
+            'phone' => '9000000001',
+            'payment_method' => 'cash',
+            'delivery_type' => 'pickup',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 70000],
+            ],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('orders', [
+            'total' => 70000,
+        ]);
+        $this->assertDatabaseHas('order_items', [
+            'product_id' => $product->id,
+            'unit_price' => 70000,
         ]);
     }
 

@@ -144,14 +144,14 @@
 
     @if ($agents->isNotEmpty())
         <div class="mt-4">
-            <h6 class="mb-1">Agent Prices</h6>
-            <p class="text-muted small">Minimum price and commission are set separately for each shop. The MRP on this product is the highest price an agent can sell at. Leave a row blank if that shop does not sell this product.</p>
+            <h6 class="mb-1">Shop Prices</h6>
+            <p class="text-muted small">Set the price for each shop. Leave the price blank to use Selling Price. Leave the commission blank to use that shop’s usual commission, shown beside the shop name.</p>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Shop</th>
-                            <th>Minimum Price</th>
+                            <th>Price</th>
                             <th>Commission %</th>
                         </tr>
                     </thead>
@@ -160,19 +160,19 @@
                             @php
                                 $oldTerms = old('agent_terms.'.$agent->id, []);
                                 $saved = $agentTerms->get($agent->id);
-                                $minimum = $oldTerms['minimum_price'] ?? $saved?->minimum_price;
+                                $price = $oldTerms['price'] ?? $saved?->price;
                                 $commission = $oldTerms['commission_percent'] ?? $saved?->commission_percent;
                             @endphp
                             <tr>
-                                <td>{{ $agent->name }}</td>
+                                <td>{{ $agent->name }}@if ($agent->commission_percent !== null) <span class="text-muted">({{ rtrim(rtrim(number_format((float) $agent->commission_percent, 2), '0'), '.') }}%)</span>@endif</td>
                                 <td style="max-width: 180px;">
-                                    <input type="number" class="form-control @error('agent_terms.'.$agent->id.'.minimum_price') is-invalid @enderror" name="agent_terms[{{ $agent->id }}][minimum_price]" value="{{ $minimum }}" min="0" step="0.01">
-                                    @error('agent_terms.'.$agent->id.'.minimum_price')
+                                    <input type="number" class="form-control @error('agent_terms.'.$agent->id.'.price') is-invalid @enderror" name="agent_terms[{{ $agent->id }}][price]" value="{{ $price }}" min="0" step="0.01">
+                                    @error('agent_terms.'.$agent->id.'.price')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </td>
                                 <td style="max-width: 160px;">
-                                    <input type="number" class="form-control @error('agent_terms.'.$agent->id.'.commission_percent') is-invalid @enderror" name="agent_terms[{{ $agent->id }}][commission_percent]" value="{{ $commission }}" min="0" max="100" step="0.01">
+                                    <input type="number" class="form-control @error('agent_terms.'.$agent->id.'.commission_percent') is-invalid @enderror" name="agent_terms[{{ $agent->id }}][commission_percent]" value="{{ $commission }}" min="0" max="100" step="0.01" placeholder="Shop rate">
                                     @error('agent_terms.'.$agent->id.'.commission_percent')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

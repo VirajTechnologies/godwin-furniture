@@ -76,6 +76,15 @@ class SaleRequest extends FormRequest
                 if ($product && $quantity > $available) {
                     $validator->errors()->add('items.'.$index.'.quantity', $product->name.' has '.$available.' at this shop.');
                 }
+
+                if ($product && isset($item['unit_price']) && $item['unit_price'] !== '') {
+                    $floor = round($product->priceForAgent($agentId), 2);
+                    $unitPrice = round((float) $item['unit_price'], 2);
+
+                    if ($unitPrice < $floor) {
+                        $validator->errors()->add('items.'.$index.'.unit_price', $product->name.' cannot be sold below ₹'.number_format($floor, 2).'.');
+                    }
+                }
             }
         });
     }

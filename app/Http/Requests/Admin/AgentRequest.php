@@ -34,6 +34,7 @@ class AgentRequest extends FormRequest
             'city_id' => ['required', 'integer', Rule::exists('cities', 'id')],
             'pincode' => ['required', 'string', 'max:10'],
             'status' => ['required', Rule::in([Agent::STATUS_ACTIVE, Agent::STATUS_INACTIVE])],
+            'commission_percent' => ['required', 'numeric', 'min:0', 'max:100', 'decimal:0,2'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
 

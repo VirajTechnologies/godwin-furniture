@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Exceptions\InsufficientStock;
 use App\Models\Agent;
-use App\Models\AgentProductTerm;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
@@ -19,7 +18,7 @@ class AgentSale
     public function __construct(private StockLedger $ledger) {}
 
     /**
-     * @param  list<array{product_id: int, quantity: int, unit_price: float|int|string}>  $lines
+     * @param  list<array{product_id: int, quantity: int, unit_price?: float|int|string}>  $lines
      * @param  array{
      *     delivery_type?: string,
      *     shipping_address?: string|null,
@@ -55,26 +54,17 @@ class AgentSale
 
             foreach ($lines as $line) {
                 $product = Product::query()->findOrFail($line['product_id']);
-                $term = AgentProductTerm::query()
-                    ->where('agent_id', $agent->id)
-                    ->where('product_id', $product->id)
-                    ->first();
 
-                if ($term === null) {
+                if (! $product->isActive()) {
                     throw new RuntimeException($product->name.' is not available for this shop.');
                 }
 
-                $mrp = $product->mrp();
+                $floor = round($product->priceForAgent($agent), 2);
+                $unitPrice = isset($line['unit_price']) ? round((float) $line['unit_price'], 2) : $floor;
+                $commissionPercent = $product->commissionPercentForAgent($agent);
 
-                if ($mrp === null) {
-                    throw new RuntimeException($product->name.' has no MRP.');
-                }
-
-                $unitPrice = round((float) $line['unit_price'], 2);
-                $minimum = round((float) $term->minimum_price, 2);
-
-                if ($unitPrice < $minimum || $unitPrice > $mrp) {
-                    throw new RuntimeException($product->name.' must be sold between ₹'.number_format($minimum, 2).' and ₹'.number_format($mrp, 2).'.');
+                if ($unitPrice < $floor) {
+                    throw new RuntimeException($product->name.' cannot be sold below ₹'.number_format($floor, 2).'.');
                 }
 
                 $stock = Stock::query()
@@ -92,7 +82,7 @@ class AgentSale
                 }
 
                 $lineTotal = round($unitPrice * $line['quantity'], 2);
-                $commission = round($lineTotal * ((float) $term->commission_percent) / 100, 2);
+                $commission = round($lineTotal * $commissionPercent / 100, 2);
                 $total += $lineTotal;
 
                 $order->items()->create([
@@ -100,7 +90,7 @@ class AgentSale
                     'quantity' => $line['quantity'],
                     'unit_price' => $unitPrice,
                     'line_total' => $lineTotal,
-                    'commission_percent' => $term->commission_percent,
+                    'commission_percent' => $commissionPercent,
                     'commission_amount' => $commission,
                 ]);
 

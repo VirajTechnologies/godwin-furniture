@@ -1,8 +1,9 @@
 @php
     $lines = old('items');
     if (! is_array($lines) || $lines === []) {
-        $lines = [['product_id' => '', 'quantity' => '']];
+        $lines = [['product_id' => '', 'quantity' => 1]];
     }
+    $branchId = auth()->user()->employee->branch_id;
 @endphp
 
 <form method="POST" action="{{ route('branch.sales.store') }}">
@@ -99,38 +100,56 @@
         <button type="button" class="btn btn-soft-primary btn-sm" id="add-sale-line">Add Line</button>
     </div>
 
-    <div id="sale-lines">
-        @foreach ($lines as $index => $line)
-            <div class="row g-3 align-items-start sale-line mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Product</label>
-                    <select class="form-select sale-product @error('items.'.$index.'.product_id') is-invalid @enderror" name="items[{{ $index }}][product_id]" required>
-                        <option value="">Select Product</option>
-                        @foreach ($stocks as $stock)
-                            <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch(auth()->user()->employee->branch_id) }}" data-available="{{ $stock->quantity }}" @selected((string) ($line['product_id'] ?? '') === (string) $stock->product_id)>{{ $stock->product->code }} · {{ $stock->product->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('items.'.$index.'.product_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Quantity</label>
-                    <input type="number" class="form-control sale-quantity @error('items.'.$index.'.quantity') is-invalid @enderror" name="items[{{ $index }}][quantity]" value="{{ $line['quantity'] ?? '' }}" min="1" step="1" required>
-                    @error('items.'.$index.'.quantity')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Price</label>
-                    <input type="text" class="form-control sale-price" value="" readonly>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label d-block">&nbsp;</label>
-                    <button type="button" class="btn btn-soft-danger btn-sm remove-sale-line">Remove</button>
-                </div>
-            </div>
-        @endforeach
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th>On Hand</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Selling Price</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="sale-lines">
+                @foreach ($lines as $index => $line)
+                    @php
+                        $selected = $stocks->firstWhere('product_id', (int) ($line['product_id'] ?? 0));
+                    @endphp
+                    <tr class="sale-line">
+                        <td style="min-width: 240px;">
+                            <select class="form-select sale-product @error('items.'.$index.'.product_id') is-invalid @enderror" name="items[{{ $index }}][product_id]" required>
+                                <option value="">Select Product</option>
+                                @foreach ($stocks as $stock)
+                                    <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch($branchId) }}" data-available="{{ $stock->quantity }}" @selected((string) ($line['product_id'] ?? '') === (string) $stock->product_id)>{{ $stock->product->code }} · {{ $stock->product->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('items.'.$index.'.product_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </td>
+                        <td class="branch-stock">{{ $selected ? $selected->quantity : '—' }}</td>
+                        <td class="branch-price">{{ $selected ? '₹'.number_format($selected->product->priceForBranch($branchId), 2) : '—' }}</td>
+                        <td>
+                            <input type="number" class="form-control sale-quantity @error('items.'.$index.'.quantity') is-invalid @enderror" name="items[{{ $index }}][quantity]" value="{{ $line['quantity'] ?? 1 }}" min="1" step="1" required style="min-width: 5.5rem;">
+                            @error('items.'.$index.'.quantity')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </td>
+                        <td>
+                            <input type="number" class="form-control sale-price @error('items.'.$index.'.unit_price') is-invalid @enderror" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? ($selected ? $selected->product->priceForBranch($branchId) : '') }}" min="0" step="0.01" required style="min-width: 8rem;">
+                            @error('items.'.$index.'.unit_price')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-soft-danger btn-sm remove-sale-line">Remove</button>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
 
     <div class="d-flex justify-content-end">
@@ -144,29 +163,27 @@
 </form>
 
 <template id="sale-line-template">
-    <div class="row g-3 align-items-start sale-line mb-3">
-        <div class="col-md-6">
-            <label class="form-label">Product</label>
+    <tr class="sale-line">
+        <td style="min-width: 240px;">
             <select class="form-select sale-product" name="items[__INDEX__][product_id]" required>
                 <option value="">Select Product</option>
                 @foreach ($stocks as $stock)
-                    <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch(auth()->user()->employee->branch_id) }}" data-available="{{ $stock->quantity }}">{{ $stock->product->code }} · {{ $stock->product->name }}</option>
+                    <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch($branchId) }}" data-available="{{ $stock->quantity }}">{{ $stock->product->code }} · {{ $stock->product->name }}</option>
                 @endforeach
             </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Quantity</label>
-            <input type="number" class="form-control sale-quantity" name="items[__INDEX__][quantity]" min="1" step="1" required>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Price</label>
-            <input type="text" class="form-control sale-price" value="" readonly>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label d-block">&nbsp;</label>
+        </td>
+        <td class="branch-stock">—</td>
+        <td class="branch-price">—</td>
+        <td>
+            <input type="number" class="form-control sale-quantity" name="items[__INDEX__][quantity]" value="1" min="1" step="1" required style="min-width: 5.5rem;">
+        </td>
+        <td>
+            <input type="number" class="form-control sale-price" name="items[__INDEX__][unit_price]" min="0" step="0.01" required style="min-width: 8rem;">
+        </td>
+        <td>
             <button type="button" class="btn btn-soft-danger btn-sm remove-sale-line">Remove</button>
-        </div>
-    </div>
+        </td>
+    </tr>
 </template>
 
 @push('scripts')
@@ -305,28 +322,40 @@
             });
             phone.addEventListener('blur', lookupCustomer);
 
-            function money(amount) {
-                return '₹' + amount.toFixed(2);
+            function money(value) {
+                const amount = Number(value);
+                return Number.isFinite(amount) && value !== '' ? '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+            }
+
+            function showRow(select, fillPrice) {
+                const option = select.options[select.selectedIndex];
+                const row = select.closest('tr');
+                const chosen = option && option.value;
+                const price = row.querySelector('.sale-price');
+                row.querySelector('.branch-stock').textContent = chosen && option.dataset.available ? option.dataset.available : '—';
+                row.querySelector('.branch-price').textContent = chosen && option.dataset.price ? money(option.dataset.price) : '—';
+                price.min = chosen && option.dataset.price ? option.dataset.price : '0';
+                if (fillPrice) {
+                    price.value = chosen && option.dataset.price ? option.dataset.price : '';
+                }
             }
 
             function refresh() {
                 let sum = 0;
                 lines.querySelectorAll('.sale-line').forEach(function (row) {
-                    const select = row.querySelector('.sale-product');
-                    const quantity = row.querySelector('.sale-quantity');
-                    const price = row.querySelector('.sale-price');
-                    const option = select.options[select.selectedIndex];
-                    const unit = option && option.dataset.price ? Number(option.dataset.price) : 0;
-                    const count = Number(quantity.value || 0);
-                    price.value = option && option.value ? money(unit) : '';
-                    sum += unit * count;
+                    const unit = Number(row.querySelector('.sale-price').value || 0);
+                    const count = Number(row.querySelector('.sale-quantity').value || 0);
+                    if (Number.isFinite(unit) && Number.isFinite(count)) {
+                        sum += unit * count;
+                    }
                 });
-                total.textContent = money(sum);
+                total.textContent = '₹' + sum.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
 
             addButton.addEventListener('click', function () {
                 const index = lines.querySelectorAll('.sale-line').length;
                 lines.insertAdjacentHTML('beforeend', template.innerHTML.replaceAll('__INDEX__', String(index)));
+                refresh();
             });
 
             lines.addEventListener('click', function (event) {
@@ -338,8 +367,16 @@
                 refresh();
             });
 
+            lines.addEventListener('change', function (event) {
+                if (event.target.classList.contains('sale-product')) {
+                    showRow(event.target, true);
+                }
+                refresh();
+            });
             lines.addEventListener('input', refresh);
-            lines.addEventListener('change', refresh);
+            lines.querySelectorAll('.sale-product').forEach(function (select) {
+                showRow(select, select.value !== '' && select.closest('tr').querySelector('.sale-price').value === '');
+            });
             refresh();
         });
     </script>

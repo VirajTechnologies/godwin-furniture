@@ -20,7 +20,7 @@ class AgentSaleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_an_agent_sale_keeps_the_price_inside_that_shops_band_and_stores_commission(): void
+    public function test_an_agent_sale_can_go_above_mrp_but_not_below_the_shop_price(): void
     {
         [$agent, $other, $product] = $this->shops();
 
@@ -40,7 +40,9 @@ class AgentSaleTest extends TestCase
                     ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 39000],
                 ],
             ])
-            ->assertSessionHas('error');
+            ->assertSessionHasErrors('items.0.unit_price');
+
+        $this->assertDatabaseCount('orders', 0);
 
         $this->actingAs($agent->user)
             ->post(route('agent.sales.store'), [
@@ -49,7 +51,7 @@ class AgentSaleTest extends TestCase
                 'method' => 'cash',
                 'delivery_type' => 'pickup',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 60000],
                 ],
             ])
             ->assertRedirect();
@@ -57,6 +59,7 @@ class AgentSaleTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'agent_id' => $agent->id,
             'delivery_type' => 'pickup',
+            'total' => 60000,
         ]);
 
         $this->assertDatabaseHas('stocks', [
@@ -67,9 +70,9 @@ class AgentSaleTest extends TestCase
 
         $this->assertDatabaseHas('order_items', [
             'product_id' => $product->id,
-            'unit_price' => 45000,
+            'unit_price' => 60000,
             'commission_percent' => 5,
-            'commission_amount' => 2250,
+            'commission_amount' => 3000,
         ]);
 
         $orderId = \App\Models\Order::query()->where('agent_id', $agent->id)->value('id');
@@ -143,7 +146,7 @@ class AgentSaleTest extends TestCase
             'method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
             ],
         ])->assertRedirect();
 
@@ -169,7 +172,6 @@ class AgentSaleTest extends TestCase
         AgentProductTerm::query()->create([
             'agent_id' => $agent->id,
             'product_id' => $chair->id,
-            'minimum_price' => 12000,
             'commission_percent' => 8,
         ]);
         Stock::query()->create([
@@ -188,7 +190,15 @@ class AgentSaleTest extends TestCase
             ->assertOk()
             ->assertSee('Add Line')
             ->assertSee('Door delivery')
-            ->assertSee('Collect at store');
+            ->assertSee('Collect at store')
+            ->assertSee('data-price="40000"', false)
+            ->assertSee('data-price="12000"', false)
+            ->assertSee('data-commission="5"', false)
+            ->assertSee('Selling Price')
+            ->assertSee('id="sale-commission"', false)
+            ->assertSee('>Price<', false)
+            ->assertDontSee('Minimum')
+            ->assertDontSee('MRP');
 
         $this->actingAs($agent->user)
             ->post(route('agent.sales.store'), [
@@ -197,8 +207,8 @@ class AgentSaleTest extends TestCase
                 'method' => 'upi',
                 'delivery_type' => 'delivery',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
-                    ['product_id' => $chair->id, 'quantity' => 2, 'unit_price' => 14000],
+                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
+                    ['product_id' => $chair->id, 'quantity' => 2, 'unit_price' => 12000],
                 ],
             ])
             ->assertSessionHasErrors(['shipping_address', 'shipping_city', 'shipping_pincode']);
@@ -214,8 +224,8 @@ class AgentSaleTest extends TestCase
                 'shipping_pincode' => '520002',
                 'notes' => 'Call before delivery',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
-                    ['product_id' => $chair->id, 'quantity' => 2, 'unit_price' => 14000],
+                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
+                    ['product_id' => $chair->id, 'quantity' => 2, 'unit_price' => 12000],
                 ],
             ])
             ->assertRedirect();
@@ -228,13 +238,14 @@ class AgentSaleTest extends TestCase
             'shipping_city' => 'Vijayawada',
             'shipping_pincode' => '520002',
             'notes' => 'Call before delivery',
-            'total' => 73000,
+            'total' => 64000,
         ]);
         $this->assertDatabaseHas('order_items', [
             'product_id' => $chair->id,
             'quantity' => 2,
+            'unit_price' => 12000,
             'commission_percent' => 8,
-            'commission_amount' => 2240,
+            'commission_amount' => 1920,
         ]);
         $this->assertDatabaseHas('stocks', [
             'product_id' => $product->id,
@@ -281,7 +292,7 @@ class AgentSaleTest extends TestCase
                 'method' => 'cash',
                 'delivery_type' => 'pickup',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
                 ],
             ])
             ->assertRedirect();
@@ -322,26 +333,24 @@ class AgentSaleTest extends TestCase
             'status' => 'active',
         ]);
 
-        $agent = $this->agent('AG001', 'Sri Lakshmi Furniture Mart', 'lakshmi.mart@godwin.test', $state->id, $district->id, $city->id, $warehouse?->id);
-        $other = $this->agent('AG002', 'Kalanjali Home Studio', 'kalanjali@godwin.test', $state->id, $district->id, $city->id, $warehouse?->id);
+        $agent = $this->agent('AG001', 'Sri Lakshmi Furniture Mart', 'lakshmi.mart@godwin.test', $state->id, $district->id, $city->id, $warehouse?->id, 5);
+        $other = $this->agent('AG002', 'Kalanjali Home Studio', 'kalanjali@godwin.test', $state->id, $district->id, $city->id, $warehouse?->id, 8);
 
         AgentProductTerm::query()->create([
             'agent_id' => $agent->id,
             'product_id' => $product->id,
-            'minimum_price' => 40000,
-            'commission_percent' => 5,
+            'price' => 40000,
         ]);
         AgentProductTerm::query()->create([
             'agent_id' => $other->id,
             'product_id' => $product->id,
-            'minimum_price' => 43000,
-            'commission_percent' => 8,
+            'price' => 43000,
         ]);
 
         return [$agent, $other, $product, $warehouse];
     }
 
-    private function agent(string $code, string $shop, string $email, int $stateId, int $districtId, int $cityId, ?int $warehouseId = null): Agent
+    private function agent(string $code, string $shop, string $email, int $stateId, int $districtId, int $cityId, ?int $warehouseId = null, ?float $commission = null): Agent
     {
         $user = User::factory()->agent()->create([
             'name' => $shop,
@@ -359,6 +368,7 @@ class AgentSaleTest extends TestCase
             'district_id' => $districtId,
             'city_id' => $cityId,
             'pincode' => '520001',
+            'commission_percent' => $commission,
             'status' => 'active',
         ]);
         $user->update(['agent_id' => $agent->id]);

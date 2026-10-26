@@ -97,11 +97,48 @@ class Product extends Model
         return (float) $this->selling_price;
     }
 
+    public function priceForAgent(Agent|int $agent): float
+    {
+        $term = $this->termForAgent($agent);
+
+        if ($term !== null && $term->price !== null) {
+            return (float) $term->price;
+        }
+
+        return (float) $this->selling_price;
+    }
+
+    public function commissionPercentForAgent(Agent|int $agent): float
+    {
+        $percent = $this->termForAgent($agent)?->commission_percent;
+
+        if ($percent !== null) {
+            return (float) $percent;
+        }
+
+        if (! $agent instanceof Agent) {
+            $agent = Agent::query()->find($agent);
+        }
+
+        return $agent?->commission_percent !== null ? (float) $agent->commission_percent : 0;
+    }
+
     public function storePrice(): float
     {
         return $this->online_price !== null
             ? (float) $this->online_price
             : (float) $this->selling_price;
+    }
+
+    private function termForAgent(Agent|int $agent): ?AgentProductTerm
+    {
+        $agentId = $agent instanceof Agent ? $agent->id : $agent;
+
+        if ($this->relationLoaded('agentTerms')) {
+            return $this->agentTerms->firstWhere('agent_id', $agentId);
+        }
+
+        return $this->agentTerms()->where('agent_id', $agentId)->first();
     }
 
     public function mrp(): ?float

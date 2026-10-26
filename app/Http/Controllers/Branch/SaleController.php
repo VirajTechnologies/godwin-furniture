@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RuntimeException;
 
 class SaleController extends Controller
 {
@@ -90,7 +91,7 @@ class SaleController extends Controller
                 (int) $request->user()->id,
                 $request->fulfilment(),
             );
-        } catch (InsufficientStock $exception) {
+        } catch (InsufficientStock|RuntimeException $exception) {
             return back()->withInput()->with('error', $exception->getMessage());
         }
 

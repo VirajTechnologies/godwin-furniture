@@ -21,7 +21,7 @@
                     @if ($agents->isEmpty())
                         <div class="text-center py-5">
                             <h5 class="mb-2">No agents yet</h5>
-                            <p class="text-muted mb-3">An agent is an outside shop that sells within the minimum price and MRP you set, and earns a commission.</p>
+                            <p class="text-muted mb-3">An agent is an outside shop that sells at the price you set and earns a commission.</p>
                             <a href="{{ route('admin.agents.create') }}" class="btn btn-success">Add Agent</a>
                         </div>
                     @else
@@ -35,6 +35,7 @@
                                         <th>City</th>
                                         <th>Login</th>
                                         <th>Phone</th>
+                                        <th>Commission</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -48,6 +49,7 @@
                                             <td>{{ $agent->city?->city_name ?? '—' }}</td>
                                             <td>{{ $agent->user?->email ?? '—' }}</td>
                                             <td>{{ $agent->phone ?? '—' }}</td>
+                                            <td>{{ $agent->commission_percent !== null ? rtrim(rtrim(number_format((float) $agent->commission_percent, 2), '0'), '.').'%' : '—' }}</td>
                                             <td>
                                                 @if ($agent->isActive())
                                                     <span class="badge bg-success">Active</span>
