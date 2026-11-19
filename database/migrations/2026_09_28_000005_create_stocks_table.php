@@ -10,14 +10,14 @@ return new class extends Migration
     {
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->foreignId('product_variant_id')->constrained('product_variants')->restrictOnDelete();
             $table->foreignId('warehouse_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('branch_id')->nullable()->constrained()->restrictOnDelete();
             $table->unsignedInteger('quantity')->default(0);
             $table->timestamps();
 
-            $table->unique(['product_id', 'warehouse_id']);
-            $table->unique(['product_id', 'branch_id']);
+            $table->unique(['product_variant_id', 'warehouse_id']);
+            $table->unique(['product_variant_id', 'branch_id']);
         });
     }
 

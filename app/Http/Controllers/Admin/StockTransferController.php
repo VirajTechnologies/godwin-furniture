@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StockTransferRequest;
 use App\Models\Agent;
 use App\Models\Branch;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockTransfer;
 use App\Support\StockTransferWorkflow;
 use Illuminate\Http\RedirectResponse;
@@ -39,7 +40,7 @@ class StockTransferController extends Controller
             'transfer' => $transfer,
             'branches' => $this->branches($transfer),
             'agents' => $this->agents($transfer),
-            'products' => $this->products($transfer),
+            'variants' => $this->variants($transfer),
         ]);
     }
 
@@ -70,13 +71,13 @@ class StockTransferController extends Controller
 
     public function edit(StockTransfer $transfer): View
     {
-        $transfer->load(['items.product', 'warehouse', 'branch', 'agent']);
+        $transfer->load(['items.variant.product', 'warehouse', 'branch', 'agent']);
 
         return view('admin.transfers.edit', [
             'transfer' => $transfer,
             'branches' => $this->branches($transfer),
             'agents' => $this->agents($transfer),
-            'products' => $this->products($transfer),
+            'variants' => $this->variants($transfer),
         ]);
     }
 
@@ -201,26 +202,31 @@ class StockTransferController extends Controller
             ->get();
     }
 
-    private function products(StockTransfer $transfer)
+    private function variants(StockTransfer $transfer)
     {
         $selected = collect(old('items', []))
-            ->pluck('product_id')
+            ->pluck('product_variant_id')
             ->filter()
             ->map(fn ($id) => (int) $id);
 
         if ($transfer->exists) {
-            $selected = $selected->merge($transfer->items()->pluck('product_id'));
+            $selected = $selected->merge($transfer->items()->pluck('product_variant_id'));
         }
 
-        return Product::query()
+        return ProductVariant::query()
+            ->with('product')
             ->where(function ($query) use ($selected) {
-                $query->where('status', Product::STATUS_ACTIVE);
+                $query->where(function ($active) {
+                    $active->where('status', ProductVariant::STATUS_ACTIVE)
+                        ->whereHas('product', fn ($product) => $product->where('status', Product::STATUS_ACTIVE));
+                });
 
                 if ($selected->isNotEmpty()) {
                     $query->orWhereIn('id', $selected->all());
                 }
             })
-            ->orderBy('name')
-            ->get();
+            ->get()
+            ->sortBy(fn (ProductVariant $variant) => $variant->displayName())
+            ->values();
     }
 }

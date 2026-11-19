@@ -6,7 +6,6 @@ use App\Models\Agent;
 use App\Models\AgentProductTerm;
 use App\Models\Branch;
 use App\Models\BranchProductPrice;
-use App\Models\Category;
 use App\Models\City;
 use App\Models\Customer;
 use App\Models\District;
@@ -15,6 +14,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
 use App\Models\State;
 use App\Models\Stock;
 use App\Models\StockRequest;
@@ -24,20 +24,19 @@ use App\Models\User;
 use App\Models\Warehouse;
 use App\Support\AgentSale;
 use App\Support\BranchSale;
+use App\Support\Catalog;
 use App\Support\StockLedger;
 use App\Support\StockTransferWorkflow;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class LoadSampleData extends Command
 {
     protected $signature = 'sample:load';
 
     protected $description = 'Load sample showroom data with factories';
-
-    /** @var array<string, int> */
-    private array $menuGroupSortCounters = [];
 
     public function handle(StockLedger $ledger, StockTransferWorkflow $workflow, BranchSale $sales, AgentSale $agentSales): int
     {
@@ -67,12 +66,12 @@ class LoadSampleData extends Command
 
             $this->at(now()->subDays(11)->setTime(10, 0), function () use ($ledger, $products, $warehouse, $admin): void {
                 foreach ($this->openingQuantities() as $code => $quantity) {
-                    $ledger->openWarehouseStock($products[$code], $warehouse, $quantity, 'Opening count', $admin->id);
+                    $ledger->openWarehouseStock($this->variant($products, $code), $warehouse, $quantity, 'Opening count', $admin->id);
                 }
             });
 
             $stock = Stock::query()
-                ->where('product_id', $products['ST001']->id)
+                ->where('product_variant_id', $this->variant($products, 'ST001')->id)
                 ->where('warehouse_id', $warehouse->id)
                 ->firstOrFail();
 
@@ -92,11 +91,11 @@ class LoadSampleData extends Command
                 'SF003' => 1, 'BD002' => 2, 'DN001' => 1, 'CH001' => 4,
             ], $products, now()->subDays(6)->setTime(10, 15), now()->subDays(6)->setTime(17, 0));
 
-            $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $products['CH001'], 2, Payment::METHOD_CASH, 'Venkat Rao', '9848011007', now()->subDays(5)->setTime(12, 10));
-            $this->sale($sales, $branches['BR002'], $staff['cashiers']['BR002'], $products['BD001'], 1, Payment::METHOD_UPI, 'Kiran Reddy', '9848011005', now()->subDays(4)->setTime(15, 40), [
-                ['product' => $products['CH002'], 'quantity' => 1],
+            $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $this->variant($products, 'CH001'), 2, Payment::METHOD_CASH, 'Venkat Rao', '9848011007', now()->subDays(5)->setTime(12, 10));
+            $this->sale($sales, $branches['BR002'], $staff['cashiers']['BR002'], $this->variant($products, 'BD001'), 1, Payment::METHOD_UPI, 'Kiran Reddy', '9848011005', now()->subDays(4)->setTime(15, 40), [
+                ['variant' => $this->variant($products, 'CH002'), 'quantity' => 1],
             ]);
-            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $products['ST002'], 1, Payment::METHOD_CARD, 'Suresh Babu', '9848011003', now()->subDays(3)->setTime(13, 20));
+            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $this->variant($products, 'ST002'), 1, Payment::METHOD_CARD, 'Suresh Babu', '9848011003', now()->subDays(3)->setTime(13, 20));
 
             $this->at(now()->subDays(4)->setTime(9, 0), function () use ($branches, $staff, $products): void {
                 $this->stockRequest('R00001', $branches['BR001'], $staff['managers']['BR001'], 'Changed the display plan', [
@@ -141,12 +140,12 @@ class LoadSampleData extends Command
                 ]);
             });
 
-            $this->sale($sales, $branches['BR002'], $staff['cashiers']['BR002'], $products['SF002'], 1, Payment::METHOD_CASH, 'Priya Nair', '9848011004', now()->subDays(2)->setTime(16, 5));
-            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $products['CH001'], 2, Payment::METHOD_UPI, 'Lakshmi Devi', '9848011002', now()->subDay()->setTime(11, 45), [
-                ['product' => $products['DN002'], 'quantity' => 1],
+            $this->sale($sales, $branches['BR002'], $staff['cashiers']['BR002'], $this->variant($products, 'SF002'), 1, Payment::METHOD_CASH, 'Priya Nair', '9848011004', now()->subDays(2)->setTime(16, 5));
+            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $this->variant($products, 'CH001'), 2, Payment::METHOD_UPI, 'Lakshmi Devi', '9848011002', now()->subDay()->setTime(11, 45), [
+                ['variant' => $this->variant($products, 'DN002'), 'quantity' => 1],
             ]);
-            $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $products['SF003'], 1, Payment::METHOD_CARD, 'Anitha Rao', '9848011006', now()->subDay()->setTime(18, 10));
-            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $products['SF001'], 1, Payment::METHOD_CASH, 'Ravi Kumar', '9848011001', now()->setTime(10, 25));
+            $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $this->variant($products, 'SF003'), 1, Payment::METHOD_CARD, 'Anitha Rao', '9848011006', now()->subDay()->setTime(18, 10));
+            $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $this->variant($products, 'SF001'), 1, Payment::METHOD_CASH, 'Ravi Kumar', '9848011001', now()->setTime(10, 25));
 
             $this->transferToAgent($workflow, 'TR007', $warehouse, $agents['AG001'], $staff['warehouse'], 'Opening stock for Sri Lakshmi Furniture Mart', [
                 'SF001' => 2,
@@ -158,9 +157,9 @@ class LoadSampleData extends Command
                 'CH001' => 2,
             ], $products, now()->subDays(4)->setTime(10, 0), now()->subDays(4)->setTime(15, 0));
 
-            $this->agentSale($agentSales, $agents['AG001'], $products['SF001'], 1, Payment::METHOD_CASH, 'Meena Rao', '9848012001', now()->subDays(2)->setTime(12, 15));
-            $this->agentSale($agentSales, $agents['AG002'], $products['BD001'], 1, Payment::METHOD_UPI, 'Sai Krishna', '9848012002', now()->subDay()->setTime(16, 40));
-            $this->agentSale($agentSales, $agents['AG003'], $products['CH001'], 1, Payment::METHOD_CARD, 'Harika Devi', '9848012003', now()->setTime(11, 5));
+            $this->agentSale($agentSales, $agents['AG001'], $this->variant($products, 'SF001'), 1, Payment::METHOD_CASH, 'Meena Rao', '9848012001', now()->subDays(2)->setTime(12, 15));
+            $this->agentSale($agentSales, $agents['AG002'], $this->variant($products, 'BD001'), 1, Payment::METHOD_UPI, 'Sai Krishna', '9848012002', now()->subDay()->setTime(16, 40));
+            $this->agentSale($agentSales, $agents['AG003'], $this->variant($products, 'CH001'), 1, Payment::METHOD_CARD, 'Harika Devi', '9848012003', now()->setTime(11, 5));
 
             $this->at(now()->setTime(9, 20), function () use ($agents, $products): void {
                 $this->agentStockRequest('R00005', $agents['AG003'], 'Sofa set for a walk-in customer', [
@@ -361,7 +360,7 @@ class LoadSampleData extends Command
 
                 AgentProductTerm::query()->create([
                     'agent_id' => $agents[$agentCode]->id,
-                    'product_id' => $products[$productCode]->id,
+                    'product_variant_id' => $this->variant($products, $productCode)->id,
                     'price' => $price,
                     'commission_percent' => (float) $commission === $shopRate ? null : $commission,
                 ]);
@@ -369,9 +368,9 @@ class LoadSampleData extends Command
         }
     }
 
-    private function agentSale(AgentSale $sales, Agent $agent, Product $product, int $quantity, string $method, string $customerName, string $phone, Carbon $at): void
+    private function agentSale(AgentSale $sales, Agent $agent, ProductVariant $variant, int $quantity, string $method, string $customerName, string $phone, Carbon $at): void
     {
-        $this->at($at, function () use ($sales, $agent, $product, $quantity, $method, $customerName, $phone): void {
+        $this->at($at, function () use ($sales, $agent, $variant, $quantity, $method, $customerName, $phone): void {
             $customer = Customer::query()->create([
                 'name' => $customerName,
                 'phone' => $phone,
@@ -379,7 +378,7 @@ class LoadSampleData extends Command
             ]);
 
             $sales->complete($agent, $customer, [
-                ['product_id' => $product->id, 'quantity' => $quantity],
+                ['product_variant_id' => $variant->id, 'quantity' => $quantity],
             ], $method, $agent->user_id);
         });
     }
@@ -440,84 +439,6 @@ class LoadSampleData extends Command
      */
     private function products(): array
     {
-        $living = $this->room('Living Room', 'living-room', 1, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600');
-        $bedroom = $this->room('Bedroom', 'bedroom', 2, 'https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=600');
-        $dining = $this->room('Dining Room', 'dining-room', 3, 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&q=80&w=600');
-        $furnishings = $this->room('Furnishings', 'furnishings', 4, 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=600');
-
-        $subs = [];
-        foreach ([
-            // Living Room groups display A–Z; sort_order runs 1…n inside each group
-            ['Leather & Fabric Recliners', 'leather-fabric-recliners', 'Recliners & Chairs'],
-            ['Recliner Sets', 'recliner-sets', 'Recliners & Chairs'],
-            ['Accent & Folding Chairs', 'accent-folding-chairs', 'Recliners & Chairs'],
-            ['Benches & Ottoman Stools', 'benches-ottoman-stools', 'Recliners & Chairs'],
-            ['Bean Bags & Pouffes', 'bean-bags-pouffes', 'Recliners & Chairs'],
-            ['3 Seater Sofas', '3-seater-sofas', 'Sofas & Seating'],
-            ['2 Seater Sofas', '2-seater-sofas', 'Sofas & Seating'],
-            ['1 Seater Sofas', '1-seater-sofas', 'Sofas & Seating'],
-            ['Sofa Sets & Sectionals', 'sofa-sets-sectionals', 'Sofas & Seating'],
-            ['Sofa Cum Beds & Corner Sofas', 'sofa-cum-beds-corner-sofas', 'Sofas & Seating'],
-            ['Centre & Coffee Tables', 'centre-coffee-tables', 'Tables & Storage'],
-            ['End & Console Tables', 'end-console-tables', 'Tables & Storage'],
-            ['TV Consoles & Media Units', 'tv-consoles-media-units', 'Tables & Storage'],
-            ['Wall Shelves & Home Mandir', 'wall-shelves-home-mandir', 'Tables & Storage'],
-            ['Shoe Racks & Cabinets', 'shoe-racks-cabinets', 'Tables & Storage'],
-        ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($living, $name, $slug, $group, $this->nextGroupSort($living->id, $group));
-        }
-
-        foreach ([
-            ['King Size Hydraulic Beds', 'king-size-hydraulic-beds', 'Beds & Frames'],
-            ['Queen Size Solid Teak Beds', 'queen-size-solid-teak-beds', 'Beds & Frames'],
-            ['Single & Poster Beds', 'single-poster-beds', 'Beds & Frames'],
-            ['Heavy Duty Metal Bunk Beds', 'heavy-duty-metal-bunk-beds', 'Beds & Frames'],
-            ['Memory Foam Mattresses', 'memory-foam-mattresses', 'Mattresses & Dressers'],
-            ['Spring & Orthopedic Mattresses', 'spring-orthopedic-mattresses', 'Mattresses & Dressers'],
-            ['Chest of Drawers', 'chest-of-drawers', 'Mattresses & Dressers'],
-            ['Dresser Mirrors & Vanities', 'dresser-mirrors-vanities', 'Mattresses & Dressers'],
-            ['2 Door Swing Wardrobes', '2-door-swing-wardrobes', 'Wardrobes & Storage'],
-            ['3 & 4 Door Wardrobes', '3-4-door-wardrobes', 'Wardrobes & Storage'],
-            ['Sliding Door Wardrobes', 'sliding-door-wardrobes', 'Wardrobes & Storage'],
-            ['Bedside Tables & Nightstands', 'bedside-tables-nightstands', 'Wardrobes & Storage'],
-        ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($bedroom, $name, $slug, $group, $this->nextGroupSort($bedroom->id, $group));
-        }
-
-        foreach ([
-            ['Luxury Bar Cabinets', 'luxury-bar-cabinets', 'Bar Furniture'],
-            ['Bar Stools & Counter Chairs', 'bar-stools-counter-chairs', 'Bar Furniture'],
-            ['Serving Trolleys & Carts', 'serving-trolleys-carts', 'Bar Furniture'],
-            ['Wine Racks & Glasses', 'wine-racks-glasses', 'Bar Furniture'],
-            ['Teak & Marble Dining Tables', 'teak-marble-dining-tables', 'Chairs & Tables'],
-            ['Upholstered Dining Chairs', 'upholstered-dining-chairs', 'Chairs & Tables'],
-            ['Solid Wood Dining Benches', 'solid-wood-dining-benches', 'Chairs & Tables'],
-            ['Crockery Cabinets & Curios', 'crockery-cabinets-curios', 'Chairs & Tables'],
-            ['4-Seater Dining Sets', '4-seater-dining-sets', 'Dining Sets'],
-            ['6-Seater Solid Teak Sets', '6-seater-solid-teak-sets', 'Dining Sets'],
-            ['8-Seater Grand Dining Sets', '8-seater-grand-dining-sets', 'Dining Sets'],
-            ['Industrial Steel Dining Sets', 'industrial-steel-dining-sets', 'Dining Sets'],
-        ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($dining, $name, $slug, $group, $this->nextGroupSort($dining->id, $group));
-        }
-
-        foreach ([
-            ['100% Cotton Double Bedsheets', 'cotton-double-bedsheets', 'Bedding & Sheets'],
-            ['King & Queen Bedding Sets', 'king-queen-bedding-sets', 'Bedding & Sheets'],
-            ['Pillows & Memory Foam Fillers', 'pillows-memory-foam-fillers', 'Bedding & Sheets'],
-            ['Quilts, Comforters & Dohars', 'quilts-comforters-dohars', 'Bedding & Sheets'],
-            ['Designer Cushion Covers', 'designer-cushion-covers', 'Cushions & Curtains'],
-            ['Filled Floor Cushions', 'filled-floor-cushions', 'Cushions & Curtains'],
-            ['Door & Window Curtains', 'door-window-curtains', 'Cushions & Curtains'],
-            ['Blackout Blinds & Rods', 'blackout-blinds-rods', 'Cushions & Curtains'],
-            ['Handwoven Wool Carpets', 'handwoven-wool-carpets', 'Rugs & Coverings'],
-            ['Traditional Dhurries & Rugs', 'traditional-dhurries-rugs', 'Rugs & Coverings'],
-            ['Anti-Skid Doormats', 'anti-skid-doormats', 'Rugs & Coverings'],
-            ['Protective Sofa Covers', 'protective-sofa-covers', 'Rugs & Coverings'],
-        ] as [$name, $slug, $group]) {
-            $subs[$slug] = $this->subcategory($furnishings, $name, $slug, $group, $this->nextGroupSort($furnishings->id, $group));
-        }
-
         $img = fn (string $id) => "https://images.unsplash.com/{$id}?auto=format&fit=crop&q=80&w=800";
         $imagePool = [
             $img('photo-1555041469-a586c61ea9bc'),
@@ -532,84 +453,143 @@ class LoadSampleData extends Command
             $img('photo-1532372576444-dda954194ad0'),
             $img('photo-1540518614846-7ede433c5163'),
             $img('photo-1522771739844-6a9f6d5f14af'),
-            $img('photo-1514933651103-005eec06c04b'),
-            $img('photo-1584100936595-c0654b55a2e2'),
-            $img('photo-1600121848594-d8644e57abab'),
         ];
 
+        // Named products used by stock / sales / transfers. Each gets 2–3 variants.
         $rows = [
-            // Existing codes (stock / sales flows depend on these)
-            ['SF001', 'Alanis Metal Frame 3-Seater Velvet Sofa', 'alanis-metal-frame-3-seater-velvet-sofa', $subs['3-seater-sofas'], 42000, 38999, 54999, true, true, 'CRCA Steel & Emerald Velvet', 'Metal frame three-seater with emerald velvet.', [$imagePool[0], $imagePool[1]], Product::STATUS_ACTIVE],
-            ['SF002', 'Four Seater Family Sofa', 'four-seater-family-sofa', $subs['sofa-sets-sectionals'], 62000, 58999, 74999, true, false, 'Solid Teak & Linen', 'Family sofa with removable cushions.', [$imagePool[1]], Product::STATUS_ACTIVE],
-            ['SF003', 'Nordic Modular Sectional Steel Sofa', 'nordic-modular-sectional-steel-sofa', $subs['sofa-sets-sectionals'], 78000, 72999, 94999, true, true, 'Powder Coated Steel', 'Corner sectional for the living room.', [$imagePool[2]], Product::STATUS_ACTIVE],
-            ['BD001', 'Queen Size Solid Teak Bed', 'queen-size-solid-teak-bed', $subs['queen-size-solid-teak-beds'], 38000, 35999, 49999, true, false, 'Solid Teak Wood', 'Queen teak bed with storage drawers.', [$imagePool[3]], Product::STATUS_ACTIVE],
-            ['BD002', 'Godwin Imperial Heavy Duty Metal & Teak King Bed', 'godwin-imperial-heavy-duty-metal-teak-king-bed', $subs['king-size-hydraulic-beds'], 45000, 42999, 59999, true, true, 'CRCA Steel & Seasoned Teak', 'King bed with heavy CRCA frame and teak accents.', [$imagePool[3], $imagePool[4]], Product::STATUS_ACTIVE],
-            ['DN001', 'Imperial 6-Seater Steel Dining Set', 'imperial-6-seater-steel-dining-set', $subs['6-seater-solid-teak-sets'], 54000, 51999, 69999, true, true, 'CRCA Heavy Steel', 'Dining set with six matching chairs.', [$imagePool[5]], Product::STATUS_ACTIVE],
-            ['DN002', 'Godwin Compact 4-Seater Dining Set', 'godwin-compact-4-seater-dining-set', $subs['4-seater-dining-sets'], 42000, 39999, 54999, true, false, 'Solid Teak Wood', 'Compact dining set for an apartment.', [$imagePool[6]], Product::STATUS_ACTIVE],
-            ['CH001', 'Italian Leather & Steel Accent Chair', 'italian-leather-steel-accent-chair', $subs['accent-folding-chairs'], 12500, 10999, 15999, true, false, 'Italian Leather', 'Single accent chair for the living room.', [$imagePool[2]], Product::STATUS_ACTIVE],
-            ['CH002', 'Godwin Steel & Velvet Recliner Chair', 'godwin-steel-velvet-recliner-chair', $subs['leather-fabric-recliners'], 18500, 16999, 22999, true, false, 'CRCA Steel & Velvet', 'Cushioned recliner for a lounge corner.', [$imagePool[7]], Product::STATUS_ACTIVE],
-            ['ST001', 'Godwin 2-Door Swing Wardrobe', 'godwin-2-door-swing-wardrobe', $subs['2-door-swing-wardrobes'], 36000, 33999, 45999, true, false, 'Solid Teak Wood', 'Wardrobe with hanging space and shelves.', [$imagePool[8]], Product::STATUS_ACTIVE],
-            ['ST002', 'Industrial Steel & Teak TV Console', 'industrial-steel-teak-tv-console', $subs['tv-consoles-media-units'], 18500, 16999, 24999, true, false, 'Powder Coated Steel', 'Low TV unit with drawers.', [$imagePool[9]], Product::STATUS_ACTIVE],
-            ['OT001', 'Floor Ottoman Stool', 'floor-ottoman-stool', $subs['benches-ottoman-stools'], 4500, null, null, false, false, 'Fabric', 'Display sample, not for sale yet.', [], Product::STATUS_INACTIVE],
+            ['SF001', 'Alanis 3-Seater Sofa', 'Furniture', 'Living Room', 'Sofa', 'Chester', 42000, true, true, 'CRCA Steel & Velvet', 'Metal frame three-seater.', [$imagePool[0], $imagePool[1]], Product::STATUS_ACTIVE, [
+                ['Walnut', 'Matte', 'Velvet', 42000, 54999],
+                ['Forest green', 'Matte', 'Velvet', 43500, 54999],
+                ['Charcoal', 'Textured', 'Linen blend', 41000, 52999],
+            ]],
+            ['SF002', 'Four Seater Family Sofa', 'Furniture', 'Living Room', 'Sofa', 'Royal', 62000, true, false, 'Solid Teak & Linen', 'Family sofa with removable cushions.', [$imagePool[1]], Product::STATUS_ACTIVE, [
+                ['Natural oak', 'Natural wood', 'Linen blend', 62000, 74999],
+                ['Ivory', 'Matte', 'Boucle', 64000, 74999],
+            ]],
+            ['SF003', 'Nordic Modular Sectional', 'Furniture', 'Living Room', 'Sofa', 'Modular', 78000, true, true, 'Powder Coated Steel', 'Corner sectional for the living room.', [$imagePool[2]], Product::STATUS_ACTIVE, [
+                ['Ash grey', 'Matte', 'Velvet', 78000, 94999],
+                ['Navy', 'Glossy', 'Leatherette', 80000, 96999],
+                ['Charcoal', 'Textured', 'Genuine leather', 85000, 99999],
+            ]],
+            ['BD001', 'Queen Size Solid Teak Bed', 'Furniture', 'Bedroom', 'Queen Size Bed', 'Platform', 38000, true, false, 'Solid Teak Wood', 'Queen teak bed with storage drawers.', [$imagePool[3]], Product::STATUS_ACTIVE, [
+                ['Walnut', 'Natural wood', 'Linen blend', 38000, 49999],
+                ['Natural oak', 'Matte', 'Velvet', 39500, 51999],
+            ]],
+            ['BD002', 'Imperial King Bed', 'Furniture', 'Bedroom', 'King Size Bed', 'Royal', 45000, true, true, 'CRCA Steel & Seasoned Teak', 'King bed with heavy CRCA frame.', [$imagePool[3], $imagePool[4]], Product::STATUS_ACTIVE, [
+                ['Charcoal', 'Matte', 'Velvet', 45000, 59999],
+                ['Walnut', 'Natural wood', 'Genuine leather', 47000, 61999],
+                ['Ivory', 'Duco paint', 'Boucle', 46000, 60999],
+            ]],
+            ['DN001', 'Imperial 6-Seater Dining Set', 'Furniture', 'Dining Room', 'Dining Table', 'Rectangular', 54000, true, true, 'CRCA Heavy Steel', 'Dining set with six matching chairs.', [$imagePool[5]], Product::STATUS_ACTIVE, [
+                ['Walnut', 'Matte', '', 54000, 69999],
+                ['Natural oak', 'Natural wood', '', 56000, 71999],
+            ]],
+            ['DN002', 'Compact 4-Seater Dining Set', 'Furniture', 'Dining Room', 'Dining Table', 'Round', 42000, true, false, 'Solid Teak Wood', 'Compact dining set for an apartment.', [$imagePool[6]], Product::STATUS_ACTIVE, [
+                ['Natural oak', 'Natural wood', '', 42000, 54999],
+                ['Charcoal', 'Matte', '', 41000, 53999],
+            ]],
+            ['CH001', 'Italian Leather Accent Chair', 'Furniture', 'Living Room', 'Accent Chair', 'Lounge', 12500, true, false, 'Italian Leather', 'Single accent chair for the living room.', [$imagePool[2]], Product::STATUS_ACTIVE, [
+                ['Tan leather', 'Matte', 'Genuine leather', 12500, 15999],
+                ['Charcoal', 'Textured', 'Leatherette', 11800, 14999],
+                ['Navy', 'Glossy', 'Velvet', 13200, 16999],
+            ]],
+            ['CH002', 'Steel & Velvet Recliner', 'Furniture', 'Living Room', 'Recliner', 'Executive', 18500, true, false, 'CRCA Steel & Velvet', 'Cushioned recliner for a lounge corner.', [$imagePool[7]], Product::STATUS_ACTIVE, [
+                ['Forest green', 'Matte', 'Velvet', 18500, 22999],
+                ['Ash grey', 'Textured', 'Leatherette', 17900, 21999],
+            ]],
+            ['ST001', '2-Door Swing Wardrobe', 'Furniture', 'Bedroom', 'Wardrobe', 'Hinged', 36000, true, false, 'Solid Teak Wood', 'Wardrobe with hanging space and shelves.', [$imagePool[8]], Product::STATUS_ACTIVE, [
+                ['Walnut', 'Natural wood', '', 36000, 45999],
+                ['Ivory', 'Matte', '', 35000, 44999],
+                ['Charcoal', 'Glossy', '', 37000, 46999],
+            ]],
+            ['ST002', 'Industrial TV Console', 'Furniture', 'Living Room', 'TV Console', 'Floor Standing', 18500, true, false, 'Powder Coated Steel', 'Low TV unit with drawers.', [$imagePool[9]], Product::STATUS_ACTIVE, [
+                ['Charcoal', 'Matte', '', 18500, 24999],
+                ['Walnut', 'Natural wood', '', 19200, 25999],
+            ]],
+            ['OT001', 'Floor Ottoman Stool', 'Furniture', 'Living Room', 'Ottoman', 'Minimalist', 4500, false, false, 'Fabric', 'Display sample, not for sale yet.', [], Product::STATUS_INACTIVE, [
+                ['Ivory', 'Matte', 'Boucle', 4500, null],
+                ['Forest green', 'Textured', 'Velvet', 4800, null],
+            ]],
         ];
 
         $products = [];
         $counts = [];
 
-        foreach ($rows as [$code, $name, $slug, $category, $selling, $online, $mrp, $isOnline, $featured, $material, $description, $images, $status]) {
+        foreach ($rows as [$code, $name, $project, $room, $category, $type, $base, $isOnline, $featured, $material, $description, $images, $status, $variantRows]) {
             $products[$code] = $this->makeProduct(
                 $code,
                 $name,
-                $slug,
+                Str::slug($name),
+                $project,
+                $room,
                 $category,
-                $selling,
-                $online,
-                $mrp,
+                $type,
+                $base,
                 $isOnline,
                 $featured,
                 $material,
                 $description,
                 $images,
                 $status,
+                $variantRows,
             );
-            $counts[$category->id] = ($counts[$category->id] ?? 0) + 1;
+            $leafId = $products[$code]->category_id;
+            $counts[$leafId] = ($counts[$leafId] ?? 0) + 1;
         }
 
-        // Top every subcategory up to 6–8 online products for a fuller catalog.
+        // Fill Furniture leaf categories so the online catalog stays dense.
         $styles = ['Classic', 'Modern', 'Heritage', 'Urban', 'Studio', 'Royal', 'Compact', 'Premium'];
         $materials = ['Solid Teak', 'CRCA Steel', 'Engineered Wood', 'Fabric & Foam', 'Leatherette', 'Cotton Blend'];
+        $colourKeys = array_keys(Catalog::colours());
+        $finishes = Catalog::finishes();
+        $upholsteries = Catalog::upholsteries();
         $seq = 1;
 
-        foreach ($subs as $slug => $category) {
-            $target = 5 + (($category->id + strlen($slug)) % 4); // 5–8 products per subcategory
-            $have = $counts[$category->id] ?? 0;
+        foreach (Catalog::tree()['Furniture'] as $room => $categories) {
+            foreach ($categories as $categoryName) {
+                $leaf = Catalog::leafCategory('Furniture', $room, $categoryName);
+                $have = $counts[$leaf->id] ?? 0;
+                $target = 5 + (($leaf->id + strlen($categoryName)) % 3); // 5–7 products
 
-            for ($n = $have + 1; $n <= $target; $n++) {
-                $code = 'GX'.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
-                $seq++;
-                $style = $styles[($n + $category->id) % count($styles)];
-                $material = $materials[($n + $category->id) % count($materials)];
-                $selling = 2500 + (($category->id * 17 + $n * 1300) % 75000);
-                $online = (int) round($selling * 0.92);
-                $mrp = (int) round($selling * 1.25);
-                $image = $imagePool[($category->id + $n) % count($imagePool)];
+                for ($n = $have + 1; $n <= $target; $n++) {
+                    $code = 'GX'.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+                    $seq++;
+                    $style = $styles[($n + $leaf->id) % count($styles)];
+                    $material = $materials[($n + $leaf->id) % count($materials)];
+                    $base = 2500 + (($leaf->id * 17 + $n * 1300) % 75000);
+                    $mrp = (int) round($base * 1.25);
+                    $image = $imagePool[($leaf->id + $n) % count($imagePool)];
+                    $family = Catalog::family('Furniture', $categoryName);
+                    $types = Catalog::typesFor($categoryName);
+                    $type = $types[($n - 1) % count($types)];
+                    $c1 = $colourKeys[($n + $leaf->id) % count($colourKeys)];
+                    $c2 = $colourKeys[($n + $leaf->id + 3) % count($colourKeys)];
+                    $finish = $finishes[($n) % count($finishes)];
+                    $up1 = Catalog::usesUpholstery($family) ? $upholsteries[($n) % count($upholsteries)] : '';
+                    $up2 = Catalog::usesUpholstery($family) ? $upholsteries[($n + 1) % count($upholsteries)] : '';
 
-                $products[$code] = $this->makeProduct(
-                    $code,
-                    "{$style} {$category->name} {$n}",
-                    str($style.'-'.$slug.'-'.$n)->slug()->toString(),
-                    $category,
-                    $selling,
-                    $online,
-                    $mrp,
-                    true,
-                    $n === 1,
-                    $material,
-                    "Sample {$category->name} piece for the online catalog.",
-                    [$image],
-                    Product::STATUS_ACTIVE,
-                );
-                $counts[$category->id] = ($counts[$category->id] ?? 0) + 1;
+                    $products[$code] = $this->makeProduct(
+                        $code,
+                        "{$style} {$categoryName} {$n}",
+                        Str::slug($style.'-'.$categoryName.'-'.$n.'-'.$code),
+                        'Furniture',
+                        $room,
+                        $categoryName,
+                        $type,
+                        $base,
+                        true,
+                        $n === 1,
+                        $material,
+                        "Sample {$categoryName} piece for the online catalog.",
+                        [$image],
+                        Product::STATUS_ACTIVE,
+                        [
+                            [$c1, $finish, $up1, $base, $mrp],
+                            [$c2, $finishes[($n + 1) % count($finishes)], $up2, (int) round($base * 1.05), $mrp],
+                        ],
+                    );
+                    $counts[$leaf->id] = ($counts[$leaf->id] ?? 0) + 1;
+                }
             }
         }
 
@@ -617,12 +597,12 @@ class LoadSampleData extends Command
         if ($vijayawada) {
             BranchProductPrice::query()->create([
                 'branch_id' => $vijayawada->id,
-                'product_id' => $products['SF001']->id,
+                'product_variant_id' => $this->variant($products, 'SF001')->id,
                 'price' => 40000,
             ]);
             BranchProductPrice::query()->create([
                 'branch_id' => $vijayawada->id,
-                'product_id' => $products['BD002']->id,
+                'product_variant_id' => $this->variant($products, 'BD002')->id,
                 'price' => 44000,
             ]);
         }
@@ -632,36 +612,58 @@ class LoadSampleData extends Command
 
     /**
      * @param  list<string>  $images
+     * @param  list<array{0: string, 1: string, 2: string, 3: float|int, 4: float|int|null}>  $variantRows
      */
     private function makeProduct(
         string $code,
         string $name,
         string $slug,
-        Category $category,
-        float|int $selling,
-        float|int|null $online,
-        float|int|null $mrp,
+        string $project,
+        string $room,
+        string $productCategory,
+        string $designType,
+        float|int $basePrice,
         bool $isOnline,
         bool $featured,
         string $material,
         string $description,
         array $images,
         string $status,
+        array $variantRows,
     ): Product {
+        $category = Catalog::leafCategory($project, $room, $productCategory);
+        $family = Catalog::family($project, $productCategory);
+
         $product = Product::factory()->create([
             'category_id' => $category->id,
             'code' => $code,
             'slug' => $slug,
             'name' => $name,
             'description' => $description,
+            'project_category' => $project,
+            'room' => $room,
+            'product_category' => $productCategory,
+            'design_type' => $designType,
+            'family' => $family,
             'material' => $material,
-            'selling_price' => $selling,
-            'online_price' => $online,
-            'compare_at_price' => $mrp,
+            'base_price' => $basePrice,
             'is_online' => $isOnline,
             'is_featured' => $featured,
             'status' => $status,
         ]);
+
+        foreach ($variantRows as $index => [$colour, $finish, $upholstery, $price, $mrp]) {
+            ProductVariant::query()->create([
+                'product_id' => $product->id,
+                'sku' => $code.'-V'.($index + 1),
+                'colour' => $colour,
+                'finish' => $finish,
+                'upholstery' => Catalog::usesUpholstery($family) ? $upholstery : '',
+                'price' => $price,
+                'compare_at_price' => $mrp,
+                'status' => ProductVariant::STATUS_ACTIVE,
+            ]);
+        }
 
         foreach ($images as $index => $url) {
             ProductImage::query()->create([
@@ -671,41 +673,18 @@ class LoadSampleData extends Command
             ]);
         }
 
-        return $product;
+        return $product->load('variants');
     }
 
-    private function room(string $name, string $slug, int $sort, string $image): Category
+    /**
+     * @param  array<string, Product>  $products
+     */
+    private function variant(array $products, string $code): ProductVariant
     {
-        return Category::factory()->create([
-            'parent_id' => null,
-            'name' => $name,
-            'slug' => $slug,
-            'menu_group' => null,
-            'sort_order' => $sort,
-            'image_url' => $image,
-            'status' => Category::STATUS_ACTIVE,
-        ]);
-    }
+        $product = $products[$code];
+        $product->loadMissing('variants');
 
-    private function subcategory(Category $room, string $name, string $slug, string $group, int $sort): Category
-    {
-        return Category::factory()->create([
-            'parent_id' => $room->id,
-            'name' => $name,
-            'slug' => $slug,
-            'menu_group' => $group,
-            'sort_order' => $sort,
-            'image_url' => null,
-            'status' => Category::STATUS_ACTIVE,
-        ]);
-    }
-
-    private function nextGroupSort(int $roomId, string $group): int
-    {
-        $key = $roomId.'|'.$group;
-        $this->menuGroupSortCounters[$key] = ($this->menuGroupSortCounters[$key] ?? 0) + 1;
-
-        return $this->menuGroupSortCounters[$key];
+        return $product->variants->firstOrFail();
     }
 
     /**
@@ -772,7 +751,7 @@ class LoadSampleData extends Command
 
         foreach ($lines as $productCode => $quantity) {
             $request->items()->create([
-                'product_id' => $products[$productCode]->id,
+                'product_variant_id' => $this->variant($products, $productCode)->id,
                 'quantity' => $quantity,
             ]);
         }
@@ -809,7 +788,7 @@ class LoadSampleData extends Command
             foreach ($lines as $productCode => $quantity) {
                 StockTransferItem::factory()->create([
                     'stock_transfer_id' => $transfer->id,
-                    'product_id' => $products[$productCode]->id,
+                    'product_variant_id' => $this->variant($products, $productCode)->id,
                     'quantity' => $quantity,
                 ]);
             }
@@ -838,7 +817,7 @@ class LoadSampleData extends Command
 
         foreach ($lines as $productCode => $quantity) {
             $request->items()->create([
-                'product_id' => $products[$productCode]->id,
+                'product_variant_id' => $this->variant($products, $productCode)->id,
                 'quantity' => $quantity,
             ]);
         }
@@ -863,7 +842,7 @@ class LoadSampleData extends Command
         foreach ($lines as $productCode => $quantity) {
             StockTransferItem::factory()->create([
                 'stock_transfer_id' => $transfer->id,
-                'product_id' => $products[$productCode]->id,
+                'product_variant_id' => $this->variant($products, $productCode)->id,
                 'quantity' => $quantity,
             ]);
         }
@@ -872,13 +851,13 @@ class LoadSampleData extends Command
     }
 
     /**
-     * @param  list<array{product: Product, quantity: int}>  $extra
+     * @param  list<array{variant: ProductVariant, quantity: int}>  $extra
      */
     private function sale(
         BranchSale $sales,
         Branch $branch,
         User $cashier,
-        Product $product,
+        ProductVariant $variant,
         int $quantity,
         string $method,
         string $customerName,
@@ -892,10 +871,10 @@ class LoadSampleData extends Command
             'email' => null,
         ]);
 
-        $lines = [['product_id' => $product->id, 'quantity' => $quantity]];
+        $lines = [['product_variant_id' => $variant->id, 'quantity' => $quantity]];
 
         foreach ($extra as $line) {
-            $lines[] = ['product_id' => $line['product']->id, 'quantity' => $line['quantity']];
+            $lines[] = ['product_variant_id' => $line['variant']->id, 'quantity' => $line['quantity']];
         }
 
         $this->at($when, fn () => $sales->complete($branch, $customer, $lines, $method, $cashier->id, [

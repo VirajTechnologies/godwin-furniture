@@ -12,7 +12,7 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">{{ $stock->product?->code }} · {{ $stock->warehouse?->name }}</h5></div>
+                <div class="card-header"><h5 class="card-title mb-0">{{ $stock->variant?->sku }} · {{ $stock->warehouse?->name }}</h5></div>
                 <div class="card-body">@include('admin.stocks._form')</div>
             </div>
         </div>

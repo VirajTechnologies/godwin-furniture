@@ -39,7 +39,7 @@ class TransferController extends Controller
     {
         $agent = $this->agent($request);
         $this->ensureShopTransfer($transfer, $agent);
-        $transfer->load(['items.product', 'warehouse', 'agent']);
+        $transfer->load(['items.variant.product', 'warehouse', 'agent']);
 
         return view('agent.transfers.show', [
             'transfer' => $transfer,

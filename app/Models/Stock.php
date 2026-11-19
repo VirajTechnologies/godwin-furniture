@@ -12,7 +12,7 @@ class Stock extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'product_id',
+        'product_variant_id',
         'warehouse_id',
         'branch_id',
         'agent_id',
@@ -29,9 +29,9 @@ class Stock extends Model
         ];
     }
 
-    public function product(): BelongsTo
+    public function variant(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
     public function warehouse(): BelongsTo

@@ -3,17 +3,21 @@
 namespace App\Support;
 
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Session;
 
 class StoreCart
 {
-    public const SESSION_KEY = 'store_cart';
+    /**
+     * Bag items are keyed by variant, so the key differs from the old product bag.
+     */
+    public const SESSION_KEY = 'store_cart_variants';
 
     public const MAX_QUANTITY = 20;
 
     /**
-     * @return array<int, int> product_id => quantity
+     * @return array<int, int> product_variant_id => quantity
      */
     public function raw(): array
     {
@@ -24,8 +28,8 @@ class StoreCart
         }
 
         $clean = [];
-        foreach ($items as $productId => $quantity) {
-            $id = (int) $productId;
+        foreach ($items as $variantId => $quantity) {
+            $id = (int) $variantId;
             $qty = (int) $quantity;
             if ($id > 0 && $qty > 0) {
                 $clean[$id] = min($qty, self::MAX_QUANTITY);
@@ -45,35 +49,35 @@ class StoreCart
         return $this->count() === 0;
     }
 
-    public function add(Product $product, int $quantity = 1): void
+    public function add(ProductVariant $variant, int $quantity = 1): void
     {
-        $this->assertPurchasable($product);
+        $this->assertPurchasable($variant);
 
         $quantity = max(1, min($quantity, self::MAX_QUANTITY));
         $items = $this->raw();
-        $items[$product->id] = min(($items[$product->id] ?? 0) + $quantity, self::MAX_QUANTITY);
+        $items[$variant->id] = min(($items[$variant->id] ?? 0) + $quantity, self::MAX_QUANTITY);
         $this->save($items);
     }
 
-    public function update(Product $product, int $quantity): void
+    public function update(ProductVariant $variant, int $quantity): void
     {
-        $this->assertPurchasable($product);
+        $this->assertPurchasable($variant);
 
         $items = $this->raw();
 
         if ($quantity <= 0) {
-            unset($items[$product->id]);
+            unset($items[$variant->id]);
         } else {
-            $items[$product->id] = min($quantity, self::MAX_QUANTITY);
+            $items[$variant->id] = min($quantity, self::MAX_QUANTITY);
         }
 
         $this->save($items);
     }
 
-    public function remove(Product $product): void
+    public function remove(ProductVariant $variant): void
     {
         $items = $this->raw();
-        unset($items[$product->id]);
+        unset($items[$variant->id]);
         $this->save($items);
     }
 
@@ -84,6 +88,7 @@ class StoreCart
 
     /**
      * @return Collection<int, object{
+     *     variant: ProductVariant,
      *     product: Product,
      *     quantity: int,
      *     unit_price: float,
@@ -98,38 +103,40 @@ class StoreCart
             return collect();
         }
 
-        $products = Product::query()
-            ->with('images')
+        $variants = ProductVariant::query()
+            ->with('product.images')
             ->whereIn('id', array_keys($raw))
-            ->where('is_online', true)
-            ->where('status', Product::STATUS_ACTIVE)
+            ->where('status', ProductVariant::STATUS_ACTIVE)
+            ->whereHas('product', function ($query): void {
+                $query->where('is_online', true)->where('status', Product::STATUS_ACTIVE);
+            })
             ->get()
             ->keyBy('id');
 
         $lines = collect();
         $stale = false;
 
-        foreach ($raw as $productId => $quantity) {
-            $product = $products->get($productId);
-            if (! $product) {
+        foreach ($raw as $variantId => $quantity) {
+            $variant = $variants->get($variantId);
+            if (! $variant) {
                 $stale = true;
                 continue;
             }
 
-            $unitPrice = $product->storePrice();
-            $mrp = $product->mrp();
+            $unitPrice = $variant->storePrice();
 
             $lines->push((object) [
-                'product' => $product,
+                'variant' => $variant,
+                'product' => $variant->product,
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
                 'line_total' => round($unitPrice * $quantity, 2),
-                'mrp' => $mrp,
+                'mrp' => $variant->mrp(),
             ]);
         }
 
         if ($stale) {
-            $this->save($lines->mapWithKeys(fn ($line) => [$line->product->id => $line->quantity])->all());
+            $this->save($lines->mapWithKeys(fn ($line) => [$line->variant->id => $line->quantity])->all());
         }
 
         return $lines;
@@ -140,9 +147,11 @@ class StoreCart
         return round((float) $this->lines()->sum('line_total'), 2);
     }
 
-    private function assertPurchasable(Product $product): void
+    private function assertPurchasable(ProductVariant $variant): void
     {
-        if (! $product->is_online || ! $product->isActive()) {
+        $variant->loadMissing('product');
+
+        if (! $variant->isActive() || ! $variant->product?->is_online || ! $variant->product->isActive()) {
             abort(422, 'This product is not available online.');
         }
     }

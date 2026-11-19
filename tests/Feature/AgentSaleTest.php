@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Agent;
 use App\Models\AgentProductTerm;
-use App\Models\Category;
 use App\Models\City;
 use App\Models\District;
 use App\Models\Product;
@@ -14,18 +13,21 @@ use App\Models\StockTransfer;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesCatalog;
 use Tests\TestCase;
 
 class AgentSaleTest extends TestCase
 {
+    use CreatesCatalog;
     use RefreshDatabase;
 
     public function test_an_agent_sale_can_go_above_mrp_but_not_below_the_shop_price(): void
     {
         [$agent, $other, $product] = $this->shops();
+        $variant = $this->primaryVariant($product);
 
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'agent_id' => $agent->id,
             'quantity' => 2,
         ]);
@@ -37,7 +39,7 @@ class AgentSaleTest extends TestCase
                 'method' => 'cash',
                 'delivery_type' => 'pickup',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 39000],
+                    ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 39000],
                 ],
             ])
             ->assertSessionHasErrors('items.0.unit_price');
@@ -51,7 +53,7 @@ class AgentSaleTest extends TestCase
                 'method' => 'cash',
                 'delivery_type' => 'pickup',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 60000],
+                    ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 60000],
                 ],
             ])
             ->assertRedirect();
@@ -63,13 +65,14 @@ class AgentSaleTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'agent_id' => $agent->id,
             'quantity' => 1,
         ]);
 
         $this->assertDatabaseHas('order_items', [
             'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'unit_price' => 60000,
             'commission_percent' => 5,
             'commission_amount' => 3000,
@@ -86,9 +89,10 @@ class AgentSaleTest extends TestCase
     {
         $admin = User::factory()->superAdmin()->create();
         [$agent, , $product, $warehouse] = $this->shops(withWarehouse: true);
+        $variant = $this->primaryVariant($product);
 
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 4,
         ]);
@@ -98,7 +102,7 @@ class AgentSaleTest extends TestCase
             'destination' => 'agent',
             'agent_id' => $agent->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 4],
+                ['product_variant_id' => $variant->id, 'quantity' => 4],
             ],
         ])->assertRedirect();
 
@@ -108,7 +112,7 @@ class AgentSaleTest extends TestCase
             'destination' => 'agent',
             'agent_id' => $agent->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 4],
+                ['product_variant_id' => $variant->id, 'quantity' => 4],
             ],
         ])->assertRedirect();
 
@@ -126,12 +130,12 @@ class AgentSaleTest extends TestCase
         ])->assertRedirect();
 
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 1,
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'agent_id' => $agent->id,
             'quantity' => 3,
         ]);
@@ -146,12 +150,12 @@ class AgentSaleTest extends TestCase
             'method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
+                ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 40000],
             ],
         ])->assertRedirect();
 
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'agent_id' => $agent->id,
             'quantity' => 2,
         ]);
@@ -160,27 +164,33 @@ class AgentSaleTest extends TestCase
     public function test_an_agent_can_sell_several_products_and_deliver_them(): void
     {
         [$agent, , $product] = $this->shops();
-        $chair = Product::query()->create([
-            'category_id' => $product->category_id,
+        $variant = $this->primaryVariant($product);
+        $chair = $this->catalogProduct([
             'code' => 'CH001',
             'name' => 'Dining Chair',
-            'unit' => 'Piece',
-            'selling_price' => 12000,
+            'product_category' => 'Dining Chair',
+            'room' => 'Dining Room',
+            'design_type' => 'Contemporary',
+            'base_price' => 12000,
             'compare_at_price' => 15999,
-            'status' => 'active',
+            'category' => $product->category,
+        ], [
+            ['colour' => 'Walnut', 'finish' => 'Matte', 'upholstery' => 'Velvet', 'price' => 12000, 'compare_at_price' => 15999],
         ]);
+        $chairVariant = $this->primaryVariant($chair);
+
         AgentProductTerm::query()->create([
             'agent_id' => $agent->id,
-            'product_id' => $chair->id,
+            'product_variant_id' => $chairVariant->id,
             'commission_percent' => 8,
         ]);
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'agent_id' => $agent->id,
             'quantity' => 2,
         ]);
         Stock::query()->create([
-            'product_id' => $chair->id,
+            'product_variant_id' => $chairVariant->id,
             'agent_id' => $agent->id,
             'quantity' => 4,
         ]);
@@ -207,8 +217,8 @@ class AgentSaleTest extends TestCase
                 'method' => 'upi',
                 'delivery_type' => 'delivery',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
-                    ['product_id' => $chair->id, 'quantity' => 2, 'unit_price' => 12000],
+                    ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 40000],
+                    ['product_variant_id' => $chairVariant->id, 'quantity' => 2, 'unit_price' => 12000],
                 ],
             ])
             ->assertSessionHasErrors(['shipping_address', 'shipping_city', 'shipping_pincode']);
@@ -224,8 +234,8 @@ class AgentSaleTest extends TestCase
                 'shipping_pincode' => '520002',
                 'notes' => 'Call before delivery',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
-                    ['product_id' => $chair->id, 'quantity' => 2, 'unit_price' => 12000],
+                    ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 40000],
+                    ['product_variant_id' => $chairVariant->id, 'quantity' => 2, 'unit_price' => 12000],
                 ],
             ])
             ->assertRedirect();
@@ -242,18 +252,19 @@ class AgentSaleTest extends TestCase
         ]);
         $this->assertDatabaseHas('order_items', [
             'product_id' => $chair->id,
+            'product_variant_id' => $chairVariant->id,
             'quantity' => 2,
             'unit_price' => 12000,
             'commission_percent' => 8,
             'commission_amount' => 1920,
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'agent_id' => $agent->id,
             'quantity' => 1,
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $chair->id,
+            'product_variant_id' => $chairVariant->id,
             'agent_id' => $agent->id,
             'quantity' => 2,
         ]);
@@ -262,8 +273,9 @@ class AgentSaleTest extends TestCase
     public function test_a_cashier_can_sell_but_cannot_receive_stock(): void
     {
         [$agent, , $product] = $this->shops();
+        $variant = $this->primaryVariant($product);
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'agent_id' => $agent->id,
             'quantity' => 2,
         ]);
@@ -292,7 +304,7 @@ class AgentSaleTest extends TestCase
                 'method' => 'cash',
                 'delivery_type' => 'pickup',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40000],
+                    ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 40000],
                 ],
             ])
             ->assertRedirect();
@@ -322,15 +334,12 @@ class AgentSaleTest extends TestCase
             'pincode' => '520001',
             'status' => 'active',
         ]) : null;
-        $category = Category::query()->create(['name' => 'Sofas', 'status' => 'active']);
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+
+        $product = $this->catalogProduct([
             'code' => 'SF001',
             'name' => 'Three Seater Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 42000,
+            'base_price' => 42000,
             'compare_at_price' => 54999,
-            'status' => 'active',
         ]);
 
         $agent = $this->agent('AG001', 'Sri Lakshmi Furniture Mart', 'lakshmi.mart@godwin.test', $state->id, $district->id, $city->id, $warehouse?->id, 5);
@@ -338,12 +347,12 @@ class AgentSaleTest extends TestCase
 
         AgentProductTerm::query()->create([
             'agent_id' => $agent->id,
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'price' => 40000,
         ]);
         AgentProductTerm::query()->create([
             'agent_id' => $other->id,
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'price' => 43000,
         ]);
 

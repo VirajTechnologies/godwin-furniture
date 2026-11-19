@@ -11,12 +11,12 @@ return new class extends Migration
         Schema::create('agent_product_terms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->decimal('minimum_price', 12, 2);
-            $table->decimal('commission_percent', 5, 2);
+            $table->foreignId('product_variant_id')->constrained('product_variants')->cascadeOnDelete();
+            $table->decimal('price', 12, 2)->nullable();
+            $table->decimal('commission_percent', 5, 2)->nullable();
             $table->timestamps();
 
-            $table->unique(['agent_id', 'product_id']);
+            $table->unique(['agent_id', 'product_variant_id']);
         });
     }
 

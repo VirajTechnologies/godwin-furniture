@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\StockRequest;
 use App\Models\StockTransfer;
@@ -22,7 +22,7 @@ class ReportController extends Controller
         [$from, $to] = $this->range($request);
 
         $rows = OrderItem::query()
-            ->selectRaw('product_id, SUM(quantity) as quantity, SUM(line_total) as amount')
+            ->selectRaw('product_variant_id, SUM(quantity) as quantity, SUM(line_total) as amount')
             ->whereHas('order', function ($query) use ($branch, $from, $to): void {
                 $query->where('branch_id', $branch->id)
                     ->where('channel', Order::CHANNEL_BRANCH)
@@ -30,7 +30,8 @@ class ReportController extends Controller
                     ->whereDate('created_at', '>=', $from->toDateString())
                     ->whereDate('created_at', '<=', $to->toDateString());
             })
-            ->groupBy('product_id')
+            ->whereNotNull('product_variant_id')
+            ->groupBy('product_variant_id')
             ->orderByDesc('amount')
             ->get();
 
@@ -38,7 +39,11 @@ class ReportController extends Controller
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             'rows' => $rows,
-            'products' => Product::query()->whereIn('id', $rows->pluck('product_id'))->get()->keyBy('id'),
+            'variants' => ProductVariant::query()
+                ->with('product')
+                ->whereIn('id', $rows->pluck('product_variant_id'))
+                ->get()
+                ->keyBy('id'),
         ]);
     }
 
@@ -48,9 +53,9 @@ class ReportController extends Controller
 
         return view('branch.reports.stock', [
             'stocks' => Stock::query()
-                ->with('product')
+                ->with('variant.product')
                 ->where('branch_id', $branch->id)
-                ->orderBy('product_id')
+                ->orderBy('product_variant_id')
                 ->get(),
         ]);
     }

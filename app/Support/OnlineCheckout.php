@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Support\Facades\DB;
@@ -76,11 +76,12 @@ class OnlineCheckout
             $total = 0.0;
 
             foreach ($lines as $line) {
-                /** @var Product $product */
-                $product = $line->product;
+                /** @var ProductVariant $variant */
+                $variant = $line->variant;
 
                 $order->items()->create([
-                    'product_id' => $product->id,
+                    'product_id' => $variant->product_id,
+                    'product_variant_id' => $variant->id,
                     'quantity' => $line->quantity,
                     'unit_price' => $line->unit_price,
                     'line_total' => $line->line_total,
@@ -100,7 +101,7 @@ class OnlineCheckout
 
             $this->cart->clear();
 
-            return $order->refresh()->load(['customer', 'items.product', 'payment', 'warehouse']);
+            return $order->refresh()->load(['customer', 'items.variant.product', 'payment', 'warehouse']);
         });
     }
 }

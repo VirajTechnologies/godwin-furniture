@@ -162,7 +162,7 @@
                         <div class="mb-3">
                             @foreach ($lines as $line)
                                 <div class="d-flex justify-content-between gap-2 font-heading small mb-2">
-                                    <span class="text-muted">{{ $line->product->name }} × {{ $line->quantity }}</span>
+                                    <span class="text-muted">{{ $line->variant->displayName() }} × {{ $line->quantity }}</span>
                                     <span class="fw-semibold text-dark text-nowrap">₹{{ number_format($line->line_total, 0) }}</span>
                                 </div>
                             @endforeach

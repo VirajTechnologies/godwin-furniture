@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,7 +21,7 @@ class StockTransferItemFactory extends Factory
     {
         return [
             'stock_transfer_id' => StockTransfer::factory(),
-            'product_id' => Product::factory(),
+            'product_variant_id' => ProductVariant::factory(),
             'quantity' => 1,
         ];
     }

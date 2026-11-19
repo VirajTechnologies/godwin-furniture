@@ -16,10 +16,11 @@ class StorefrontCartTest extends TestCase
     public function test_guest_can_add_an_online_product_to_the_bag(): void
     {
         $product = $this->onlineProduct();
+        $variant = $this->primaryVariant($product);
 
         $this->from(route('store.product', $product->slug))
             ->post(route('store.cart.add'), [
-                'product_id' => $product->id,
+                'product_variant_id' => $variant->id,
                 'quantity' => 1,
             ])
             ->assertRedirect(route('store.product', $product->slug));
@@ -28,15 +29,16 @@ class StorefrontCartTest extends TestCase
             ->assertOk()
             ->assertSee($product->name)
             ->assertSee('1 Item')
-            ->assertSee(number_format($product->storePrice(), 0));
+            ->assertSee(number_format($variant->storePrice(), 0));
     }
 
     public function test_buy_now_adds_the_product_and_opens_the_bag(): void
     {
         $product = $this->onlineProduct();
+        $variant = $this->primaryVariant($product);
 
         $this->post(route('store.cart.add'), [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'quantity' => 1,
             'redirect' => 'cart',
         ])->assertRedirect(route('store.cart'));
@@ -47,14 +49,15 @@ class StorefrontCartTest extends TestCase
     public function test_guest_can_update_and_remove_bag_items(): void
     {
         $product = $this->onlineProduct();
-        app(StoreCart::class)->add($product, 1);
+        $variant = $this->primaryVariant($product);
+        app(StoreCart::class)->add($variant, 1);
 
-        $this->patch(route('store.cart.update', $product), ['quantity' => 3])
+        $this->patch(route('store.cart.update', $variant), ['quantity' => 3])
             ->assertRedirect(route('store.cart'));
 
         $this->assertSame(3, app(StoreCart::class)->count());
 
-        $this->delete(route('store.cart.remove', $product))
+        $this->delete(route('store.cart.remove', $variant))
             ->assertRedirect(route('store.cart'));
 
         $this->assertTrue(app(StoreCart::class)->isEmpty());
@@ -62,20 +65,17 @@ class StorefrontCartTest extends TestCase
 
     public function test_offline_products_cannot_be_added_to_the_bag(): void
     {
-        $category = $this->subcategory();
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+        $product = $this->catalogProduct([
             'code' => 'OFF01',
             'slug' => 'offline-sofa',
             'name' => 'Showroom Only Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 42000,
+            'base_price' => 42000,
             'is_online' => false,
-            'status' => 'active',
         ]);
+        $variant = $this->primaryVariant($product);
 
         $this->post(route('store.cart.add'), [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
         ])->assertStatus(422);
 
         $this->assertTrue(app(StoreCart::class)->isEmpty());
@@ -83,19 +83,21 @@ class StorefrontCartTest extends TestCase
 
     private function onlineProduct(): Product
     {
-        $category = $this->subcategory();
-
-        return Product::query()->create([
-            'category_id' => $category->id,
+        return $this->catalogProduct([
             'code' => 'SF001',
             'slug' => 'alanis-sofa',
             'name' => 'Alanis Metal Frame Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 42000,
-            'online_price' => 38999,
-            'compare_at_price' => 54999,
+            'base_price' => 38999,
             'is_online' => true,
-            'status' => 'active',
+            'compare_at_price' => 54999,
+        ], [
+            [
+                'colour' => 'Walnut',
+                'finish' => 'Matte',
+                'upholstery' => 'Velvet',
+                'price' => 38999,
+                'compare_at_price' => 54999,
+            ],
         ]);
     }
 }

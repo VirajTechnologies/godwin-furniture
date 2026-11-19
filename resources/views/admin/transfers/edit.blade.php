@@ -95,8 +95,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>SR No.</th>
-                                        <th>Code</th>
+                                        <th>SKU</th>
                                         <th>Product</th>
+                                        <th>Variant</th>
                                         <th>Dispatched</th>
                                         @if ($transfer->isSettled())
                                             <th>Accepted</th>
@@ -108,8 +109,9 @@
                                     @foreach ($transfer->items as $item)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td class="fw-medium">{{ $item->product?->code }}</td>
-                                            <td>{{ $item->product?->name }}</td>
+                                            <td class="fw-medium">{{ $item->variant?->sku }}</td>
+                                            <td>{{ $item->variant?->product?->name }}</td>
+                                            <td>{{ $item->variant?->label() ?: '—' }}</td>
                                             <td>{{ $item->quantity }}</td>
                                             @if ($transfer->isSettled())
                                                 <td>{{ $item->received_quantity }}</td>

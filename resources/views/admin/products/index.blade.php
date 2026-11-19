@@ -12,7 +12,7 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-header d-flex align-items-center">
-                    <h5 class="card-title mb-0 flex-grow-1">Products</h5>
+                    <h5 class="card-title mb-0 flex-grow-1">Catalogue</h5>
                     <a href="{{ route('admin.products.create') }}" class="btn btn-success">
                         <i class="ri-add-line align-bottom me-1"></i> Add Product
                     </a>
@@ -21,7 +21,7 @@
                     @if ($products->isEmpty())
                         <div class="text-center py-5">
                             <h5 class="mb-2">No products yet</h5>
-                            <p class="text-muted mb-3">Create a product once, then record its quantity in a warehouse.</p>
+                            <p class="text-muted mb-3">Create a product with its variants, then record quantity in a warehouse.</p>
                             <a href="{{ route('admin.products.create') }}" class="btn btn-success">Add Product</a>
                         </div>
                     @else
@@ -31,31 +31,29 @@
                                     <tr>
                                         <th>SR No.</th>
                                         <th>Code</th>
-                                        <th>Name</th>
-                                        <th>Category</th>
-                                        <th>Subcategory</th>
-                                        <th>Selling Price</th>
-                                        <th>Online Price</th>
+                                        <th>Model</th>
+                                        <th>Path</th>
+                                        <th>Variants</th>
+                                        <th>From</th>
+                                        <th>Stock</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($products as $product)
+                                        @php
+                                            $path = $product->path();
+                                            $stock = (int) ($product->stock_total ?? 0);
+                                        @endphp
                                         <tr>
                                             <td></td>
                                             <td class="fw-medium">{{ $product->code }}</td>
                                             <td>{{ $product->name }}</td>
-                                            <td>{{ $product->category?->parent?->name ?? '—' }}</td>
-                                            <td>{{ $product->category?->name ?? '—' }}</td>
-                                            <td data-order="{{ $product->selling_price }}">₹{{ number_format((float) $product->selling_price, 2) }}</td>
-                                            <td data-order="{{ $product->is_online ? $product->storePrice() : -1 }}">
-                                                @if ($product->is_online)
-                                                    ₹{{ number_format($product->storePrice(), 2) }}
-                                                @else
-                                                    —
-                                                @endif
-                                            </td>
+                                            <td>{{ $path !== '' ? $path : ($product->category?->parent?->name ? $product->category->parent->name.' › '.$product->category->name : ($product->category?->name ?? '—')) }}</td>
+                                            <td data-order="{{ $product->variants->count() }}">{{ $product->variants->count() }}</td>
+                                            <td data-order="{{ $product->fromPrice() }}">₹{{ number_format($product->fromPrice(), 2) }}</td>
+                                            <td data-order="{{ $stock }}">{{ $stock }}</td>
                                             <td data-order="{{ $product->isActive() ? 1 : 0 }}">
                                                 @if ($product->isActive())
                                                     <span class="badge bg-success">Active</span>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\StockRequestRequest;
 use App\Models\Agent;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class StockRequestController extends Controller
         $this->agent($request);
 
         return view('agent.stock-requests.create', [
-            'products' => $this->products(),
+            'variants' => $this->variants(),
         ]);
     }
 
@@ -69,7 +70,7 @@ class StockRequestController extends Controller
     {
         $agent = $this->agent($request);
         abort_unless($stockRequest->agent_id === $agent->id, 404);
-        $stockRequest->load(['items.product', 'transfer']);
+        $stockRequest->load(['items.variant.product', 'transfer']);
 
         return view('agent.stock-requests.show', [
             'stockRequest' => $stockRequest,
@@ -112,11 +113,14 @@ class StockRequestController extends Controller
         return $agent;
     }
 
-    private function products()
+    private function variants()
     {
-        return Product::query()
-            ->where('status', Product::STATUS_ACTIVE)
-            ->orderBy('name')
-            ->get();
+        return ProductVariant::query()
+            ->with('product')
+            ->active()
+            ->whereHas('product', fn ($query) => $query->where('status', Product::STATUS_ACTIVE))
+            ->get()
+            ->sortBy(fn (ProductVariant $variant) => $variant->displayName())
+            ->values();
     }
 }

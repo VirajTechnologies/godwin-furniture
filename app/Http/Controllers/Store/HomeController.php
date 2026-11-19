@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Store;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\Stock;
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -13,40 +16,20 @@ class HomeController extends Controller
     public function index(): View
     {
         $online = Product::query()
-            ->with(['images', 'category.parent'])
+            ->with(['images', 'category.parent', 'activeVariants'])
             ->where('is_online', true)
             ->where('status', Product::STATUS_ACTIVE);
 
         return view('store.home', [
             'featuredProducts' => (clone $online)->where('is_featured', true)->orderBy('name')->limit(8)->get(),
             'newProducts' => (clone $online)->orderByDesc('id')->limit(8)->get(),
-            'rooms' => Category::query()
-                ->with(['children' => fn ($query) => $query
-                    ->where('status', Category::STATUS_ACTIVE)
-                    ->orderBy('menu_group')
-                    ->orderBy('sort_order')
-                    ->orderBy('name')])
-                ->whereNull('parent_id')
-                ->where('status', Category::STATUS_ACTIVE)
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get(),
+            'rooms' => $this->navigationTree(),
         ]);
     }
 
     public function catalog(Request $request): View
     {
-        $rooms = Category::query()
-            ->with(['children' => fn ($query) => $query
-                ->where('status', Category::STATUS_ACTIVE)
-                ->orderBy('menu_group')
-                ->orderBy('sort_order')
-                ->orderBy('name')])
-            ->whereNull('parent_id')
-            ->where('status', Category::STATUS_ACTIVE)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        $rooms = $this->navigationTree();
 
         $materials = Product::query()
             ->where('is_online', true)
@@ -58,7 +41,9 @@ class HomeController extends Controller
             ->pluck('material');
 
         $query = Product::query()
-            ->with(['images', 'category.parent'])
+            ->with(['images', 'category.parent', 'activeVariants'])
+            ->select('products.*')
+            ->selectSub($this->lowestVariantPrice(), 'from_price')
             ->where('is_online', true)
             ->where('status', Product::STATUS_ACTIVE);
 
@@ -74,11 +59,7 @@ class HomeController extends Controller
         if ($request->filled('category')) {
             $category = Category::query()->where('slug', $request->string('category')->toString())->first();
             if ($category) {
-                if ($category->isRoom()) {
-                    $query->whereIn('category_id', $category->children()->pluck('id'));
-                } else {
-                    $query->where('category_id', $category->id);
-                }
+                $query->whereIn('category_id', $this->catalogCategoryIds($category));
             }
         }
 
@@ -88,13 +69,14 @@ class HomeController extends Controller
 
         if ($request->filled('max_price')) {
             $max = (float) $request->input('max_price');
-            $query->whereRaw('COALESCE(online_price, selling_price) <= ?', [$max]);
+            // A product qualifies when its cheapest variant is within budget.
+            $query->whereHas('activeVariants', fn ($variants) => $variants->where('price', '<=', $max));
         }
 
         $sort = $request->string('sort')->toString();
         match ($sort) {
-            'price_asc' => $query->orderByRaw('COALESCE(online_price, selling_price) asc'),
-            'price_desc' => $query->orderByRaw('COALESCE(online_price, selling_price) desc'),
+            'price_asc' => $query->orderBy('from_price'),
+            'price_desc' => $query->orderByDesc('from_price'),
             'newest' => $query->orderByDesc('id'),
             default => $query->orderByDesc('is_featured')->orderBy('name'),
         };
@@ -118,14 +100,14 @@ class HomeController extends Controller
     public function product(string $slug): View
     {
         $product = Product::query()
-            ->with(['images', 'category.parent'])
+            ->with(['images', 'category.parent', 'activeVariants'])
             ->where('slug', $slug)
             ->where('is_online', true)
             ->where('status', Product::STATUS_ACTIVE)
             ->firstOrFail();
 
         $related = Product::query()
-            ->with('images')
+            ->with(['images', 'activeVariants'])
             ->where('is_online', true)
             ->where('status', Product::STATUS_ACTIVE)
             ->where('category_id', $product->category_id)
@@ -137,6 +119,93 @@ class HomeController extends Controller
         return view('store.product', [
             'product' => $product,
             'related' => $related,
+            'variants' => $this->sellableVariants($product),
         ]);
+    }
+
+    /**
+     * Variant payload for the colour / finish / upholstery picker, with the
+     * online warehouse quantity so unavailable combinations can be marked.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function sellableVariants(Product $product): array
+    {
+        $warehouse = Warehouse::primaryForOnline();
+
+        $quantities = $warehouse === null
+            ? collect()
+            : Stock::query()
+                ->whereIn('product_variant_id', $product->activeVariants->pluck('id'))
+                ->where('warehouse_id', $warehouse->id)
+                ->whereNull('branch_id')
+                ->whereNull('agent_id')
+                ->pluck('quantity', 'product_variant_id');
+
+        return $product->activeVariants
+            ->map(fn (ProductVariant $variant) => [
+                'id' => $variant->id,
+                'sku' => $variant->sku,
+                'colour' => (string) $variant->colour,
+                'colour_hex' => $variant->colour_hex,
+                'finish' => (string) $variant->finish,
+                'upholstery' => (string) $variant->upholstery,
+                'label' => $variant->label(),
+                'price' => $variant->storePrice(),
+                'mrp' => $variant->mrp(),
+                'available' => (int) ($quantities[$variant->id] ?? 0),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function lowestVariantPrice(): \Illuminate\Database\Query\Builder
+    {
+        return ProductVariant::query()
+            ->selectRaw('MIN(price)')
+            ->whereColumn('product_variants.product_id', 'products.id')
+            ->where('status', ProductVariant::STATUS_ACTIVE)
+            ->toBase();
+    }
+
+    /**
+     * Storefront menu uses room-level categories (Living Room, Bedroom, …),
+     * whose children are the product-category leaves products hang off.
+     *
+     * @return \Illuminate\Support\Collection<int, Category>
+     */
+    private function navigationTree()
+    {
+        return Category::query()
+            ->with(['children' => fn ($query) => $query
+                ->where('status', Category::STATUS_ACTIVE)
+                ->orderBy('menu_group')
+                ->orderBy('sort_order')
+                ->orderBy('name')])
+            ->whereNotNull('parent_id')
+            ->whereHas('children')
+            ->where('status', Category::STATUS_ACTIVE)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function catalogCategoryIds(Category $category): array
+    {
+        $childIds = $category->children()->pluck('id');
+
+        if ($childIds->isEmpty()) {
+            return [$category->id];
+        }
+
+        $leafIds = Category::query()->whereIn('parent_id', $childIds)->pluck('id');
+
+        // Project → rooms → leaves, or room → leaves.
+        return $leafIds->isNotEmpty()
+            ? $leafIds->all()
+            : $childIds->all();
     }
 }

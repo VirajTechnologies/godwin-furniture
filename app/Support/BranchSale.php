@@ -7,7 +7,7 @@ use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ class BranchSale
     public function __construct(private StockLedger $ledger) {}
 
     /**
-     * @param  list<array{product_id: int, quantity: int, unit_price?: float|int|string}>  $lines
+     * @param  list<array{product_variant_id: int, quantity: int, unit_price?: float|int|string}>  $lines
      * @param  array{
      *     delivery_type: string,
      *     shipping_address?: string|null,
@@ -54,32 +54,34 @@ class BranchSale
             $total = 0;
 
             foreach ($lines as $line) {
-                $product = Product::query()->findOrFail($line['product_id']);
+                $variant = ProductVariant::query()->with('product')->findOrFail($line['product_variant_id']);
                 $stock = Stock::query()
-                    ->where('product_id', $product->id)
+                    ->where('product_variant_id', $variant->id)
                     ->where('branch_id', $branch->id)
                     ->whereNull('warehouse_id')
+                    ->whereNull('agent_id')
                     ->lockForUpdate()
                     ->first();
 
                 $available = $stock?->quantity ?? 0;
 
                 if (! $stock || $available < $line['quantity']) {
-                    throw new InsufficientStock($product->name, $available, $line['quantity'], 'branch');
+                    throw new InsufficientStock($variant->displayName(), $available, $line['quantity'], 'branch');
                 }
 
-                $floor = round($product->priceForBranch($branch), 2);
+                $floor = round($variant->priceForBranch($branch), 2);
                 $unitPrice = isset($line['unit_price']) ? round((float) $line['unit_price'], 2) : $floor;
 
                 if ($unitPrice < $floor) {
-                    throw new RuntimeException($product->name.' cannot be sold below ₹'.number_format($floor, 2).'.');
+                    throw new RuntimeException($variant->displayName().' cannot be sold below ₹'.number_format($floor, 2).'.');
                 }
 
                 $lineTotal = round($unitPrice * $line['quantity'], 2);
                 $total += $lineTotal;
 
                 $order->items()->create([
-                    'product_id' => $product->id,
+                    'product_id' => $variant->product_id,
+                    'product_variant_id' => $variant->id,
                     'quantity' => $line['quantity'],
                     'unit_price' => $unitPrice,
                     'line_total' => $lineTotal,

@@ -8,6 +8,7 @@ use App\Http\Requests\Branch\SaleRequest;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Support\BranchSale;
 use Illuminate\Http\JsonResponse;
@@ -104,7 +105,7 @@ class SaleController extends Controller
     {
         abort_unless($order->branch_id === $request->user()->employee->branch_id, 404);
 
-        $order->load(['customer', 'items.product', 'payment', 'seller']);
+        $order->load(['customer', 'items.variant.product', 'payment', 'seller']);
 
         return view('branch.sales.show', [
             'order' => $order,
@@ -137,15 +138,20 @@ class SaleController extends Controller
         $branchId = $request->user()->employee->branch_id;
 
         return Stock::query()
-            ->with(['product.branchPrices' => fn ($query) => $query->where('branch_id', $branchId)])
+            ->with([
+                'variant.product',
+                'variant.branchPrices' => fn ($query) => $query->where('branch_id', $branchId),
+            ])
             ->where('branch_id', $branchId)
             ->whereNull('warehouse_id')
+            ->whereNull('agent_id')
             ->where('quantity', '>', 0)
-            ->whereHas('product', function ($query): void {
-                $query->where('status', Product::STATUS_ACTIVE);
+            ->whereHas('variant', function ($query): void {
+                $query->where('status', ProductVariant::STATUS_ACTIVE)
+                    ->whereHas('product', fn ($product) => $product->where('status', Product::STATUS_ACTIVE));
             })
             ->get()
-            ->sortBy(fn (Stock $stock) => $stock->product?->name)
+            ->sortBy(fn (Stock $stock) => ($stock->variant?->product?->name ?? '').' '.($stock->variant?->label() ?? ''))
             ->values();
     }
 }

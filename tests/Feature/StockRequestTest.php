@@ -15,10 +15,12 @@ use App\Models\StockRequest;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesCatalog;
 use Tests\TestCase;
 
 class StockRequestTest extends TestCase
 {
+    use CreatesCatalog;
     use RefreshDatabase;
 
     public function test_a_manager_can_ask_for_stock_without_changing_quantity(): void
@@ -28,7 +30,7 @@ class StockRequestTest extends TestCase
         $this->actingAs($manager)->post(route('branch.stock-requests.store'), [
             'notes' => 'Need sofas for the weekend',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ])->assertRedirect();
 
@@ -39,16 +41,16 @@ class StockRequestTest extends TestCase
         $this->assertNull($request->stock_transfer_id);
         $this->assertDatabaseHas('stock_request_items', [
             'stock_request_id' => $request->id,
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 2,
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $branch->warehouse_id,
             'quantity' => 8,
         ]);
         $this->assertDatabaseMissing('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
         ]);
     }
@@ -61,7 +63,7 @@ class StockRequestTest extends TestCase
         $this->actingAs($cashier)->get(route('branch.stock-requests.index'))->assertForbidden();
         $this->actingAs($cashier)->post(route('branch.stock-requests.store'), [
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ])->assertForbidden();
     }
@@ -73,7 +75,7 @@ class StockRequestTest extends TestCase
 
         $this->actingAs($manager)->post(route('branch.stock-requests.store'), [
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ]);
 
@@ -93,11 +95,11 @@ class StockRequestTest extends TestCase
         ]);
         $this->assertDatabaseHas('stock_transfer_items', [
             'stock_transfer_id' => $request->stock_transfer_id,
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 2,
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $branch->warehouse_id,
             'quantity' => 8,
         ]);
@@ -148,16 +150,15 @@ class StockRequestTest extends TestCase
             'status' => 'active',
         ]);
         $category = Category::query()->create(['name' => 'Sofas', 'status' => 'active']);
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+        $product = $this->catalogProduct([
             'code' => 'SF001',
+            'slug' => 'sf001',
             'name' => 'Three Seater Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 45000,
-            'status' => 'active',
+            'base_price' => 45000,
+            'is_online' => false,
         ]);
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 8,
         ]);

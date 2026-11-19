@@ -101,8 +101,8 @@
                                 <tbody>
                                     @foreach ($stocks as $stock)
                                         <tr>
-                                            <td class="fw-medium">{{ $stock->product?->code }}</td>
-                                            <td>{{ $stock->product?->name }}</td>
+                                            <td class="fw-medium">{{ $stock->variant?->sku }}</td>
+                                            <td>{{ $stock->variant?->displayName() }}</td>
                                             <td class="{{ $stock->quantity === 0 ? 'text-danger' : '' }}">{{ $stock->quantity }}</td>
                                         </tr>
                                     @endforeach

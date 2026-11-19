@@ -80,7 +80,7 @@ class StorefrontAddressTest extends TestCase
         ]);
 
         $product = $this->onlineProduct();
-        app(StoreCart::class)->add($product, 1);
+        app(StoreCart::class)->add($this->primaryVariant($product), 1);
 
         $this->actingAs($user)
             ->get(route('store.checkout'))
@@ -130,19 +130,20 @@ class StorefrontAddressTest extends TestCase
 
     private function onlineProduct(): Product
     {
-        $category = $this->subcategory();
-
-        return Product::query()->create([
-            'category_id' => $category->id,
+        return $this->catalogProduct([
             'code' => 'SF001',
             'slug' => 'alanis-sofa',
             'name' => 'Alanis Metal Frame Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 42000,
-            'online_price' => 38999,
-            'compare_at_price' => 54999,
+            'base_price' => 38999,
             'is_online' => true,
-            'status' => 'active',
+        ], [
+            [
+                'colour' => 'Walnut',
+                'finish' => 'Matte',
+                'upholstery' => 'Velvet',
+                'price' => 38999,
+                'compare_at_price' => 54999,
+            ],
         ]);
     }
 

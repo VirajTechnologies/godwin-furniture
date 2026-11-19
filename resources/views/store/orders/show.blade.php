@@ -70,8 +70,9 @@
                     @foreach ($order->items as $item)
                         <div class="d-flex justify-content-between gap-3 font-heading {{ ! $loop->last ? 'pb-3 border-bottom mb-3' : '' }}">
                             <div>
-                                <div class="fw-semibold text-dark">{{ $item->product?->name }}</div>
-                                <div class="small text-muted">{{ $item->product?->code }} × {{ $item->quantity }}</div>
+                                <div class="fw-semibold text-dark">{{ $item->variant?->product?->name ?? $item->product?->name }}</div>
+                                <div class="small text-muted">{{ $item->variant?->label() }}</div>
+                                <div class="small text-muted">{{ $item->variant?->sku ?? $item->product?->code }} × {{ $item->quantity }}</div>
                             </div>
                             <div class="fw-bold text-dark text-nowrap">₹{{ number_format((float) $item->line_total, 0) }}</div>
                         </div>

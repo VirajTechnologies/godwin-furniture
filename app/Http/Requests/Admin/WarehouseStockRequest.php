@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Http\FormRequest;
@@ -31,7 +31,7 @@ class WarehouseStockRequest extends FormRequest
         $rules = [
             'quantity' => ['required', 'integer', 'min:0'],
             'note' => ['nullable', 'string', 'max:2000'],
-            'product_id' => ['required', 'integer', Rule::exists('products', 'id')],
+            'product_variant_id' => ['required', 'integer', Rule::exists('product_variants', 'id')],
             'warehouse_id' => ['required', 'integer', Rule::exists('warehouses', 'id')],
         ];
 
@@ -51,22 +51,22 @@ class WarehouseStockRequest extends FormRequest
                 return;
             }
 
-            $product = Product::query()->find($this->integer('product_id'));
+            $variant = ProductVariant::query()->with('product')->find($this->integer('product_variant_id'));
             $warehouse = Warehouse::query()->find($this->integer('warehouse_id'));
 
-            if ($product && ! $product->isActive()) {
-                $validator->errors()->add('product_id', 'Choose an active product.');
+            if ($variant && (! $variant->isActive() || ! $variant->product?->isActive())) {
+                $validator->errors()->add('product_variant_id', 'Choose an active variant.');
             }
 
             if ($warehouse && ! $warehouse->isActive()) {
                 $validator->errors()->add('warehouse_id', 'Choose an active warehouse.');
             }
 
-            if ($product && $warehouse && Stock::query()
-                ->where('product_id', $product->id)
+            if ($variant && $warehouse && Stock::query()
+                ->where('product_variant_id', $variant->id)
                 ->where('warehouse_id', $warehouse->id)
                 ->exists()) {
-                $validator->errors()->add('product_id', 'This product already has stock in the selected warehouse.');
+                $validator->errors()->add('product_variant_id', 'This variant already has stock in the selected warehouse.');
             }
         });
     }

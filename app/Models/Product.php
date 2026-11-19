@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -22,11 +23,19 @@ class Product extends Model
         'slug',
         'name',
         'description',
+        'project_category',
+        'room',
+        'product_category',
+        'design_type',
+        'family',
+        'width_cm',
+        'depth_cm',
+        'height_cm',
+        'weight_kg',
+        'specs',
         'material',
         'unit',
-        'selling_price',
-        'compare_at_price',
-        'online_price',
+        'base_price',
         'is_online',
         'is_featured',
         'status',
@@ -38,9 +47,12 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'selling_price' => 'decimal:2',
-            'compare_at_price' => 'decimal:2',
-            'online_price' => 'decimal:2',
+            'base_price' => 'decimal:2',
+            'width_cm' => 'decimal:2',
+            'depth_cm' => 'decimal:2',
+            'height_cm' => 'decimal:2',
+            'weight_kg' => 'decimal:2',
+            'specs' => 'array',
             'is_online' => 'boolean',
             'is_featured' => 'boolean',
         ];
@@ -60,9 +72,19 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function stocks(): HasMany
+    public function variants(): HasMany
     {
-        return $this->hasMany(Stock::class);
+        return $this->hasMany(ProductVariant::class)->orderBy('id');
+    }
+
+    public function activeVariants(): HasMany
+    {
+        return $this->variants()->where('status', ProductVariant::STATUS_ACTIVE);
+    }
+
+    public function stocks(): HasManyThrough
+    {
+        return $this->hasManyThrough(Stock::class, ProductVariant::class, 'product_id', 'product_variant_id');
     }
 
     public function images(): HasMany
@@ -70,82 +92,33 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->orderBy('sort_order')->orderBy('id');
     }
 
-    public function branchPrices(): HasMany
+    /**
+     * Lowest active variant price, falling back to the base price.
+     */
+    public function fromPrice(): float
     {
-        return $this->hasMany(BranchProductPrice::class);
+        $variants = $this->relationLoaded('variants')
+            ? $this->variants->where('status', ProductVariant::STATUS_ACTIVE)
+            : $this->activeVariants()->get();
+
+        $min = $variants->min('price');
+
+        return $min !== null ? (float) $min : (float) $this->base_price;
     }
 
-    public function agentTerms(): HasMany
+    /**
+     * "Furniture › Living Room › Sofa › Chester"
+     */
+    public function path(string $separator = ' › '): string
     {
-        return $this->hasMany(AgentProductTerm::class);
+        return collect([$this->project_category, $this->room, $this->product_category, $this->design_type])
+            ->filter()
+            ->implode($separator);
     }
 
-    public function priceForBranch(Branch|int $branch): float
+    public function hasUpholstery(): bool
     {
-        $branchId = $branch instanceof Branch ? $branch->id : $branch;
-
-        if ($this->relationLoaded('branchPrices')) {
-            $override = $this->branchPrices->firstWhere('branch_id', $branchId);
-        } else {
-            $override = $this->branchPrices()->where('branch_id', $branchId)->first();
-        }
-
-        if ($override !== null) {
-            return (float) $override->price;
-        }
-
-        return (float) $this->selling_price;
-    }
-
-    public function priceForAgent(Agent|int $agent): float
-    {
-        $term = $this->termForAgent($agent);
-
-        if ($term !== null && $term->price !== null) {
-            return (float) $term->price;
-        }
-
-        return (float) $this->selling_price;
-    }
-
-    public function commissionPercentForAgent(Agent|int $agent): float
-    {
-        $percent = $this->termForAgent($agent)?->commission_percent;
-
-        if ($percent !== null) {
-            return (float) $percent;
-        }
-
-        if (! $agent instanceof Agent) {
-            $agent = Agent::query()->find($agent);
-        }
-
-        return $agent?->commission_percent !== null ? (float) $agent->commission_percent : 0;
-    }
-
-    public function storePrice(): float
-    {
-        return $this->online_price !== null
-            ? (float) $this->online_price
-            : (float) $this->selling_price;
-    }
-
-    private function termForAgent(Agent|int $agent): ?AgentProductTerm
-    {
-        $agentId = $agent instanceof Agent ? $agent->id : $agent;
-
-        if ($this->relationLoaded('agentTerms')) {
-            return $this->agentTerms->firstWhere('agent_id', $agentId);
-        }
-
-        return $this->agentTerms()->where('agent_id', $agentId)->first();
-    }
-
-    public function mrp(): ?float
-    {
-        return $this->compare_at_price !== null
-            ? (float) $this->compare_at_price
-            : null;
+        return \App\Support\Catalog::usesUpholstery($this->family);
     }
 
     public function primaryImageUrl(): ?string

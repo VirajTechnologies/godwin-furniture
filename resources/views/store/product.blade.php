@@ -7,13 +7,21 @@
     @include('store.partials.header')
 
     @php
-        $price = $product->storePrice();
-        $mrp = $product->mrp();
         $images = $product->images;
         if ($images->isEmpty()) {
             $images = collect([(object) ['url' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800']]);
         }
         $main = $images->first()->url;
+
+        $options = collect($variants);
+        $selected = $options->firstWhere('available', '>', 0) ?? $options->first();
+        $price = $selected['price'] ?? $product->fromPrice();
+        $mrp = $selected['mrp'] ?? null;
+        $colours = $options->unique('colour')->values();
+        $finishes = $options->pluck('finish')->filter()->unique()->values();
+        $upholsteries = $product->hasUpholstery()
+            ? $options->pluck('upholstery')->filter()->unique()->values()
+            : collect();
     @endphp
 
     <section class="bg-white border-bottom py-3">
@@ -48,7 +56,7 @@
                 </div>
                 <div class="col-12 col-lg-6">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-light text-dark border font-heading px-2.5 py-1">SKU: {{ $product->code }}</span>
+                        <span class="badge bg-light text-dark border font-heading px-2.5 py-1">SKU: <span id="variant-sku">{{ $selected['sku'] ?? $product->code }}</span></span>
                         @if ($product->is_featured)
                             <span class="badge bg-amber-light text-amber font-heading px-2.5 py-1 fw-bold">Featured</span>
                         @endif
@@ -59,31 +67,69 @@
                     @endif
                     <div class="p-3 bg-light rounded-4 border mb-4">
                         <div class="d-flex align-items-baseline gap-3 flex-wrap">
-                            <span class="fs-2 fw-bold text-dark font-heading">₹{{ number_format($price, 0) }}</span>
-                            @if ($mrp && $mrp > $price)
-                                <span class="fs-5 text-muted text-decoration-line-through font-heading">₹{{ number_format($mrp, 0) }}</span>
-                                <span class="badge bg-success text-white font-heading px-2.5 py-1 fw-bold">Save ₹{{ number_format($mrp - $price, 0) }}</span>
-                            @endif
+                            <span class="fs-2 fw-bold text-dark font-heading" id="variant-price">₹{{ number_format($price, 0) }}</span>
+                            <span class="fs-5 text-muted text-decoration-line-through font-heading {{ $mrp && $mrp > $price ? '' : 'd-none' }}" id="variant-mrp">₹{{ number_format((float) $mrp, 0) }}</span>
+                            <span class="badge bg-success text-white font-heading px-2.5 py-1 fw-bold {{ $mrp && $mrp > $price ? '' : 'd-none' }}" id="variant-save">Save ₹{{ number_format((float) $mrp - $price, 0) }}</span>
                         </div>
                     </div>
+
+                    @if ($options->isNotEmpty())
+                        <div id="variant-picker" class="mb-4">
+                            <div class="mb-3">
+                                <div class="small text-muted font-heading mb-2">Colour: <span class="fw-semibold text-dark" data-variant-selected="colour">{{ $selected['colour'] ?? '' }}</span></div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach ($colours as $option)
+                                        <button type="button" class="btn btn-sm btn-outline-dark font-heading js-variant-option" data-group="colour" data-value="{{ $option['colour'] }}">
+                                            <span class="d-inline-block rounded-circle border align-middle me-1" style="width: 14px; height: 14px; background: {{ $option['colour_hex'] }};"></span>{{ $option['colour'] }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @if ($finishes->isNotEmpty())
+                                <div class="mb-3">
+                                    <div class="small text-muted font-heading mb-2">Finish: <span class="fw-semibold text-dark" data-variant-selected="finish">{{ $selected['finish'] ?? '' }}</span></div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach ($finishes as $finish)
+                                            <button type="button" class="btn btn-sm btn-outline-dark font-heading js-variant-option" data-group="finish" data-value="{{ $finish }}">{{ $finish }}</button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            @if ($upholsteries->isNotEmpty())
+                                <div class="mb-3">
+                                    <div class="small text-muted font-heading mb-2">Upholstery: <span class="fw-semibold text-dark" data-variant-selected="upholstery">{{ $selected['upholstery'] ?? '' }}</span></div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach ($upholsteries as $upholstery)
+                                            <button type="button" class="btn btn-sm btn-outline-dark font-heading js-variant-option" data-group="upholstery" data-value="{{ $upholstery }}">{{ $upholstery }}</button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            <div class="small font-heading {{ ($selected['available'] ?? 0) > 0 ? 'text-success' : 'text-danger' }}" id="variant-stock">
+                                {{ ($selected['available'] ?? 0) > 0 ? 'In stock' : 'Out of stock' }}
+                            </div>
+                        </div>
+                        <script type="application/json" id="variant-data">@json($variants)</script>
+                    @endif
+
                     @if ($product->description)
                         <p class="font-heading text-dark mb-4">{{ $product->description }}</p>
                     @endif
                     <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
                         <form method="POST" action="{{ route('store.cart.add') }}" class="flex-grow-1 m-0">
                             @csrf
-                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="product_variant_id" value="{{ $selected['id'] ?? '' }}" class="js-variant-input">
                             <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="btn btn-primary-luxury btn-lg py-3 px-4 w-100 font-heading fw-bold shadow-sm">
+                            <button type="submit" class="btn btn-primary-luxury btn-lg py-3 px-4 w-100 font-heading fw-bold shadow-sm js-variant-submit" @disabled(($selected['available'] ?? 0) < 1)>
                                 <i class="fas fa-shopping-bag me-2"></i> Add To Bag
                             </button>
                         </form>
                         <form method="POST" action="{{ route('store.cart.add') }}" class="m-0">
                             @csrf
-                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="product_variant_id" value="{{ $selected['id'] ?? '' }}" class="js-variant-input">
                             <input type="hidden" name="quantity" value="1">
                             <input type="hidden" name="redirect" value="cart">
-                            <button type="submit" class="btn btn-dark btn-lg py-3 px-4 font-heading fw-bold">
+                            <button type="submit" class="btn btn-dark btn-lg py-3 px-4 font-heading fw-bold js-variant-submit" @disabled(($selected['available'] ?? 0) < 1)>
                                 <i class="fas fa-bolt me-2 text-warning"></i> Buy Now
                             </button>
                         </form>
@@ -110,3 +156,133 @@
     @include('store.partials.footer')
     @include('store.partials.whatsapp')
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const picker = document.getElementById('variant-picker');
+    const payload = document.getElementById('variant-data');
+    if (!picker || !payload) {
+        return;
+    }
+
+    const variants = JSON.parse(payload.textContent);
+    const groups = ['colour', 'finish', 'upholstery'].filter(function (group) {
+        return picker.querySelector('[data-group="' + group + '"]') !== null;
+    });
+    if (variants.length === 0 || groups.length === 0) {
+        return;
+    }
+
+    const priceEl = document.getElementById('variant-price');
+    const mrpEl = document.getElementById('variant-mrp');
+    const saveEl = document.getElementById('variant-save');
+    const skuEl = document.getElementById('variant-sku');
+    const stockEl = document.getElementById('variant-stock');
+    const inputs = document.querySelectorAll('.js-variant-input');
+    const submits = document.querySelectorAll('.js-variant-submit');
+    const selection = {};
+
+    function money(amount) {
+        return '₹' + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+
+    function matching(partial) {
+        return variants.filter(function (variant) {
+            return groups.every(function (group) {
+                return partial[group] === undefined || variant[group] === partial[group];
+            });
+        });
+    }
+
+    function currentVariant() {
+        const found = matching(selection);
+
+        return found.find(function (variant) { return variant.available > 0; }) || found[0] || null;
+    }
+
+    function choose(group, value) {
+        selection[group] = value;
+
+        // Keep the other groups on a combination that actually exists.
+        groups.forEach(function (other) {
+            if (other === group || matching(selection).length > 0) {
+                return;
+            }
+            const partial = Object.assign({}, selection);
+            delete partial[other];
+            const options = matching(partial);
+            const pick = options.find(function (variant) { return variant.available > 0; }) || options[0];
+            if (pick) {
+                selection[other] = pick[other];
+            }
+        });
+
+        render();
+    }
+
+    function render() {
+        groups.forEach(function (group) {
+            picker.querySelectorAll('[data-group="' + group + '"]').forEach(function (button) {
+                const value = button.dataset.value;
+                const anywhere = variants.filter(function (variant) { return variant[group] === value; });
+                const sellable = anywhere.some(function (variant) { return variant.available > 0; });
+                const probe = Object.assign({}, selection);
+                probe[group] = value;
+                const here = matching(probe);
+                const chosen = selection[group] === value;
+
+                button.disabled = !sellable;
+                button.classList.toggle('btn-dark', chosen);
+                button.classList.toggle('btn-outline-dark', !chosen);
+                button.classList.toggle('text-decoration-line-through', !sellable);
+                button.classList.toggle('opacity-50', sellable && !here.some(function (variant) { return variant.available > 0; }));
+                button.title = sellable ? '' : 'Out of stock';
+            });
+
+            const label = picker.querySelector('[data-variant-selected="' + group + '"]');
+            if (label) {
+                label.textContent = selection[group] || '—';
+            }
+        });
+
+        const variant = currentVariant();
+        const inStock = Boolean(variant) && variant.available > 0;
+
+        if (variant) {
+            priceEl.textContent = money(variant.price);
+            skuEl.textContent = variant.sku;
+            const discounted = variant.mrp !== null && Number(variant.mrp) > Number(variant.price);
+            mrpEl.textContent = money(variant.mrp || 0);
+            saveEl.textContent = 'Save ' + money((variant.mrp || 0) - variant.price);
+            mrpEl.classList.toggle('d-none', !discounted);
+            saveEl.classList.toggle('d-none', !discounted);
+        }
+
+        stockEl.textContent = inStock ? 'In stock' : 'Out of stock';
+        stockEl.classList.toggle('text-success', inStock);
+        stockEl.classList.toggle('text-danger', !inStock);
+
+        inputs.forEach(function (input) {
+            input.value = variant ? variant.id : '';
+        });
+        submits.forEach(function (button) {
+            button.disabled = !inStock;
+        });
+    }
+
+    picker.addEventListener('click', function (event) {
+        const button = event.target.closest('.js-variant-option');
+        if (button && !button.disabled) {
+            choose(button.dataset.group, button.dataset.value);
+        }
+    });
+
+    const start = variants.find(function (variant) { return variant.available > 0; }) || variants[0];
+    groups.forEach(function (group) {
+        selection[group] = start[group];
+    });
+    render();
+});
+</script>
+@endpush

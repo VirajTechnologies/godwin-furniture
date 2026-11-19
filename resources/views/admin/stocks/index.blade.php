@@ -21,7 +21,7 @@
                     @if ($stocks->isEmpty())
                         <div class="text-center py-5">
                             <h5 class="mb-2">No warehouse stock yet</h5>
-                            <p class="text-muted mb-3">Create a product, then record how many pieces are in a warehouse.</p>
+                            <p class="text-muted mb-3">Create a product variant, then record how many pieces are in a warehouse.</p>
                             <a href="{{ route('admin.stocks.create') }}" class="btn btn-success">Add Stock</a>
                         </div>
                     @else
@@ -30,8 +30,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>SR No.</th>
-                                        <th>Code</th>
+                                        <th>SKU</th>
                                         <th>Product</th>
+                                        <th>Variant</th>
                                         <th>Category</th>
                                         <th>Subcategory</th>
                                         <th>Warehouse</th>
@@ -44,10 +45,11 @@
                                     @foreach ($stocks as $stock)
                                         <tr>
                                             <td>{{ $stocks->firstItem() + $loop->index }}</td>
-                                            <td class="fw-medium">{{ $stock->product?->code }}</td>
-                                            <td>{{ $stock->product?->name }}</td>
-                                            <td>{{ $stock->product?->category?->parent?->name ?? '—' }}</td>
-                                            <td>{{ $stock->product?->category?->name ?? '—' }}</td>
+                                            <td class="fw-medium">{{ $stock->variant?->sku }}</td>
+                                            <td>{{ $stock->variant?->product?->name }}</td>
+                                            <td>{{ $stock->variant?->label() ?: '—' }}</td>
+                                            <td>{{ $stock->variant?->product?->category?->parent?->name ?? '—' }}</td>
+                                            <td>{{ $stock->variant?->product?->category?->name ?? '—' }}</td>
                                             <td>{{ $stock->warehouse?->name ?? '—' }}</td>
                                             <td>{{ $stock->quantity }}</td>
                                             <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>

@@ -6,6 +6,7 @@ use App\Exceptions\InsufficientStock;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\WarehouseStockRequest;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\StockTransfer;
 use App\Models\Warehouse;
@@ -19,9 +20,9 @@ class WarehouseStockController extends Controller
     {
         $stocks = Stock::query()
             ->whereNotNull('warehouse_id')
-            ->with(['product.category.parent', 'warehouse'])
+            ->with(['variant.product.category.parent', 'warehouse'])
             ->orderBy('warehouse_id')
-            ->orderBy('product_id')
+            ->orderBy('product_variant_id')
             ->paginate(15);
 
         return view('admin.stocks.index', [
@@ -33,18 +34,18 @@ class WarehouseStockController extends Controller
     {
         return view('admin.stocks.create', [
             'stock' => new Stock(['quantity' => 0]),
-            'products' => $this->products(),
+            'variants' => $this->variants(),
             'warehouses' => $this->warehouses(),
         ]);
     }
 
     public function store(WarehouseStockRequest $request, StockLedger $ledger): RedirectResponse
     {
-        $product = Product::query()->findOrFail($request->integer('product_id'));
+        $variant = ProductVariant::query()->findOrFail($request->integer('product_variant_id'));
         $warehouse = Warehouse::query()->findOrFail($request->integer('warehouse_id'));
 
         $ledger->openWarehouseStock(
-            $product,
+            $variant,
             $warehouse,
             $request->integer('quantity'),
             $request->filled('note') ? $request->string('note')->toString() : null,
@@ -58,7 +59,7 @@ class WarehouseStockController extends Controller
     {
         abort_unless($stock->warehouse_id, 404);
 
-        $stock->load(['product', 'warehouse', 'movements.user']);
+        $stock->load(['variant.product', 'warehouse', 'movements.user']);
         $movements = $stock->movements->sortByDesc('id')->take(10)->values();
         $transferCodes = $movements
             ->map(fn ($movement) => $this->transferCode($movement->note))
@@ -122,12 +123,15 @@ class WarehouseStockController extends Controller
         return $code !== '' ? $code : null;
     }
 
-    private function products()
+    private function variants()
     {
-        return Product::query()
-            ->where('status', Product::STATUS_ACTIVE)
-            ->orderBy('name')
-            ->get();
+        return ProductVariant::query()
+            ->with('product')
+            ->active()
+            ->whereHas('product', fn ($query) => $query->where('status', Product::STATUS_ACTIVE))
+            ->get()
+            ->sortBy(fn (ProductVariant $variant) => $variant->displayName())
+            ->values();
     }
 
     private function warehouses()

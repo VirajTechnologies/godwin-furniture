@@ -15,10 +15,12 @@ use App\Models\StockMovement;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesCatalog;
 use Tests\TestCase;
 
 class AdminStockTransferTest extends TestCase
 {
+    use CreatesCatalog;
     use RefreshDatabase;
 
     public function test_a_draft_does_not_change_warehouse_stock(): void
@@ -30,7 +32,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'tr001',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ])->assertRedirect();
 
@@ -41,12 +43,12 @@ class AdminStockTransferTest extends TestCase
             'status' => 'draft',
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 5,
         ]);
         $this->assertDatabaseMissing('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
         ]);
     }
@@ -60,7 +62,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR001',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ]);
 
@@ -70,13 +72,13 @@ class AdminStockTransferTest extends TestCase
             ->post(route('admin.transfers.dispatch', $transferId), [
                 'branch_id' => $branch->id,
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 2],
+                    ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
                 ],
             ])
             ->assertRedirect(route('admin.transfers.edit', $transferId));
 
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 3,
         ]);
@@ -94,7 +96,7 @@ class AdminStockTransferTest extends TestCase
             ->assertSee('Vijayawada Showroom')
             ->assertSee(route('admin.transfers.edit', $transferId), false);
         $this->assertDatabaseMissing('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
         ]);
 
@@ -115,7 +117,7 @@ class AdminStockTransferTest extends TestCase
             'status' => 'received',
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
             'quantity' => 2,
         ]);
@@ -148,7 +150,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR002',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 4],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 4],
             ],
         ]);
 
@@ -158,7 +160,7 @@ class AdminStockTransferTest extends TestCase
             ->post(route('admin.transfers.dispatch', $transferId), [
                 'branch_id' => $branch->id,
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 4],
+                    ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 4],
                 ],
             ])
             ->assertSessionHas('error');
@@ -168,7 +170,7 @@ class AdminStockTransferTest extends TestCase
             'status' => 'draft',
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 1,
         ]);
@@ -183,7 +185,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR003',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ]);
 
@@ -214,7 +216,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR004',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ]);
 
@@ -222,7 +224,7 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ]);
 
@@ -259,7 +261,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR005',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ]);
 
@@ -267,7 +269,7 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ]);
 
@@ -290,7 +292,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR006',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ]);
 
@@ -301,14 +303,14 @@ class AdminStockTransferTest extends TestCase
                 'branch_id' => $branch->id,
                 'notes' => 'Updated on dispatch',
                 'items' => [
-                    ['product_id' => $product->id, 'quantity' => 4],
+                    ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 4],
                 ],
             ])
             ->assertRedirect(route('admin.transfers.edit', $transferId));
 
         $this->assertDatabaseHas('stock_transfer_items', [
             'stock_transfer_id' => $transferId,
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 4,
         ]);
         $this->assertDatabaseHas('stock_transfers', [
@@ -317,7 +319,7 @@ class AdminStockTransferTest extends TestCase
             'notes' => 'Updated on dispatch',
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 6,
         ]);
@@ -337,7 +339,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR007',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ]);
 
@@ -345,12 +347,12 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ]);
 
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 3,
         ]);
@@ -370,12 +372,12 @@ class AdminStockTransferTest extends TestCase
             'return_reason' => 'Damaged in transit',
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 5,
         ]);
         $this->assertDatabaseMissing('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
         ]);
         $this->assertDatabaseHas('stock_movements', [
@@ -400,7 +402,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR008',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ]);
 
@@ -408,7 +410,7 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 1],
             ],
         ]);
 
@@ -437,7 +439,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR009',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 4],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 4],
             ],
         ]);
 
@@ -445,7 +447,7 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 4],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 4],
             ],
         ]);
 
@@ -465,18 +467,18 @@ class AdminStockTransferTest extends TestCase
         ]);
         $this->assertDatabaseHas('stock_transfer_items', [
             'stock_transfer_id' => $transferId,
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 4,
             'received_quantity' => 3,
             'returned_quantity' => 1,
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
             'quantity' => 3,
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 7,
         ]);
@@ -500,7 +502,7 @@ class AdminStockTransferTest extends TestCase
             'code' => 'TR010',
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ]);
 
@@ -508,7 +510,7 @@ class AdminStockTransferTest extends TestCase
         $this->actingAs($admin)->post(route('admin.transfers.dispatch', $transferId), [
             'branch_id' => $branch->id,
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_variant_id' => $this->primaryVariant($product)->id, 'quantity' => 2],
             ],
         ]);
 
@@ -531,12 +533,12 @@ class AdminStockTransferTest extends TestCase
             'status' => 'dispatched',
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 3,
         ]);
         $this->assertDatabaseMissing('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
         ]);
     }
@@ -636,16 +638,15 @@ class AdminStockTransferTest extends TestCase
             'name' => 'Sofas',
             'status' => 'active',
         ]);
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+        $product = $this->catalogProduct([
             'code' => 'SF001',
+            'slug' => 'sf001',
             'name' => 'Three Seater Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 45000,
-            'status' => 'active',
+            'base_price' => 45000,
+            'is_online' => false,
         ]);
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => $quantity,
         ]);

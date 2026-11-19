@@ -19,10 +19,12 @@ use App\Models\StockTransfer;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesCatalog;
 use Tests\TestCase;
 
 class BranchDashboardTest extends TestCase
 {
+    use CreatesCatalog;
     use RefreshDatabase;
 
     public function test_dashboard_is_limited_to_this_branch(): void
@@ -34,7 +36,7 @@ class BranchDashboardTest extends TestCase
         $this->sale($branch, $product, 45000, now());
         $this->sale($other, $product, 10000, now());
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
             'quantity' => 0,
         ]);
@@ -144,13 +146,12 @@ class BranchDashboardTest extends TestCase
             'status' => 'active',
         ]);
         $category = Category::query()->create(['name' => 'Sofas', 'status' => 'active']);
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+        $product = $this->catalogProduct([
             'code' => 'SF001',
+            'slug' => 'sf001',
             'name' => 'Three Seater Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 45000,
-            'status' => 'active',
+            'base_price' => 45000,
+            'is_online' => false,
         ]);
 
         return [$branch, $other, $product];
@@ -196,6 +197,7 @@ class BranchDashboardTest extends TestCase
         OrderItem::query()->create([
             'order_id' => $order->id,
             'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 1,
             'unit_price' => $total,
             'line_total' => $total,

@@ -11,11 +11,11 @@ return new class extends Migration
         Schema::create('stock_transfer_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('stock_transfer_id')->constrained()->restrictOnDelete();
-            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->foreignId('product_variant_id')->constrained('product_variants')->restrictOnDelete();
             $table->unsignedInteger('quantity');
             $table->timestamps();
 
-            $table->unique(['stock_transfer_id', 'product_id']);
+            $table->unique(['stock_transfer_id', 'product_variant_id']);
         });
     }
 

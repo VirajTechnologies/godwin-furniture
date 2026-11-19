@@ -12,7 +12,7 @@ class AgentProductTerm extends Model
      */
     protected $fillable = [
         'agent_id',
-        'product_id',
+        'product_variant_id',
         'price',
         'commission_percent',
     ];
@@ -33,8 +33,8 @@ class AgentProductTerm extends Model
         return $this->belongsTo(Agent::class);
     }
 
-    public function product(): BelongsTo
+    public function variant(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 }

@@ -11,10 +11,13 @@
 @section('content')
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">{{ $product->code }} · {{ $product->name }}</h5></div>
-                <div class="card-body">@include('admin.products._form')</div>
+            <div class="alert alert-light border">
+                <span class="fw-medium">{{ $product->code }}</span> · {{ $product->name }}
+                @if ($product->path() !== '')
+                    <span class="text-muted">· {{ $product->path() }}</span>
+                @endif
             </div>
+            @include('admin.products._form')
         </div>
     </div>
 @endsection

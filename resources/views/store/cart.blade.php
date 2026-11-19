@@ -41,6 +41,7 @@
                     @forelse ($lines as $line)
                         @php
                             $product = $line->product;
+                            $variant = $line->variant;
                             $image = $product->images->first()?->url
                                 ?? 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=200';
                         @endphp
@@ -56,7 +57,8 @@
                                     <h6 class="font-heading fw-bold text-dark m-0" style="font-size: 15px;">
                                         <a href="{{ route('store.product', $product->slug) }}" class="text-decoration-none text-dark">{{ $product->name }}</a>
                                     </h6>
-                                    <span class="small text-muted font-heading">{{ $product->code }}</span>
+                                    <span class="small text-muted font-heading d-block">{{ $variant->label() }}</span>
+                                    <span class="small text-muted font-heading">{{ $variant->sku }}</span>
                                     <div class="mt-1 fw-bold text-dark font-heading">
                                         ₹{{ number_format($line->unit_price, 0) }}
                                         @if ($line->mrp && $line->mrp > $line->unit_price)
@@ -66,7 +68,7 @@
                                 </div>
                             </div>
                             <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 gap-sm-4">
-                                <form method="POST" action="{{ route('store.cart.update', $product) }}" class="d-flex align-items-center gap-1">
+                                <form method="POST" action="{{ route('store.cart.update', $variant) }}" class="d-flex align-items-center gap-1">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" name="quantity" value="{{ max(0, $line->quantity - 1) }}" class="btn btn-outline-secondary btn-sm px-2" title="Decrease">-</button>
@@ -74,7 +76,7 @@
                                     <button type="submit" name="quantity" value="{{ $line->quantity + 1 }}" class="btn btn-outline-secondary btn-sm px-2" @disabled($line->quantity >= \App\Support\StoreCart::MAX_QUANTITY) title="Increase">+</button>
                                 </form>
                                 <span class="fw-bold font-heading text-dark fs-6" style="min-width: 90px; text-align: right;">₹{{ number_format($line->line_total, 0) }}</span>
-                                <form method="POST" action="{{ route('store.cart.remove', $product) }}">
+                                <form method="POST" action="{{ route('store.cart.remove', $variant) }}">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-link text-danger p-0 border-0 fs-5" title="Remove Item"><i class="far fa-trash-alt"></i></button>

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Agent;
 
-use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,7 +21,7 @@ class StockRequestRequest extends FormRequest
         return [
             'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'distinct', Rule::exists('products', 'id')],
+            'items.*.product_variant_id' => ['required', 'integer', 'distinct', Rule::exists('product_variants', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ];
     }
@@ -34,10 +34,10 @@ class StockRequestRequest extends FormRequest
                     continue;
                 }
 
-                $product = Product::query()->find($item['product_id'] ?? null);
+                $variant = ProductVariant::query()->with('product')->find($item['product_variant_id'] ?? null);
 
-                if ($product && ! $product->isActive()) {
-                    $validator->errors()->add('items.'.$index.'.product_id', 'Choose an active product.');
+                if ($variant && (! $variant->isActive() || ! $variant->product?->isActive())) {
+                    $validator->errors()->add('items.'.$index.'.product_variant_id', 'Choose an active variant.');
                 }
             }
         });
@@ -49,19 +49,19 @@ class StockRequestRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'items.*.product_id.distinct' => 'Each product can appear only once on a request.',
+            'items.*.product_variant_id.distinct' => 'Each variant can appear only once on a request.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
         ];
     }
 
     /**
-     * @return list<array{product_id: int, quantity: int}>
+     * @return list<array{product_variant_id: int, quantity: int}>
      */
     public function lines(): array
     {
         return collect($this->validated('items'))
             ->map(fn (array $item) => [
-                'product_id' => (int) $item['product_id'],
+                'product_variant_id' => (int) $item['product_variant_id'],
                 'quantity' => (int) $item['quantity'],
             ])
             ->values()

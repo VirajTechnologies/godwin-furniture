@@ -13,8 +13,8 @@ Route::get('catalog', [HomeController::class, 'catalog'])->name('store.catalog')
 Route::get('product/{slug}', [HomeController::class, 'product'])->name('store.product');
 Route::get('cart', [CartController::class, 'show'])->name('store.cart');
 Route::post('cart/items', [CartController::class, 'add'])->name('store.cart.add');
-Route::patch('cart/items/{product}', [CartController::class, 'update'])->name('store.cart.update');
-Route::delete('cart/items/{product}', [CartController::class, 'remove'])->name('store.cart.remove');
+Route::patch('cart/items/{variant}', [CartController::class, 'update'])->name('store.cart.update');
+Route::delete('cart/items/{variant}', [CartController::class, 'remove'])->name('store.cart.remove');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('store.login');

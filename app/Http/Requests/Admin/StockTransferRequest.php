@@ -4,7 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Agent;
 use App\Models\Branch;
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockTransfer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,7 +27,7 @@ class StockTransferRequest extends FormRequest
             'agent_id' => ['required_if:destination,agent', 'nullable', 'integer', Rule::exists('agents', 'id')],
             'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'distinct', Rule::exists('products', 'id')],
+            'items.*.product_variant_id' => ['required', 'integer', 'distinct', Rule::exists('product_variants', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ];
 
@@ -67,8 +67,8 @@ class StockTransferRequest extends FormRequest
             $transfer = $this->route('transfer');
             $currentBranchId = $transfer instanceof StockTransfer ? $transfer->branch_id : null;
             $currentAgentId = $transfer instanceof StockTransfer ? $transfer->agent_id : null;
-            $currentProductIds = $transfer instanceof StockTransfer
-                ? $transfer->items()->pluck('product_id')->map(fn ($id) => (int) $id)->all()
+            $currentVariantIds = $transfer instanceof StockTransfer
+                ? $transfer->items()->pluck('product_variant_id')->map(fn ($id) => (int) $id)->all()
                 : [];
 
             if ($this->input('destination') === 'agent') {
@@ -98,10 +98,12 @@ class StockTransferRequest extends FormRequest
                     continue;
                 }
 
-                $product = Product::query()->find($item['product_id'] ?? null);
+                $variant = ProductVariant::query()->with('product')->find($item['product_variant_id'] ?? null);
 
-                if ($product && ! $product->isActive() && ! in_array($product->id, $currentProductIds, true)) {
-                    $validator->errors()->add('items.'.$index.'.product_id', 'Choose an active product.');
+                if ($variant
+                    && (! $variant->isActive() || ! $variant->product?->isActive())
+                    && ! in_array($variant->id, $currentVariantIds, true)) {
+                    $validator->errors()->add('items.'.$index.'.product_variant_id', 'Choose an active variant.');
                 }
             }
         });
@@ -114,19 +116,19 @@ class StockTransferRequest extends FormRequest
     {
         return [
             'code.regex' => 'The code may contain only letters, numbers, and hyphens.',
-            'items.*.product_id.distinct' => 'Each product can appear only once on a transfer.',
+            'items.*.product_variant_id.distinct' => 'Each variant can appear only once on a transfer.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
         ];
     }
 
     /**
-     * @return list<array{product_id: int, quantity: int}>
+     * @return list<array{product_variant_id: int, quantity: int}>
      */
     public function lines(): array
     {
         return collect($this->validated('items'))
             ->map(fn (array $item) => [
-                'product_id' => (int) $item['product_id'],
+                'product_variant_id' => (int) $item['product_variant_id'],
                 'quantity' => (int) $item['quantity'],
             ])
             ->values()

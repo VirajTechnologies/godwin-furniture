@@ -18,7 +18,7 @@
                 @php
                     $lines = old('items');
                     if (! is_array($lines) || $lines === []) {
-                        $lines = [['product_id' => '', 'quantity' => 1]];
+                        $lines = [['product_variant_id' => '', 'quantity' => 1]];
                     }
                     $deliveryType = old('delivery_type', \App\Models\Order::DELIVERY_PICKUP);
                 @endphp
@@ -134,29 +134,30 @@
                             <tbody id="sale-lines">
                                 @foreach ($lines as $index => $line)
                                     @php
-                                        $selected = $stocks->firstWhere('product_id', (int) ($line['product_id'] ?? 0));
+                                        $selected = $stocks->firstWhere('product_variant_id', (int) ($line['product_variant_id'] ?? 0));
+                                        $floor = $selected ? $selected->variant->priceForAgent($agent) : null;
                                     @endphp
                                     <tr class="sale-line">
                                         <td style="min-width: 240px;">
-                                            <select class="form-select agent-product @error('items.'.$index.'.product_id') is-invalid @enderror" name="items[{{ $index }}][product_id]" required>
+                                            <select class="form-select agent-product @error('items.'.$index.'.product_variant_id') is-invalid @enderror" name="items[{{ $index }}][product_variant_id]" required>
                                                 <option value="">Select Product</option>
                                                 @foreach ($stocks as $stock)
                                                     <option
-                                                        value="{{ $stock->product_id }}"
+                                                        value="{{ $stock->product_variant_id }}"
                                                         data-stock="{{ $stock->quantity }}"
-                                                        data-price="{{ $stock->product->priceForAgent($agent) }}"
-                                                        data-commission="{{ $stock->product->commissionPercentForAgent($agent) }}"
-                                                        @selected((string) ($line['product_id'] ?? '') === (string) $stock->product_id)
-                                                    >{{ $stock->product?->code }} · {{ $stock->product?->name }}</option>
+                                                        data-price="{{ $stock->variant->priceForAgent($agent) }}"
+                                                        data-commission="{{ $stock->variant->commissionPercentForAgent($agent) }}"
+                                                        @selected((string) ($line['product_variant_id'] ?? '') === (string) $stock->product_variant_id)
+                                                    >{{ $stock->variant?->sku }} · {{ $stock->variant?->displayName() }}</option>
                                                 @endforeach
                                             </select>
-                                            @error('items.'.$index.'.product_id')
+                                            @error('items.'.$index.'.product_variant_id')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </td>
                                         <td class="agent-stock">{{ $selected ? $selected->quantity : '—' }}</td>
-                                        <td class="agent-price">{{ $selected ? '₹'.number_format($selected->product->priceForAgent($agent), 2) : '—' }}</td>
-                                        <td class="agent-commission text-nowrap">{{ $selected ? rtrim(rtrim(number_format($selected->product->commissionPercentForAgent($agent), 2), '0'), '.').'%' : '—' }}</td>
+                                        <td class="agent-price">{{ $floor !== null ? '₹'.number_format($floor, 2) : '—' }}</td>
+                                        <td class="agent-commission text-nowrap">{{ $selected ? rtrim(rtrim(number_format($selected->variant->commissionPercentForAgent($agent), 2), '0'), '.').'%' : '—' }}</td>
                                         <td>
                                             <input type="number" class="form-control sale-quantity @error('items.'.$index.'.quantity') is-invalid @enderror" name="items[{{ $index }}][quantity]" value="{{ $line['quantity'] ?? 1 }}" min="1" step="1" required style="min-width: 5.5rem;">
                                             @error('items.'.$index.'.quantity')
@@ -164,7 +165,7 @@
                                             @enderror
                                         </td>
                                         <td>
-                                            <input type="number" class="form-control sale-price @error('items.'.$index.'.unit_price') is-invalid @enderror" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? ($selected ? $selected->product->priceForAgent($agent) : '') }}" min="0" step="0.01" required style="min-width: 8rem;">
+                                            <input type="number" class="form-control sale-price @error('items.'.$index.'.unit_price') is-invalid @enderror" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? $floor }}" min="{{ $floor ?? 0 }}" step="0.01" required style="min-width: 8rem;">
                                             @error('items.'.$index.'.unit_price')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -190,15 +191,15 @@
                 <template id="sale-line-template">
                     <tr class="sale-line">
                         <td style="min-width: 240px;">
-                            <select class="form-select agent-product" name="items[__INDEX__][product_id]" required>
+                            <select class="form-select agent-product" name="items[__INDEX__][product_variant_id]" required>
                                 <option value="">Select Product</option>
                                 @foreach ($stocks as $stock)
                                     <option
-                                        value="{{ $stock->product_id }}"
+                                        value="{{ $stock->product_variant_id }}"
                                         data-stock="{{ $stock->quantity }}"
-                                        data-price="{{ $stock->product->priceForAgent($agent) }}"
-                                        data-commission="{{ $stock->product->commissionPercentForAgent($agent) }}"
-                                    >{{ $stock->product?->code }} · {{ $stock->product?->name }}</option>
+                                        data-price="{{ $stock->variant->priceForAgent($agent) }}"
+                                        data-commission="{{ $stock->variant->commissionPercentForAgent($agent) }}"
+                                    >{{ $stock->variant?->sku }} · {{ $stock->variant?->displayName() }}</option>
                                 @endforeach
                             </select>
                         </td>

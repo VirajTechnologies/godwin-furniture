@@ -1,7 +1,7 @@
 @php
     $lines = old('items');
     if (! is_array($lines) || $lines === []) {
-        $lines = [['product_id' => '', 'quantity' => 1]];
+        $lines = [['product_variant_id' => '', 'quantity' => 1]];
     }
     $branchId = auth()->user()->employee->branch_id;
 @endphp
@@ -115,22 +115,23 @@
             <tbody id="sale-lines">
                 @foreach ($lines as $index => $line)
                     @php
-                        $selected = $stocks->firstWhere('product_id', (int) ($line['product_id'] ?? 0));
+                        $selected = $stocks->firstWhere('product_variant_id', (int) ($line['product_variant_id'] ?? 0));
+                        $floor = $selected ? $selected->variant->priceForBranch($branchId) : null;
                     @endphp
                     <tr class="sale-line">
                         <td style="min-width: 240px;">
-                            <select class="form-select sale-product @error('items.'.$index.'.product_id') is-invalid @enderror" name="items[{{ $index }}][product_id]" required>
+                            <select class="form-select sale-product @error('items.'.$index.'.product_variant_id') is-invalid @enderror" name="items[{{ $index }}][product_variant_id]" required>
                                 <option value="">Select Product</option>
                                 @foreach ($stocks as $stock)
-                                    <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch($branchId) }}" data-available="{{ $stock->quantity }}" @selected((string) ($line['product_id'] ?? '') === (string) $stock->product_id)>{{ $stock->product->code }} · {{ $stock->product->name }}</option>
+                                    <option value="{{ $stock->product_variant_id }}" data-price="{{ $stock->variant->priceForBranch($branchId) }}" data-available="{{ $stock->quantity }}" @selected((string) ($line['product_variant_id'] ?? '') === (string) $stock->product_variant_id)>{{ $stock->variant->sku }} · {{ $stock->variant->displayName() }}</option>
                                 @endforeach
                             </select>
-                            @error('items.'.$index.'.product_id')
+                            @error('items.'.$index.'.product_variant_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </td>
                         <td class="branch-stock">{{ $selected ? $selected->quantity : '—' }}</td>
-                        <td class="branch-price">{{ $selected ? '₹'.number_format($selected->product->priceForBranch($branchId), 2) : '—' }}</td>
+                        <td class="branch-price">{{ $floor !== null ? '₹'.number_format($floor, 2) : '—' }}</td>
                         <td>
                             <input type="number" class="form-control sale-quantity @error('items.'.$index.'.quantity') is-invalid @enderror" name="items[{{ $index }}][quantity]" value="{{ $line['quantity'] ?? 1 }}" min="1" step="1" required style="min-width: 5.5rem;">
                             @error('items.'.$index.'.quantity')
@@ -138,7 +139,7 @@
                             @enderror
                         </td>
                         <td>
-                            <input type="number" class="form-control sale-price @error('items.'.$index.'.unit_price') is-invalid @enderror" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? ($selected ? $selected->product->priceForBranch($branchId) : '') }}" min="0" step="0.01" required style="min-width: 8rem;">
+                            <input type="number" class="form-control sale-price @error('items.'.$index.'.unit_price') is-invalid @enderror" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? $floor }}" min="{{ $floor ?? 0 }}" step="0.01" required style="min-width: 8rem;">
                             @error('items.'.$index.'.unit_price')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -165,10 +166,10 @@
 <template id="sale-line-template">
     <tr class="sale-line">
         <td style="min-width: 240px;">
-            <select class="form-select sale-product" name="items[__INDEX__][product_id]" required>
+            <select class="form-select sale-product" name="items[__INDEX__][product_variant_id]" required>
                 <option value="">Select Product</option>
                 @foreach ($stocks as $stock)
-                    <option value="{{ $stock->product_id }}" data-price="{{ $stock->product->priceForBranch($branchId) }}" data-available="{{ $stock->quantity }}">{{ $stock->product->code }} · {{ $stock->product->name }}</option>
+                    <option value="{{ $stock->product_variant_id }}" data-price="{{ $stock->variant->priceForBranch($branchId) }}" data-available="{{ $stock->quantity }}">{{ $stock->variant->sku }} · {{ $stock->variant->displayName() }}</option>
                 @endforeach
             </select>
         </td>

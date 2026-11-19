@@ -8,9 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('agent_product_terms', function (Blueprint $table) {
-            $table->renameColumn('minimum_price', 'price');
-        });
+        // Older installs created minimum_price; fresh installs already use price.
+        if (Schema::hasColumn('agent_product_terms', 'minimum_price')) {
+            Schema::table('agent_product_terms', function (Blueprint $table) {
+                $table->renameColumn('minimum_price', 'price');
+            });
+        }
 
         Schema::table('agent_product_terms', function (Blueprint $table) {
             $table->decimal('price', 12, 2)->nullable()->change();
@@ -20,13 +23,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('agent_product_terms', function (Blueprint $table) {
-            $table->decimal('price', 12, 2)->nullable(false)->change();
-            $table->decimal('commission_percent', 5, 2)->nullable(false)->change();
-        });
-
-        Schema::table('agent_product_terms', function (Blueprint $table) {
-            $table->renameColumn('price', 'minimum_price');
-        });
+        if (Schema::hasColumn('agent_product_terms', 'price') && ! Schema::hasColumn('agent_product_terms', 'minimum_price')) {
+            Schema::table('agent_product_terms', function (Blueprint $table) {
+                $table->renameColumn('price', 'minimum_price');
+            });
+        }
     }
 };

@@ -23,8 +23,9 @@
                                     <tr>
                                         <th>SR No.</th>
                                         <th>Place</th>
-                                        <th>Code</th>
+                                        <th>SKU</th>
                                         <th>Product</th>
+                                        <th>Variant</th>
                                         <th>Quantity</th>
                                         <th>Updated</th>
                                     </tr>
@@ -34,8 +35,9 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $stock->warehouse?->name ?? $stock->branch?->name ?? $stock->agent?->name ?? '—' }}</td>
-                                            <td class="fw-medium">{{ $stock->product?->code }}</td>
-                                            <td>{{ $stock->product?->name }}</td>
+                                            <td class="fw-medium">{{ $stock->variant?->sku }}</td>
+                                            <td>{{ $stock->variant?->product?->name }}</td>
+                                            <td>{{ $stock->variant?->label() }}</td>
                                             <td>{{ $stock->quantity }}</td>
                                             <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>
                                         </tr>

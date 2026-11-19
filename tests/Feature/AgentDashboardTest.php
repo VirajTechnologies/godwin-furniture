@@ -17,10 +17,12 @@ use App\Models\StockTransfer;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesCatalog;
 use Tests\TestCase;
 
 class AgentDashboardTest extends TestCase
 {
+    use CreatesCatalog;
     use RefreshDatabase;
 
     public function test_dashboard_is_limited_to_this_shop(): void
@@ -32,7 +34,7 @@ class AgentDashboardTest extends TestCase
         $this->sale($agent, $product, 45000, 2250, now());
         $this->sale($other, $product, 10000, 800, now());
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'agent_id' => $agent->id,
             'quantity' => 0,
         ]);
@@ -162,13 +164,12 @@ class AgentDashboardTest extends TestCase
             'status' => 'active',
         ]);
         $category = Category::query()->create(['name' => 'Sofas', 'status' => 'active']);
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+        $product = $this->catalogProduct([
             'code' => 'SF001',
+            'slug' => 'sf001',
             'name' => 'Three Seater Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 45000,
-            'status' => 'active',
+            'base_price' => 45000,
+            'is_online' => false,
         ]);
 
         $agent = $this->agent('AG001', 'Sri Lakshmi Furniture Mart', 'manager.lakshmi@godwin.test', $state->id, $district->id, $city->id, $warehouse->id);
@@ -221,6 +222,7 @@ class AgentDashboardTest extends TestCase
         OrderItem::query()->create([
             'order_id' => $order->id,
             'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 1,
             'unit_price' => $total,
             'line_total' => $total,

@@ -44,7 +44,7 @@ class OnlineOrderFulfilment
 
         return DB::transaction(function () use ($order, $userId) {
             $locked = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
-            $locked->load(['items.product']);
+            $locked->load(['items.variant.product']);
 
             if ($locked->status !== Order::STATUS_CONFIRMED) {
                 throw new RuntimeException('Only confirmed online orders can be dispatched.');
@@ -52,9 +52,10 @@ class OnlineOrderFulfilment
 
             foreach ($locked->items as $item) {
                 $stock = Stock::query()
-                    ->where('product_id', $item->product_id)
+                    ->where('product_variant_id', $item->product_variant_id)
                     ->where('warehouse_id', $locked->warehouse_id)
                     ->whereNull('branch_id')
+                    ->whereNull('agent_id')
                     ->lockForUpdate()
                     ->first();
 
@@ -62,7 +63,7 @@ class OnlineOrderFulfilment
 
                 if (! $stock || $available < $item->quantity) {
                     throw new InsufficientStock(
-                        $item->product?->name ?? 'This product',
+                        $item->variant?->displayName() ?? 'This product',
                         $available,
                         (int) $item->quantity,
                         'warehouse',

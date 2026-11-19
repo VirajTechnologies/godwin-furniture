@@ -11,11 +11,11 @@ return new class extends Migration
         Schema::create('branch_product_prices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('branch_id')->constrained()->restrictOnDelete();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_variant_id')->constrained('product_variants')->cascadeOnDelete();
             $table->decimal('price', 12, 2);
             $table->timestamps();
 
-            $table->unique(['branch_id', 'product_id']);
+            $table->unique(['branch_id', 'product_variant_id']);
         });
     }
 

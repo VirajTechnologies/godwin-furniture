@@ -32,8 +32,8 @@
                                     @foreach ($stocks as $stock)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td class="fw-medium">{{ $stock->product?->code }}</td>
-                                            <td>{{ $stock->product?->name }}</td>
+                                            <td class="fw-medium">{{ $stock->variant?->sku }}</td>
+                                            <td>{{ $stock->variant?->displayName() }}</td>
                                             <td>{{ $stock->quantity }}</td>
                                             <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>
                                         </tr>

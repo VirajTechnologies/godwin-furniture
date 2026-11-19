@@ -12,7 +12,7 @@ class BranchProductPrice extends Model
      */
     protected $fillable = [
         'branch_id',
-        'product_id',
+        'product_variant_id',
         'price',
     ];
 
@@ -31,8 +31,8 @@ class BranchProductPrice extends Model
         return $this->belongsTo(Branch::class);
     }
 
-    public function product(): BelongsTo
+    public function variant(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 }

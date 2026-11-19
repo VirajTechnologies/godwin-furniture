@@ -5,7 +5,7 @@ namespace App\Support;
 use App\Exceptions\InsufficientStock;
 use App\Models\Agent;
 use App\Models\Branch;
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
@@ -13,11 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class StockLedger
 {
-    public function openWarehouseStock(Product $product, Warehouse $warehouse, int $quantity, ?string $note, ?int $userId): Stock
+    public function openWarehouseStock(ProductVariant $variant, Warehouse $warehouse, int $quantity, ?string $note, ?int $userId): Stock
     {
-        return DB::transaction(function () use ($product, $warehouse, $quantity, $note, $userId) {
+        return DB::transaction(function () use ($variant, $warehouse, $quantity, $note, $userId) {
             $stock = Stock::query()->create([
-                'product_id' => $product->id,
+                'product_variant_id' => $variant->id,
                 'warehouse_id' => $warehouse->id,
                 'quantity' => $quantity,
             ]);
@@ -38,7 +38,7 @@ class StockLedger
     {
         return DB::transaction(function () use ($stock, $quantity, $direction, $note, $userId) {
             $locked = Stock::query()->whereKey($stock->id)->lockForUpdate()->firstOrFail();
-            $locked->loadMissing('product');
+            $locked->loadMissing('variant.product');
 
             if ($direction === 'remove') {
                 $this->decrease($locked, $quantity, StockMovement::TYPE_ADJUSTMENT, $note, $userId);
@@ -53,7 +53,7 @@ class StockLedger
     public function decrease(Stock $stock, int $quantity, string $type, ?string $note, ?int $userId): void
     {
         if ($quantity > $stock->quantity) {
-            throw new InsufficientStock($stock->product?->name ?? 'This product', $stock->quantity, $quantity);
+            throw new InsufficientStock($stock->variant?->displayName() ?? 'This product', $stock->quantity, $quantity);
         }
 
         $after = $stock->quantity - $quantity;
@@ -82,65 +82,42 @@ class StockLedger
         ]);
     }
 
-    public function branchStock(Product $product, Branch $branch): Stock
+    public function branchStock(ProductVariant $variant, Branch $branch): Stock
     {
-        $stock = Stock::query()
-            ->where('product_id', $product->id)
-            ->where('branch_id', $branch->id)
-            ->whereNull('warehouse_id')
-            ->whereNull('agent_id')
-            ->lockForUpdate()
-            ->first();
-
-        if ($stock) {
-            return $stock;
-        }
-
-        return Stock::query()->create([
-            'product_id' => $product->id,
-            'branch_id' => $branch->id,
-            'quantity' => 0,
-        ]);
+        return $this->stockFor($variant, 'branch_id', $branch->id);
     }
 
-    public function warehouseStock(Product $product, Warehouse $warehouse): Stock
+    public function warehouseStock(ProductVariant $variant, Warehouse $warehouse): Stock
     {
-        $stock = Stock::query()
-            ->where('product_id', $product->id)
-            ->where('warehouse_id', $warehouse->id)
-            ->whereNull('branch_id')
-            ->whereNull('agent_id')
-            ->lockForUpdate()
-            ->first();
-
-        if ($stock) {
-            return $stock;
-        }
-
-        return Stock::query()->create([
-            'product_id' => $product->id,
-            'warehouse_id' => $warehouse->id,
-            'quantity' => 0,
-        ]);
+        return $this->stockFor($variant, 'warehouse_id', $warehouse->id);
     }
 
-    public function agentStock(Product $product, Agent $agent): Stock
+    public function agentStock(ProductVariant $variant, Agent $agent): Stock
     {
-        $stock = Stock::query()
-            ->where('product_id', $product->id)
-            ->where('agent_id', $agent->id)
-            ->whereNull('warehouse_id')
-            ->whereNull('branch_id')
-            ->lockForUpdate()
-            ->first();
+        return $this->stockFor($variant, 'agent_id', $agent->id);
+    }
+
+    private function stockFor(ProductVariant $variant, string $column, int $id): Stock
+    {
+        $others = array_diff(['warehouse_id', 'branch_id', 'agent_id'], [$column]);
+
+        $query = Stock::query()
+            ->where('product_variant_id', $variant->id)
+            ->where($column, $id);
+
+        foreach ($others as $other) {
+            $query->whereNull($other);
+        }
+
+        $stock = $query->lockForUpdate()->first();
 
         if ($stock) {
             return $stock;
         }
 
         return Stock::query()->create([
-            'product_id' => $product->id,
-            'agent_id' => $agent->id,
+            'product_variant_id' => $variant->id,
+            $column => $id,
             'quantity' => 0,
         ]);
     }

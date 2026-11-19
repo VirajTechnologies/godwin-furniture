@@ -48,10 +48,10 @@ class ReportController extends Controller
 
         return view('agent.reports.stock', [
             'stocks' => Stock::query()
-                ->with('product')
+                ->with('variant.product')
                 ->where('agent_id', $agent->id)
                 ->whereNull('warehouse_id')
-                ->orderBy('product_id')
+                ->orderBy('product_variant_id')
                 ->get(),
         ]);
     }

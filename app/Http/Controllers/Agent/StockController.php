@@ -14,10 +14,10 @@ class StockController extends Controller
         $agent = $request->user()->agent;
 
         $stocks = Stock::query()
-            ->with('product.category.parent')
+            ->with('variant.product.category.parent')
             ->where('agent_id', $agent->id)
             ->whereNull('warehouse_id')
-            ->orderBy('product_id')
+            ->orderBy('product_variant_id')
             ->paginate(15);
 
         return view('agent.stock.index', [

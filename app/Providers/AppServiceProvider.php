@@ -33,13 +33,15 @@ class AppServiceProvider extends ServiceProvider
 
     private function storeMenu()
     {
+        // Room-level nodes (Living Room, Bedroom, …) sit under Furniture/Interiors.
         return Category::query()
             ->with(['children' => fn ($query) => $query
                 ->where('status', Category::STATUS_ACTIVE)
                 ->orderBy('menu_group')
                 ->orderBy('sort_order')
                 ->orderBy('name')])
-            ->whereNull('parent_id')
+            ->whereNotNull('parent_id')
+            ->whereHas('children')
             ->where('status', Category::STATUS_ACTIVE)
             ->orderBy('sort_order')
             ->orderBy('name')

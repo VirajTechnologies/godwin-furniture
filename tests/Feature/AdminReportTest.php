@@ -17,10 +17,12 @@ use App\Models\StockTransfer;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesCatalog;
 use Tests\TestCase;
 
 class AdminReportTest extends TestCase
 {
+    use CreatesCatalog;
     use RefreshDatabase;
 
     public function test_dashboard_shows_todays_sales_and_waiting_work(): void
@@ -160,13 +162,12 @@ class AdminReportTest extends TestCase
             'status' => 'active',
         ]);
         $category = Category::query()->create(['name' => 'Sofas', 'status' => 'active']);
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+        $product = $this->catalogProduct([
             'code' => 'SF001',
+            'slug' => 'sf001',
             'name' => 'Three Seater Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 45000,
-            'status' => 'active',
+            'base_price' => 45000,
+            'is_online' => false,
         ]);
 
         return [$branch, $product, $warehouse];
@@ -217,6 +218,7 @@ class AdminReportTest extends TestCase
         OrderItem::query()->create([
             'order_id' => $order->id,
             'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 1,
             'unit_price' => $total,
             'line_total' => $total,
@@ -242,6 +244,7 @@ class AdminReportTest extends TestCase
         OrderItem::query()->create([
             'order_id' => $order->id,
             'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'quantity' => 1,
             'unit_price' => $total,
             'line_total' => $total,

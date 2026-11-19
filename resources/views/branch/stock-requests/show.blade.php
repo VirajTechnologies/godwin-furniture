@@ -43,8 +43,9 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>SR No.</th>
-                                    <th>Code</th>
+                                    <th>SKU</th>
                                     <th>Product</th>
+                                    <th>Variant</th>
                                     <th>Quantity</th>
                                 </tr>
                             </thead>
@@ -52,8 +53,9 @@
                                 @foreach ($stockRequest->items as $item)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td class="fw-medium">{{ $item->product?->code }}</td>
-                                        <td>{{ $item->product?->name }}</td>
+                                        <td class="fw-medium">{{ $item->variant?->sku }}</td>
+                                        <td>{{ $item->variant?->product?->name }}</td>
+                                        <td>{{ $item->variant?->label() ?: '—' }}</td>
                                         <td>{{ $item->quantity }}</td>
                                     </tr>
                                 @endforeach

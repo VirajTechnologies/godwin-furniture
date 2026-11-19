@@ -22,12 +22,12 @@ class StockTransferWorkflow
                 throw new RuntimeException('Only a draft transfer can be dispatched.');
             }
 
-            $locked->load('items.product');
+            $locked->load('items.variant.product');
             $note = 'Transfer '.$locked->code;
 
             foreach ($locked->items as $item) {
                 $stock = Stock::query()
-                    ->where('product_id', $item->product_id)
+                    ->where('product_variant_id', $item->product_variant_id)
                     ->where('warehouse_id', $locked->warehouse_id)
                     ->whereNull('branch_id')
                     ->whereNull('agent_id')
@@ -37,7 +37,7 @@ class StockTransferWorkflow
                 $available = $stock?->quantity ?? 0;
 
                 if (! $stock || $available < $item->quantity) {
-                    throw new InsufficientStock($item->product?->name ?? 'This product', $available, $item->quantity);
+                    throw new InsufficientStock($item->variant?->displayName() ?? 'This product', $available, $item->quantity);
                 }
 
                 $this->ledger->decrease($stock, $item->quantity, StockMovement::TYPE_TRANSFER_OUT, $note, $userId);
@@ -77,7 +77,7 @@ class StockTransferWorkflow
                 throw new RuntimeException('Only a dispatched transfer can be completed.');
             }
 
-            $locked->load(['items.product', 'branch', 'agent', 'warehouse']);
+            $locked->load(['items.variant.product', 'branch', 'agent', 'warehouse']);
             $posted = collect($lines)->keyBy(fn (array $line) => (int) $line['id']);
 
             if ($posted->count() !== $locked->items->count()) {
@@ -117,13 +117,13 @@ class StockTransferWorkflow
             foreach ($splits as [$item, $received, $returned]) {
                 if ($received > 0) {
                     $holderStock = $locked->agent_id
-                        ? $this->ledger->agentStock($item->product, $locked->agent)
-                        : $this->ledger->branchStock($item->product, $locked->branch);
+                        ? $this->ledger->agentStock($item->variant, $locked->agent)
+                        : $this->ledger->branchStock($item->variant, $locked->branch);
                     $this->ledger->increase($holderStock, $received, StockMovement::TYPE_TRANSFER_IN, $acceptNote, $userId);
                 }
 
                 if ($returned > 0) {
-                    $warehouseStock = $this->ledger->warehouseStock($item->product, $locked->warehouse);
+                    $warehouseStock = $this->ledger->warehouseStock($item->variant, $locked->warehouse);
                     $this->ledger->increase($warehouseStock, $returned, StockMovement::TYPE_TRANSFER_RETURN, $returnNote, $userId);
                 }
 

@@ -10,17 +10,17 @@
 
     <div class="row g-3">
         <div class="col-md-6">
-            <label for="product_id" class="form-label">Product</label>
+            <label for="product_variant_id" class="form-label">Variant</label>
             @if ($isEdit)
-                <input type="text" class="form-control" id="product_id" value="{{ $stock->product?->code }} · {{ $stock->product?->name }}" readonly>
+                <input type="text" class="form-control" id="product_variant_id" value="{{ $stock->variant?->sku }} · {{ $stock->variant?->displayName() }}" readonly>
             @else
-                <select class="form-select js-select2 @error('product_id') is-invalid @enderror" id="product_id" name="product_id" required data-placeholder="Select Product">
-                    <option value="">Select Product</option>
-                    @foreach ($products as $product)
-                        <option value="{{ $product->id }}" @selected((string) old('product_id') === (string) $product->id)>{{ $product->code }} · {{ $product->name }}</option>
+                <select class="form-select js-select2 @error('product_variant_id') is-invalid @enderror" id="product_variant_id" name="product_variant_id" required data-placeholder="Select Variant">
+                    <option value="">Select Variant</option>
+                    @foreach ($variants as $variant)
+                        <option value="{{ $variant->id }}" @selected((string) old('product_variant_id') === (string) $variant->id)>{{ $variant->sku }} · {{ $variant->displayName() }}</option>
                     @endforeach
                 </select>
-                @error('product_id')
+                @error('product_variant_id')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             @endif

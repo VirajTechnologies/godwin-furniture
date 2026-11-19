@@ -37,7 +37,7 @@ class OrderController extends Controller
     {
         $this->authorizeOrder($order);
 
-        $order->load(['customer', 'items.product.images', 'payment', 'warehouse']);
+        $order->load(['customer', 'items.variant.product.images', 'payment', 'warehouse']);
 
         return view('store.orders.show', [
             'order' => $order,

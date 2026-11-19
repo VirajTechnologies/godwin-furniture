@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Branch\StockRequestRequest;
 use App\Models\Branch;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class StockRequestController extends Controller
         $this->managerBranch($request);
 
         return view('branch.stock-requests.create', [
-            'products' => $this->products(),
+            'variants' => $this->variants(),
         ]);
     }
 
@@ -69,7 +70,7 @@ class StockRequestController extends Controller
     {
         $branch = $this->managerBranch($request);
         abort_unless($stockRequest->branch_id === $branch->id, 404);
-        $stockRequest->load(['items.product', 'transfer']);
+        $stockRequest->load(['items.variant.product', 'transfer']);
 
         return view('branch.stock-requests.show', [
             'stockRequest' => $stockRequest,
@@ -113,11 +114,14 @@ class StockRequestController extends Controller
         return $branch;
     }
 
-    private function products()
+    private function variants()
     {
-        return Product::query()
-            ->where('status', Product::STATUS_ACTIVE)
-            ->orderBy('name')
-            ->get();
+        return ProductVariant::query()
+            ->with('product')
+            ->active()
+            ->whereHas('product', fn ($query) => $query->where('status', Product::STATUS_ACTIVE))
+            ->get()
+            ->sortBy(fn (ProductVariant $variant) => $variant->displayName())
+            ->values();
     }
 }

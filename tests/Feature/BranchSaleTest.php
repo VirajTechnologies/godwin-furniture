@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Branch;
-use App\Models\Category;
 use App\Models\City;
 use App\Models\Customer;
 use App\Models\District;
@@ -16,15 +15,18 @@ use App\Models\StockMovement;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesCatalog;
 use Tests\TestCase;
 
 class BranchSaleTest extends TestCase
 {
+    use CreatesCatalog;
     use RefreshDatabase;
 
     public function test_branch_staff_can_sell_stock_held_at_the_branch(): void
     {
         [$cashier, $product, $branch] = $this->counter(5);
+        $variant = $this->primaryVariant($product);
 
         $this->actingAs($cashier)->post(route('branch.sales.store'), [
             'customer_name' => 'Ravi',
@@ -32,7 +34,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2, 'unit_price' => 45000],
+                ['product_variant_id' => $variant->id, 'quantity' => 2, 'unit_price' => 45000],
             ],
         ])->assertRedirect();
 
@@ -54,7 +56,7 @@ class BranchSaleTest extends TestCase
             'status' => 'paid',
         ]);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'branch_id' => $branch->id,
             'quantity' => 3,
         ]);
@@ -68,6 +70,7 @@ class BranchSaleTest extends TestCase
     public function test_the_same_phone_reuses_the_customer(): void
     {
         [$cashier, $product] = $this->counter(4);
+        $variant = $this->primaryVariant($product);
 
         $this->actingAs($cashier)->post(route('branch.sales.store'), [
             'customer_name' => 'Ravi',
@@ -75,7 +78,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'upi',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ]);
 
@@ -85,7 +88,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'upi',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ]);
 
@@ -99,6 +102,7 @@ class BranchSaleTest extends TestCase
     public function test_branch_staff_can_record_a_door_delivery_sale(): void
     {
         [$cashier, $product, $branch] = $this->counter(3);
+        $variant = $this->primaryVariant($product);
 
         $this->actingAs($cashier)->post(route('branch.sales.store'), [
             'customer_name' => 'Sita',
@@ -110,7 +114,7 @@ class BranchSaleTest extends TestCase
             'shipping_pincode' => '520001',
             'notes' => 'Call before delivery',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ])->assertRedirect();
 
@@ -129,6 +133,7 @@ class BranchSaleTest extends TestCase
     public function test_door_delivery_requires_an_address(): void
     {
         [$cashier, $product] = $this->counter(2);
+        $variant = $this->primaryVariant($product);
 
         $this->actingAs($cashier)->post(route('branch.sales.store'), [
             'customer_name' => 'Sita',
@@ -136,7 +141,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'delivery',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 45000],
+                ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 45000],
             ],
         ])->assertSessionHasErrors(['shipping_address', 'shipping_city', 'shipping_pincode']);
 
@@ -196,6 +201,7 @@ class BranchSaleTest extends TestCase
     public function test_a_sale_is_rejected_when_the_branch_does_not_have_enough(): void
     {
         [$cashier, $product] = $this->counter(1);
+        $variant = $this->primaryVariant($product);
 
         $this->actingAs($cashier)->post(route('branch.sales.store'), [
             'customer_name' => 'Ravi',
@@ -203,13 +209,13 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 45000],
+                ['product_variant_id' => $variant->id, 'quantity' => 3, 'unit_price' => 45000],
             ],
         ])->assertSessionHasErrors('items.0.quantity');
 
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseHas('stocks', [
-            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'quantity' => 1,
         ]);
     }
@@ -217,7 +223,8 @@ class BranchSaleTest extends TestCase
     public function test_a_branch_sale_can_exceed_mrp_but_not_the_showroom_price(): void
     {
         [$cashier, $product] = $this->counter(2);
-        $product->update(['compare_at_price' => 50000]);
+        $variant = $this->primaryVariant($product);
+        $variant->update(['compare_at_price' => 50000]);
 
         $this->actingAs($cashier)->post(route('branch.sales.store'), [
             'customer_name' => 'Ravi',
@@ -225,7 +232,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 44000],
+                ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 44000],
             ],
         ])->assertSessionHasErrors('items.0.unit_price');
 
@@ -237,7 +244,7 @@ class BranchSaleTest extends TestCase
             'payment_method' => 'cash',
             'delivery_type' => 'pickup',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 70000],
+                ['product_variant_id' => $variant->id, 'quantity' => 1, 'unit_price' => 70000],
             ],
         ])->assertRedirect();
 
@@ -246,6 +253,7 @@ class BranchSaleTest extends TestCase
         ]);
         $this->assertDatabaseHas('order_items', [
             'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
             'unit_price' => 70000,
         ]);
     }
@@ -308,17 +316,13 @@ class BranchSaleTest extends TestCase
             'branch_id' => $branch->id,
             'status' => 'active',
         ]);
-        $category = Category::query()->create(['name' => 'Sofas', 'status' => 'active']);
-        $product = Product::query()->create([
-            'category_id' => $category->id,
+        $product = $this->catalogProduct([
             'code' => 'SF001',
             'name' => 'Three Seater Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 45000,
-            'status' => 'active',
+            'base_price' => 45000,
         ]);
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'branch_id' => $branch->id,
             'quantity' => $quantity,
         ]);

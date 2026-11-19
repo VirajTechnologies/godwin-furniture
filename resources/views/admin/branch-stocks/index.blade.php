@@ -26,8 +26,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>SR No.</th>
-                                        <th>Code</th>
+                                        <th>SKU</th>
                                         <th>Product</th>
+                                        <th>Variant</th>
                                         <th>Category</th>
                                         <th>Subcategory</th>
                                         <th>Branch</th>
@@ -39,10 +40,11 @@
                                     @foreach ($stocks as $stock)
                                         <tr>
                                             <td>{{ $stocks->firstItem() + $loop->index }}</td>
-                                            <td class="fw-medium">{{ $stock->product?->code }}</td>
-                                            <td>{{ $stock->product?->name }}</td>
-                                            <td>{{ $stock->product?->category?->parent?->name ?? '—' }}</td>
-                                            <td>{{ $stock->product?->category?->name ?? '—' }}</td>
+                                            <td class="fw-medium">{{ $stock->variant?->sku }}</td>
+                                            <td>{{ $stock->variant?->product?->name }}</td>
+                                            <td>{{ $stock->variant?->label() ?: '—' }}</td>
+                                            <td>{{ $stock->variant?->product?->category?->parent?->name ?? '—' }}</td>
+                                            <td>{{ $stock->variant?->product?->category?->name ?? '—' }}</td>
                                             <td>{{ $stock->branch?->name ?? '—' }}</td>
                                             <td>{{ $stock->quantity }}</td>
                                             <td>{{ $stock->updated_at?->format('d M Y, h:i A') }}</td>

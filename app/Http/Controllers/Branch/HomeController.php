@@ -25,9 +25,9 @@ class HomeController extends Controller
             ->whereDate('created_at', today());
 
         $stocks = Stock::query()
-            ->with('product')
+            ->with('variant.product')
             ->where('branch_id', $branch->id)
-            ->orderBy('product_id')
+            ->orderBy('product_variant_id')
             ->get();
 
         return view('branch.home', [

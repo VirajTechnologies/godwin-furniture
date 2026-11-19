@@ -39,7 +39,7 @@ class TransferController extends Controller
     {
         $branch = $this->managerBranch($request);
         $this->ensureShowroomTransfer($transfer, $branch);
-        $transfer->load(['items.product', 'warehouse', 'branch']);
+        $transfer->load(['items.variant.product', 'warehouse', 'branch']);
 
         return view('branch.transfers.show', [
             'transfer' => $transfer,

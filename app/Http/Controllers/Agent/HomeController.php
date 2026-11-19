@@ -31,10 +31,10 @@ class HomeController extends Controller
             ->sum('commission_amount');
 
         $stocks = Stock::query()
-            ->with('product')
+            ->with('variant.product')
             ->where('agent_id', $agent->id)
             ->whereNull('warehouse_id')
-            ->orderBy('product_id')
+            ->orderBy('product_variant_id')
             ->get();
 
         return view('agent.home', [

@@ -27,7 +27,7 @@ class StockRequestController extends Controller
 
     public function show(StockRequest $stockRequest): View
     {
-        $stockRequest->load(['branch.warehouse', 'agent.warehouse', 'items.product', 'transfer', 'requester']);
+        $stockRequest->load(['branch.warehouse', 'agent.warehouse', 'items.variant.product', 'transfer', 'requester']);
 
         return view('admin.stock-requests.show', [
             'stockRequest' => $stockRequest,
@@ -74,7 +74,7 @@ class StockRequestController extends Controller
                 'code' => 'TR'.str_pad((string) $transfer->id, 5, '0', STR_PAD_LEFT),
             ]);
             $transfer->items()->createMany($stockRequest->items->map(fn ($item) => [
-                'product_id' => $item->product_id,
+                'product_variant_id' => $item->product_variant_id,
                 'quantity' => $item->quantity,
             ])->all());
 

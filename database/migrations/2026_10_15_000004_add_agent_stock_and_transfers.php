@@ -14,7 +14,7 @@ return new class extends Migration
 
         Schema::table('stocks', function (Blueprint $table) {
             $table->foreignId('agent_id')->nullable()->after('branch_id')->constrained()->restrictOnDelete();
-            $table->unique(['product_id', 'agent_id']);
+            $table->unique(['product_variant_id', 'agent_id']);
         });
 
         Schema::table('stock_transfers', function (Blueprint $table) {
@@ -49,7 +49,7 @@ return new class extends Migration
         });
 
         Schema::table('stocks', function (Blueprint $table) {
-            $table->dropUnique(['product_id', 'agent_id']);
+            $table->dropUnique(['product_variant_id', 'agent_id']);
             $table->dropConstrainedForeignId('agent_id');
         });
 

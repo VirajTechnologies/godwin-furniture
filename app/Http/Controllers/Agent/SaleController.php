@@ -7,6 +7,8 @@ use App\Exceptions\InsufficientStock;
 use App\Http\Requests\Agent\SaleRequest;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Support\AgentSale;
 use Illuminate\Http\JsonResponse;
@@ -36,14 +38,20 @@ class SaleController extends Controller
     {
         $agent = $request->user()->agent;
         $stocks = Stock::query()
-            ->with(['product.agentTerms' => fn ($query) => $query->where('agent_id', $agent->id)])
+            ->with([
+                'variant.product',
+                'variant.agentTerms' => fn ($query) => $query->where('agent_id', $agent->id),
+            ])
             ->where('agent_id', $agent->id)
             ->where('quantity', '>', 0)
             ->whereNull('warehouse_id')
             ->whereNull('branch_id')
-            ->whereHas('product', fn ($query) => $query->where('status', 'active'))
+            ->whereHas('variant', function ($query): void {
+                $query->where('status', ProductVariant::STATUS_ACTIVE)
+                    ->whereHas('product', fn ($product) => $product->where('status', Product::STATUS_ACTIVE));
+            })
             ->get()
-            ->sortBy(fn (Stock $stock) => $stock->product?->name)
+            ->sortBy(fn (Stock $stock) => ($stock->variant?->product?->name ?? '').' '.($stock->variant?->label() ?? ''))
             ->values();
 
         return view('agent.sales.create', [
@@ -115,7 +123,7 @@ class SaleController extends Controller
     public function show(Request $request, Order $order): View
     {
         abort_unless($order->agent_id === $request->user()->agent->id, 404);
-        $order->load(['customer', 'agent', 'items.product', 'payment']);
+        $order->load(['customer', 'agent', 'items.variant.product', 'payment']);
 
         return view('agent.sales.show', [
             'order' => $order,

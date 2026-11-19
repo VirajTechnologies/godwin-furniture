@@ -5,7 +5,7 @@ namespace App\Http\Requests\Agent;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -35,7 +35,7 @@ class SaleRequest extends FormRequest
             'shipping_pincode' => [Rule::requiredIf($isDelivery), 'nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'distinct', Rule::exists('products', 'id')],
+            'items.*.product_variant_id' => ['required', 'integer', 'distinct', Rule::exists('product_variants', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
         ];
@@ -56,16 +56,20 @@ class SaleRequest extends FormRequest
                     continue;
                 }
 
-                $product = Product::query()->find($item['product_id'] ?? null);
+                $variant = ProductVariant::query()->with('product')->find($item['product_variant_id'] ?? null);
 
-                if ($product && ! $product->isActive()) {
-                    $validator->errors()->add('items.'.$index.'.product_id', 'Choose an active product.');
+                if ($variant === null) {
+                    continue;
+                }
+
+                if (! $variant->isActive() || ! $variant->product?->isActive()) {
+                    $validator->errors()->add('items.'.$index.'.product_variant_id', 'Choose an active product.');
 
                     continue;
                 }
 
                 $available = (int) Stock::query()
-                    ->where('product_id', $product?->id)
+                    ->where('product_variant_id', $variant->id)
                     ->where('agent_id', $agentId)
                     ->whereNull('warehouse_id')
                     ->whereNull('branch_id')
@@ -73,16 +77,16 @@ class SaleRequest extends FormRequest
 
                 $quantity = (int) ($item['quantity'] ?? 0);
 
-                if ($product && $quantity > $available) {
-                    $validator->errors()->add('items.'.$index.'.quantity', $product->name.' has '.$available.' at this shop.');
+                if ($quantity > $available) {
+                    $validator->errors()->add('items.'.$index.'.quantity', $variant->displayName().' has '.$available.' at this shop.');
                 }
 
-                if ($product && isset($item['unit_price']) && $item['unit_price'] !== '') {
-                    $floor = round($product->priceForAgent($agentId), 2);
+                if (isset($item['unit_price']) && $item['unit_price'] !== '') {
+                    $floor = round($variant->priceForAgent($agentId), 2);
                     $unitPrice = round((float) $item['unit_price'], 2);
 
                     if ($unitPrice < $floor) {
-                        $validator->errors()->add('items.'.$index.'.unit_price', $product->name.' cannot be sold below ₹'.number_format($floor, 2).'.');
+                        $validator->errors()->add('items.'.$index.'.unit_price', $variant->displayName().' cannot be sold below ₹'.number_format($floor, 2).'.');
                     }
                 }
             }
@@ -90,13 +94,13 @@ class SaleRequest extends FormRequest
     }
 
     /**
-     * @return list<array{product_id: int, quantity: int, unit_price: float}>
+     * @return list<array{product_variant_id: int, quantity: int, unit_price: float}>
      */
     public function lines(): array
     {
         return collect($this->validated('items'))
             ->map(fn (array $item) => [
-                'product_id' => (int) $item['product_id'],
+                'product_variant_id' => (int) $item['product_variant_id'],
                 'quantity' => (int) $item['quantity'],
                 'unit_price' => (float) $item['unit_price'],
             ])
@@ -110,7 +114,7 @@ class SaleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'items.*.product_id.distinct' => 'Each product can appear only once on a sale.',
+            'items.*.product_variant_id.distinct' => 'Each variant can appear only once on a sale.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
             'shipping_address.required' => 'Enter the delivery address for door delivery.',
             'shipping_city.required' => 'Enter the city for door delivery.',

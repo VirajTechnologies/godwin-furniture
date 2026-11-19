@@ -7,7 +7,7 @@ use App\Models\Agent;
 use App\Models\Branch;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\StockRequest;
 use App\Models\StockTransfer;
@@ -38,34 +38,39 @@ class ReportController extends Controller
         [$from, $to] = $this->range($request);
 
         $rows = OrderItem::query()
-            ->selectRaw('product_id, SUM(quantity) as quantity, SUM(line_total) as amount, SUM(commission_amount) as commission')
+            ->selectRaw('product_variant_id, SUM(quantity) as quantity, SUM(line_total) as amount, SUM(commission_amount) as commission')
             ->whereHas('order', function ($query) use ($from, $to): void {
                 $query->whereIn('channel', [Order::CHANNEL_BRANCH, Order::CHANNEL_AGENT])
                     ->where('status', Order::STATUS_COMPLETED)
                     ->whereDate('created_at', '>=', $from->toDateString())
                     ->whereDate('created_at', '<=', $to->toDateString());
             })
-            ->groupBy('product_id')
+            ->whereNotNull('product_variant_id')
+            ->groupBy('product_variant_id')
             ->orderByDesc('amount')
             ->get();
 
-        $products = Product::query()->whereIn('id', $rows->pluck('product_id'))->get()->keyBy('id');
+        $variants = ProductVariant::query()
+            ->with('product')
+            ->whereIn('id', $rows->pluck('product_variant_id'))
+            ->get()
+            ->keyBy('id');
 
         return view('admin.reports.sales-by-product', [
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             'rows' => $rows,
-            'products' => $products,
+            'variants' => $variants,
         ]);
     }
 
     public function stock(): View
     {
         $stocks = Stock::query()
-            ->with(['product', 'warehouse', 'branch', 'agent'])
+            ->with(['variant.product', 'warehouse', 'branch', 'agent'])
             ->orderBy('warehouse_id')
             ->orderBy('branch_id')
-            ->orderBy('product_id')
+            ->orderBy('product_variant_id')
             ->get();
 
         return view('admin.reports.stock', [

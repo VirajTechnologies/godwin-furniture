@@ -12,7 +12,7 @@ class StockRequestItem extends Model
      */
     protected $fillable = [
         'stock_request_id',
-        'product_id',
+        'product_variant_id',
         'quantity',
     ];
 
@@ -31,8 +31,8 @@ class StockRequestItem extends Model
         return $this->belongsTo(StockRequest::class, 'stock_request_id');
     }
 
-    public function product(): BelongsTo
+    public function variant(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 }

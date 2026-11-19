@@ -1,7 +1,7 @@
 @php
     $lines = old('items');
     if (! is_array($lines) || $lines === []) {
-        $lines = [['product_id' => '', 'quantity' => '']];
+        $lines = [['product_variant_id' => '', 'quantity' => '']];
     }
 @endphp
 
@@ -29,14 +29,14 @@
         @foreach ($lines as $index => $line)
             <div class="row g-3 align-items-start request-line mb-3">
                 <div class="col-md-7">
-                    <label class="form-label">Product</label>
-                    <select class="form-select @error('items.'.$index.'.product_id') is-invalid @enderror" name="items[{{ $index }}][product_id]" required>
-                        <option value="">Select Product</option>
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}" @selected((string) ($line['product_id'] ?? '') === (string) $product->id)>{{ $product->code }} · {{ $product->name }}</option>
+                    <label class="form-label">Variant</label>
+                    <select class="form-select @error('items.'.$index.'.product_variant_id') is-invalid @enderror" name="items[{{ $index }}][product_variant_id]" required>
+                        <option value="">Select Variant</option>
+                        @foreach ($variants as $variant)
+                            <option value="{{ $variant->id }}" @selected((string) ($line['product_variant_id'] ?? '') === (string) $variant->id)>{{ $variant->sku }} · {{ $variant->displayName() }}</option>
                         @endforeach
                     </select>
-                    @error('items.'.$index.'.product_id')
+                    @error('items.'.$index.'.product_variant_id')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -64,11 +64,11 @@
 <template id="request-line-template">
     <div class="row g-3 align-items-start request-line mb-3">
         <div class="col-md-7">
-            <label class="form-label">Product</label>
-            <select class="form-select" name="items[__INDEX__][product_id]" required>
-                <option value="">Select Product</option>
-                @foreach ($products as $product)
-                    <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
+            <label class="form-label">Variant</label>
+            <select class="form-select" name="items[__INDEX__][product_variant_id]" required>
+                <option value="">Select Variant</option>
+                @foreach ($variants as $variant)
+                    <option value="{{ $variant->id }}">{{ $variant->sku }} · {{ $variant->displayName() }}</option>
                 @endforeach
             </select>
         </div>

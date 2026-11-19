@@ -1,6 +1,5 @@
 @php
-    $price = $product->storePrice();
-    $mrp = $product->mrp();
+    $fromPrice = $product->fromPrice();
     $images = $product->images;
     if ($images->isEmpty()) {
         $images = collect([(object) ['url' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600']]);
@@ -52,16 +51,10 @@
             </div>
             <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="fw-bold fs-5 text-dark">₹{{ number_format($price, 0) }}</span>
-                    @if ($mrp && $mrp > $price)
-                        <span class="text-muted text-decoration-line-through small ms-1">₹{{ number_format($mrp, 0) }}</span>
-                    @endif
+                    <span class="text-muted small d-block font-heading">from</span>
+                    <span class="fw-bold fs-5 text-dark">₹{{ number_format($fromPrice, 0) }}</span>
                 </div>
-                <form method="POST" action="{{ route('store.cart.add') }}" class="m-0">
-                    @csrf
-                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    <button type="submit" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Add</button>
-                </form>
+                <a href="{{ route('store.product', $product->slug) }}" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Choose options</a>
             </div>
         </div>
     </div>

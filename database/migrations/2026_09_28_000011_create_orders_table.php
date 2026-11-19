@@ -26,12 +26,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->restrictOnDelete();
             $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->foreignId('product_variant_id')->constrained('product_variants')->restrictOnDelete();
             $table->unsignedInteger('quantity');
             $table->decimal('unit_price', 12, 2);
             $table->decimal('line_total', 12, 2);
             $table->timestamps();
 
-            $table->unique(['order_id', 'product_id']);
+            $table->unique(['order_id', 'product_variant_id']);
         });
 
         Schema::create('payments', function (Blueprint $table) {

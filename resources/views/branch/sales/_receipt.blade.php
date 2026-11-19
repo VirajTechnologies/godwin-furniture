@@ -72,8 +72,9 @@
                         <thead class="table-light">
                             <tr>
                                 <th>SR No.</th>
-                                <th>Code</th>
+                                <th>SKU</th>
                                 <th>Product</th>
+                                <th>Variant</th>
                                 <th>Quantity</th>
                                 <th>Price</th>
                                 <th>Line Total</th>
@@ -83,8 +84,9 @@
                             @foreach ($order->items as $item)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td class="fw-medium">{{ $item->product?->code }}</td>
-                                    <td>{{ $item->product?->name }}</td>
+                                    <td class="fw-medium">{{ $item->variant?->sku ?? $item->product?->code }}</td>
+                                    <td>{{ $item->variant?->product?->name ?? $item->product?->name }}</td>
+                                    <td>{{ $item->variant?->label() ?? '—' }}</td>
                                     <td>{{ $item->quantity }}</td>
                                     <td>₹{{ number_format((float) $item->unit_price, 2) }}</td>
                                     <td>₹{{ number_format((float) $item->line_total, 2) }}</td>

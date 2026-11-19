@@ -22,19 +22,21 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>SR No.</th>
-                                        <th>Code</th>
+                                        <th>SKU</th>
                                         <th>Product</th>
+                                        <th>Variant</th>
                                         <th>Quantity</th>
                                         <th>Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($rows as $row)
-                                        @php $product = $products->get($row->product_id); @endphp
+                                        @php $variant = $variants->get($row->product_variant_id); @endphp
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td class="fw-medium">{{ $product?->code ?? '—' }}</td>
-                                            <td>{{ $product?->name ?? '—' }}</td>
+                                            <td class="fw-medium">{{ $variant?->sku ?? '—' }}</td>
+                                            <td>{{ $variant?->product?->name ?? '—' }}</td>
+                                            <td>{{ $variant?->label() ?? '—' }}</td>
                                             <td>{{ $row->quantity }}</td>
                                             <td>₹{{ number_format((float) $row->amount, 2) }}</td>
                                         </tr>

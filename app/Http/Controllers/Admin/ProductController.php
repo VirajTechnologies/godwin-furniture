@@ -9,11 +9,14 @@ use App\Models\Agent;
 use App\Models\AgentProductTerm;
 use App\Models\Branch;
 use App\Models\BranchProductPrice;
-use App\Models\Category;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
+use App\Support\Catalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -24,7 +27,8 @@ class ProductController extends Controller
     public function index(): View
     {
         $products = Product::query()
-            ->with('category.parent')
+            ->with(['variants', 'category.parent'])
+            ->withSum('stocks as stock_total', 'quantity')
             ->orderBy('name')
             ->get();
 
@@ -42,51 +46,65 @@ class ProductController extends Controller
             'is_featured' => false,
         ]);
 
-        return view('admin.products.create', [
-            'product' => $product,
-            'categories' => $this->categories($product),
-            'branches' => Branch::query()->orderBy('name')->get(),
-            'branchPrices' => collect(),
-            'agents' => Agent::query()->orderBy('name')->get(),
-            'agentTerms' => collect(),
-            'imageUrls' => '',
-        ]);
+        $product->setRelation('variants', collect());
+        $product->setRelation('images', collect());
+
+        return view('admin.products.create', $this->formData($product));
     }
 
     public function store(ProductRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request): void {
-            $product = Product::query()->create($request->safe()->except(['image_urls', 'branch_prices', 'agent_terms']));
+            $data = $request->validated();
+            $category = Catalog::leafCategory($data['project_category'], $data['room'], $data['product_category']);
+            $family = Catalog::family($data['project_category'], $data['product_category']);
+
+            $product = Product::query()->create(array_merge(
+                Arr::except($data, ['specs', 'variants', 'image_urls', 'branch_prices', 'agent_terms']),
+                [
+                    'category_id' => $category->id,
+                    'family' => $family,
+                    'specs' => $this->specsFor($family, $data['specs'] ?? []),
+                ],
+            ));
+
             $this->syncImages($product, $request->imageUrlList());
-            $this->syncBranchPrices($product, $request->input('branch_prices', []));
-            $this->syncAgentTerms($product, $request->input('agent_terms', []));
+            $this->syncVariants($product, $data['variants']);
+            $this->syncBranchPrices($product, $data['branch_prices'] ?? []);
+            $this->syncAgentTerms($product, $data['agent_terms'] ?? []);
         });
 
-        return redirect()->route('admin.products.index')->with('success', 'Product saved.');
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Product saved. Open it again to set showroom and shop prices.');
     }
 
     public function edit(Product $product): View
     {
-        $product->load(['images', 'branchPrices', 'agentTerms']);
+        $product->load(['images', 'variants.stocks', 'variants.branchPrices', 'variants.agentTerms']);
 
-        return view('admin.products.edit', [
-            'product' => $product,
-            'categories' => $this->categories($product),
-            'branches' => Branch::query()->orderBy('name')->get(),
-            'branchPrices' => $product->branchPrices->pluck('price', 'branch_id'),
-            'agents' => Agent::query()->orderBy('name')->get(),
-            'agentTerms' => $product->agentTerms->keyBy('agent_id'),
-            'imageUrls' => $product->images->pluck('url')->implode("\n"),
-        ]);
+        return view('admin.products.edit', $this->formData($product));
     }
 
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
         DB::transaction(function () use ($request, $product): void {
-            $product->update($request->safe()->except(['code', 'image_urls', 'branch_prices', 'agent_terms']));
+            $data = $request->validated();
+            $category = Catalog::leafCategory($data['project_category'], $data['room'], $data['product_category']);
+            $family = Catalog::family($data['project_category'], $data['product_category']);
+
+            $product->update(array_merge(
+                Arr::except($data, ['code', 'specs', 'variants', 'image_urls', 'branch_prices', 'agent_terms']),
+                [
+                    'category_id' => $category->id,
+                    'family' => $family,
+                    'specs' => $this->specsFor($family, $data['specs'] ?? []),
+                ],
+            ));
+
             $this->syncImages($product, $request->imageUrlList());
-            $this->syncBranchPrices($product, $request->input('branch_prices', []));
-            $this->syncAgentTerms($product, $request->input('agent_terms', []));
+            $this->syncVariants($product, $data['variants']);
+            $this->syncBranchPrices($product, $data['branch_prices'] ?? []);
+            $this->syncAgentTerms($product, $data['agent_terms'] ?? []);
         });
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated.');
@@ -97,22 +115,47 @@ class ProductController extends Controller
         return $this->updateActiveStatus($request, $product, $product->name);
     }
 
-    private function categories(Product $product)
+    /**
+     * @return array<string, mixed>
+     */
+    private function formData(Product $product): array
     {
-        $selectedId = (int) old('category_id', $product->category_id) ?: null;
+        return [
+            'product' => $product,
+            'catalog' => Catalog::clientConfig(),
+            // Every branch and shop is listed: the form rewrites all overrides, so a hidden column would drop its price.
+            'branches' => Branch::query()->orderBy('name')->get(),
+            'agents' => Agent::query()->orderBy('name')->get(),
+            'branchPrices' => $product->variants->mapWithKeys(
+                fn (ProductVariant $variant) => [$variant->id => $variant->branchPrices->pluck('price', 'branch_id')],
+            ),
+            'agentTerms' => $product->variants->mapWithKeys(
+                fn (ProductVariant $variant) => [$variant->id => $variant->agentTerms->keyBy('agent_id')],
+            ),
+            'imageUrls' => $product->images->pluck('url')->implode("\n"),
+            'nextSequence' => (int) Product::query()->max('id') + 1,
+        ];
+    }
 
-        return Category::query()
-            ->with('parent')
-            ->whereNotNull('parent_id')
-            ->where(function ($query) use ($selectedId) {
-                $query->where('status', Category::STATUS_ACTIVE);
+    /**
+     * Keep only the fields the detected family declares, in config order.
+     *
+     * @param  array<string, mixed>  $posted
+     * @return array<string, string>
+     */
+    private function specsFor(string $family, array $posted): array
+    {
+        $specs = [];
 
-                if ($selectedId) {
-                    $query->orWhere('id', $selectedId);
-                }
-            })
-            ->orderBy('name')
-            ->get();
+        foreach (Catalog::familyConfig($family)['fields'] as $field) {
+            $value = $posted[$field['label']] ?? null;
+
+            if ($value !== null && $value !== '') {
+                $specs[$field['label']] = (string) $value;
+            }
+        }
+
+        return $specs;
     }
 
     /**
@@ -132,52 +175,128 @@ class ProductController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $prices
+     * @param  list<array<string, mixed>>  $rows
      */
-    private function syncBranchPrices(Product $product, array $prices): void
+    private function syncVariants(Product $product, array $rows): void
     {
-        $product->branchPrices()->delete();
+        $usesUpholstery = Catalog::usesUpholstery($product->family);
+        $existing = $product->variants()->get()->keyBy(
+            fn (ProductVariant $variant) => $this->variantKey($variant->colour, $variant->finish, (string) $variant->upholstery),
+        );
+        $keptIds = [];
 
-        foreach ($prices as $branchId => $price) {
-            if ($price === null || $price === '') {
+        foreach ($rows as $row) {
+            $colour = (string) $row['colour'];
+            $finish = (string) $row['finish'];
+            $upholstery = $usesUpholstery ? (string) ($row['upholstery'] ?? '') : '';
+            $mrp = $row['compare_at_price'] ?? null;
+
+            $attributes = [
+                'sku' => Catalog::skuFor($product->code, $colour, $finish, $upholstery === '' ? null : $upholstery),
+                'colour' => $colour,
+                'colour_hex' => Catalog::colourHex($colour),
+                'finish' => $finish,
+                'upholstery' => $upholstery,
+                'price' => $row['price'],
+                'compare_at_price' => $mrp === null || $mrp === '' ? null : $mrp,
+                'status' => $row['status'] ?? ProductVariant::STATUS_ACTIVE,
+            ];
+
+            $variant = $existing->get($this->variantKey($colour, $finish, $upholstery));
+
+            if ($variant !== null) {
+                $variant->update($attributes);
+            } else {
+                $variant = $product->variants()->create($attributes);
+            }
+
+            $keptIds[] = $variant->id;
+        }
+
+        foreach ($existing as $variant) {
+            if (in_array($variant->id, $keptIds, true)) {
                 continue;
             }
 
-            BranchProductPrice::query()->create([
-                'product_id' => $product->id,
-                'branch_id' => (int) $branchId,
-                'price' => $price,
-            ]);
+            // Stock counts and order history point at the variant, so retire it instead of deleting it.
+            if ($variant->stocks()->exists() || OrderItem::query()->where('product_variant_id', $variant->id)->exists()) {
+                $variant->update(['status' => ProductVariant::STATUS_INACTIVE]);
+
+                continue;
+            }
+
+            $variant->delete();
+        }
+
+        $product->load('variants');
+    }
+
+    private function variantKey(string $colour, string $finish, string $upholstery): string
+    {
+        return $colour.'|'.$finish.'|'.$upholstery;
+    }
+
+    /**
+     * @param  array<int|string, array<int|string, mixed>>  $prices
+     */
+    private function syncBranchPrices(Product $product, array $prices): void
+    {
+        $variantIds = $product->variants->pluck('id')->all();
+        BranchProductPrice::query()->whereIn('product_variant_id', $variantIds)->delete();
+
+        foreach ($prices as $variantId => $branches) {
+            if (! is_array($branches) || ! in_array((int) $variantId, $variantIds, true)) {
+                continue;
+            }
+
+            foreach ($branches as $branchId => $price) {
+                if ($price === null || $price === '') {
+                    continue;
+                }
+
+                BranchProductPrice::query()->create([
+                    'product_variant_id' => (int) $variantId,
+                    'branch_id' => (int) $branchId,
+                    'price' => $price,
+                ]);
+            }
         }
     }
 
     /**
-     * @param  array<string, mixed>  $terms
+     * @param  array<int|string, array<int|string, mixed>>  $terms
      */
     private function syncAgentTerms(Product $product, array $terms): void
     {
-        $product->agentTerms()->delete();
+        $variantIds = $product->variants->pluck('id')->all();
+        AgentProductTerm::query()->whereIn('product_variant_id', $variantIds)->delete();
 
-        foreach ($terms as $agentId => $term) {
-            if (! is_array($term)) {
+        foreach ($terms as $variantId => $agents) {
+            if (! is_array($agents) || ! in_array((int) $variantId, $variantIds, true)) {
                 continue;
             }
 
-            $price = $term['price'] ?? null;
-            $commission = $term['commission_percent'] ?? null;
-            $hasPrice = $price !== null && $price !== '';
-            $hasCommission = $commission !== null && $commission !== '';
+            foreach ($agents as $agentId => $term) {
+                if (! is_array($term)) {
+                    continue;
+                }
 
-            if (! $hasPrice && ! $hasCommission) {
-                continue;
+                $price = $term['price'] ?? null;
+                $commission = $term['commission_percent'] ?? null;
+                $hasPrice = $price !== null && $price !== '';
+                $hasCommission = $commission !== null && $commission !== '';
+
+                if (! $hasPrice && ! $hasCommission) {
+                    continue;
+                }
+
+                AgentProductTerm::query()->create([
+                    'product_variant_id' => (int) $variantId,
+                    'agent_id' => (int) $agentId,
+                    'price' => $hasPrice ? $price : null,
+                    'commission_percent' => $hasCommission ? $commission : null,
+                ]);
             }
-
-            AgentProductTerm::query()->create([
-                'product_id' => $product->id,
-                'agent_id' => (int) $agentId,
-                'price' => $hasPrice ? $price : null,
-                'commission_percent' => $hasCommission ? $commission : null,
-            ]);
         }
     }
 }

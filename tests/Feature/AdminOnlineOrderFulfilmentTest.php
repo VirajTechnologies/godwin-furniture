@@ -30,7 +30,7 @@ class AdminOnlineOrderFulfilmentTest extends TestCase
         $product = $this->onlineProduct();
 
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 5,
         ]);
@@ -51,7 +51,7 @@ class AdminOnlineOrderFulfilmentTest extends TestCase
         ]);
         $customer->update(['user_id' => $user->id]);
 
-        app(StoreCart::class)->add($product, 2);
+        app(StoreCart::class)->add($this->primaryVariant($product), 2);
 
         $this->actingAs($user)->post(route('store.checkout.store'), [
             'address_source' => 'new',
@@ -71,7 +71,7 @@ class AdminOnlineOrderFulfilmentTest extends TestCase
 
         $this->assertSame(Order::STATUS_CONFIRMED, $order->fresh()->status);
         $this->assertNotNull($order->fresh()->confirmed_at);
-        $this->assertSame(5, (int) Stock::query()->where('product_id', $product->id)->value('quantity'));
+        $this->assertSame(5, (int) Stock::query()->where('product_variant_id', $this->primaryVariant($product)->id)->value('quantity'));
 
         $this->actingAs($admin)
             ->post(route('admin.orders.dispatch', $order))
@@ -79,7 +79,7 @@ class AdminOnlineOrderFulfilmentTest extends TestCase
 
         $this->assertSame(Order::STATUS_DISPATCHED, $order->fresh()->status);
         $this->assertNotNull($order->fresh()->dispatched_at);
-        $this->assertSame(3, (int) Stock::query()->where('product_id', $product->id)->value('quantity'));
+        $this->assertSame(3, (int) Stock::query()->where('product_variant_id', $this->primaryVariant($product)->id)->value('quantity'));
         $this->assertDatabaseHas('stock_movements', [
             'type' => StockMovement::TYPE_SALE,
             'quantity_change' => -2,
@@ -119,7 +119,7 @@ class AdminOnlineOrderFulfilmentTest extends TestCase
         $product = $this->onlineProduct();
 
         Stock::query()->create([
-            'product_id' => $product->id,
+            'product_variant_id' => $this->primaryVariant($product)->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 1,
         ]);
@@ -139,7 +139,7 @@ class AdminOnlineOrderFulfilmentTest extends TestCase
         ]);
         $customer->update(['user_id' => $user->id]);
 
-        app(StoreCart::class)->add($product, 2);
+        app(StoreCart::class)->add($this->primaryVariant($product), 2);
         $this->actingAs($user)->post(route('store.checkout.store'), [
             'address_source' => 'new',
             'shipping_address' => '12 MG Road',
@@ -158,24 +158,20 @@ class AdminOnlineOrderFulfilmentTest extends TestCase
             ->assertSessionHas('error');
 
         $this->assertSame(Order::STATUS_CONFIRMED, $order->fresh()->status);
-        $this->assertSame(1, (int) Stock::query()->where('product_id', $product->id)->value('quantity'));
+        $this->assertSame(1, (int) Stock::query()->where('product_variant_id', $this->primaryVariant($product)->id)->value('quantity'));
     }
 
     private function onlineProduct(): Product
     {
         $category = $this->subcategory();
 
-        return Product::query()->create([
-            'category_id' => $category->id,
+        return $this->catalogProduct([
             'code' => 'SF001',
             'slug' => 'alanis-sofa',
             'name' => 'Alanis Metal Frame Sofa',
-            'unit' => 'Piece',
-            'selling_price' => 42000,
-            'online_price' => 38999,
-            'compare_at_price' => 54999,
+            'base_price' => 42000,
             'is_online' => true,
-            'status' => 'active',
+            'compare_at_price' => 54999,
         ]);
     }
 
