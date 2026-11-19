@@ -61,6 +61,11 @@ class ProductVariant extends Model
         return $this->hasMany(Stock::class);
     }
 
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function branchPrices(): HasMany
     {
         return $this->hasMany(BranchProductPrice::class);
@@ -77,23 +82,23 @@ class ProductVariant extends Model
     }
 
     /**
-     * "Walnut · Matte · Velvet"
+     * "Walnut Â· Matte Â· Velvet"
      */
     public function label(): string
     {
         return collect([$this->colour, $this->finish, $this->upholstery])
             ->filter(fn ($part) => $part !== null && $part !== '')
-            ->implode(' · ');
+            ->implode(' Â· ');
     }
 
     /**
-     * "Oslo Sofa — Walnut · Matte · Velvet"
+     * "Oslo Sofa â€” Walnut Â· Matte Â· Velvet"
      */
     public function displayName(): string
     {
         $name = $this->product?->name ?? 'Product';
 
-        return $name.' — '.$this->label();
+        return $name.' â€” '.$this->label();
     }
 
     public function priceForBranch(Branch|int $branch): float

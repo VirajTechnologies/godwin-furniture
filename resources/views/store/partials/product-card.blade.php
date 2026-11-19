@@ -1,6 +1,6 @@
 @php
     $fromPrice = $product->fromPrice();
-    $images = $product->images;
+    $images = $product->galleryFor($product->activeVariants->first());
     if ($images->isEmpty()) {
         $images = collect([(object) ['url' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600']]);
     }

@@ -93,6 +93,36 @@ class Product extends Model
     }
 
     /**
+     * Shared gallery shown when a variant has no photos of its own.
+     */
+    public function sharedImages(): HasMany
+    {
+        return $this->images()->whereNull('product_variant_id');
+    }
+
+    /**
+     * Variant images first, then the shared product gallery.
+     *
+     * @return \Illuminate\Support\Collection<int, ProductImage>
+     */
+    public function galleryFor(?ProductVariant $variant = null)
+    {
+        if ($variant !== null) {
+            $variant->loadMissing('images');
+
+            if ($variant->images->isNotEmpty()) {
+                return $variant->images;
+            }
+        }
+
+        if ($this->relationLoaded('images')) {
+            return $this->images->whereNull('product_variant_id')->values();
+        }
+
+        return $this->sharedImages()->get();
+    }
+
+    /**
      * Lowest active variant price, falling back to the base price.
      */
     public function fromPrice(): float
@@ -107,9 +137,9 @@ class Product extends Model
     }
 
     /**
-     * "Furniture › Living Room › Sofa › Chester"
+     * "Furniture â€º Living Room â€º Sofa â€º Chester"
      */
-    public function path(string $separator = ' › '): string
+    public function path(string $separator = ' â€º '): string
     {
         return collect([$this->project_category, $this->room, $this->product_category, $this->design_type])
             ->filter()
@@ -123,10 +153,11 @@ class Product extends Model
 
     public function primaryImageUrl(): ?string
     {
-        if ($this->relationLoaded('images')) {
-            return $this->images->first()?->url;
-        }
+        $gallery = $this->galleryFor($this->relationLoaded('activeVariants')
+            ? $this->activeVariants->first()
+            : $this->activeVariants()->first());
 
-        return $this->images()->value('url');
+        return $gallery->first()?->url
+            ?? ($this->relationLoaded('images') ? $this->images->first()?->url : $this->images()->value('url'));
     }
 }

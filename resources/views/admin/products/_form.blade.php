@@ -19,6 +19,7 @@
                 'price' => (string) ($row['price'] ?? ''),
                 'compare_at_price' => (string) ($row['compare_at_price'] ?? ''),
                 'status' => (string) ($row['status'] ?? ProductVariant::STATUS_ACTIVE),
+                'image_urls' => (string) ($row['image_urls'] ?? ''),
                 'stock' => null,
             ])
             ->values()
@@ -32,6 +33,9 @@
                 'price' => (string) $variant->price,
                 'compare_at_price' => $variant->compare_at_price === null ? '' : (string) $variant->compare_at_price,
                 'status' => (string) $variant->status,
+                'image_urls' => $variant->relationLoaded('images')
+                    ? $variant->images->pluck('url')->implode("\n")
+                    : '',
                 'stock' => $variant->relationLoaded('stocks') ? (int) $variant->stocks->sum('quantity') : null,
             ])
             ->values()
@@ -310,8 +314,9 @@
                     </div>
                 </div>
                 <div class="col-12">
-                    <label for="image_urls" class="form-label">Image urls</label>
-                    <textarea class="form-control @error('image_urls') is-invalid @enderror" id="image_urls" name="image_urls" rows="4" placeholder="One image URL per line">{{ old('image_urls', $imageUrls) }}</textarea>
+                    <label for="image_urls" class="form-label">Shared image urls</label>
+                    <textarea class="form-control @error('image_urls') is-invalid @enderror" id="image_urls" name="image_urls" rows="3" placeholder="One image URL per line — used when a variant has no photos of its own">{{ old('image_urls', $imageUrls) }}</textarea>
+                    <div class="form-text">Optional fallback gallery. Prefer photos on each variant below.</div>
                     @error('image_urls')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -581,7 +586,7 @@
                     columns.push('Upholstery');
                 }
 
-                columns.push('Price (₹)', 'MRP (₹)', 'Status');
+                columns.push('Price (₹)', 'MRP (₹)', 'Status', 'Images');
 
                 if (state.isEdit) {
                     columns.push('Stock');
@@ -597,6 +602,7 @@
                     const value = upholstery ? row.upholstery : '';
                     const priceKey = 'variants.' + index + '.price';
                     const mrpKey = 'variants.' + index + '.compare_at_price';
+                    const imagesKey = 'variants.' + index + '.image_urls';
 
                     return '<tr>'
                         + '<td class="text-nowrap small">' + esc(skuFor(row.colour, row.finish, value))
@@ -613,6 +619,7 @@
                         + '<option value="active"' + (row.status === 'inactive' ? '' : ' selected') + '>Active</option>'
                         + '<option value="inactive"' + (row.status === 'inactive' ? ' selected' : '') + '>Inactive</option>'
                         + '</select></td>'
+                        + '<td><textarea class="form-control js-variant-field' + (errorFor(imagesKey) ? ' is-invalid' : '') + '" name="' + name + '[image_urls]" rows="2" placeholder="One URL per line" style="min-width: 12rem;" data-index="' + index + '" data-field="image_urls">' + esc(row.image_urls || '') + '</textarea>' + invalidFeedback(imagesKey) + '</td>'
                         + (state.isEdit ? '<td class="text-nowrap">' + (row.stock === null ? '—' : esc(row.stock)) + '</td>' : '')
                         + '<td><button type="button" class="btn btn-sm btn-soft-danger js-remove-variant" data-index="' + index + '">Remove</button></td>'
                         + '</tr>';
@@ -620,7 +627,7 @@
 
                 variantNote.textContent = state.variants.length === 0
                     ? 'No variants yet. Pick colours and finishes, then generate variants.'
-                    : state.variants.length + ' saved on submit. Edit the price and MRP per SKU.';
+                    : state.variants.length + ' saved on submit. Edit price, MRP, and images per SKU.';
             }
 
             function picked(group) {
@@ -675,6 +682,7 @@
                                 price: price,
                                 compare_at_price: '',
                                 status: 'active',
+                                image_urls: '',
                                 stock: null,
                             });
                         });

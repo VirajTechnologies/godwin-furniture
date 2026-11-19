@@ -652,8 +652,9 @@ class LoadSampleData extends Command
             'status' => $status,
         ]);
 
+        $variants = [];
         foreach ($variantRows as $index => [$colour, $finish, $upholstery, $price, $mrp]) {
-            ProductVariant::query()->create([
+            $variants[] = ProductVariant::query()->create([
                 'product_id' => $product->id,
                 'sku' => $code.'-V'.($index + 1),
                 'colour' => $colour,
@@ -665,12 +666,37 @@ class LoadSampleData extends Command
             ]);
         }
 
-        foreach ($images as $index => $url) {
+        // Prefer photos on each variant; keep the first URL as a shared fallback too.
+        if ($images !== []) {
             ProductImage::query()->create([
                 'product_id' => $product->id,
-                'url' => $url,
-                'sort_order' => $index,
+                'product_variant_id' => null,
+                'url' => $images[0],
+                'sort_order' => 0,
             ]);
+        }
+
+        foreach ($variants as $index => $variant) {
+            if ($images === []) {
+                break;
+            }
+
+            $url = $images[$index % count($images)];
+            ProductImage::query()->create([
+                'product_id' => $product->id,
+                'product_variant_id' => $variant->id,
+                'url' => $url,
+                'sort_order' => 0,
+            ]);
+
+            if (isset($images[($index + 1) % count($images)]) && count($images) > 1) {
+                ProductImage::query()->create([
+                    'product_id' => $product->id,
+                    'product_variant_id' => $variant->id,
+                    'url' => $images[($index + 1) % count($images)],
+                    'sort_order' => 1,
+                ]);
+            }
         }
 
         return $product->load('variants');

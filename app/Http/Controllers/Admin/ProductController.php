@@ -80,7 +80,7 @@ class ProductController extends Controller
 
     public function edit(Product $product): View
     {
-        $product->load(['images', 'variants.stocks', 'variants.branchPrices', 'variants.agentTerms']);
+        $product->load(['images', 'variants.images', 'variants.stocks', 'variants.branchPrices', 'variants.agentTerms']);
 
         return view('admin.products.edit', $this->formData($product));
     }
@@ -132,7 +132,7 @@ class ProductController extends Controller
             'agentTerms' => $product->variants->mapWithKeys(
                 fn (ProductVariant $variant) => [$variant->id => $variant->agentTerms->keyBy('agent_id')],
             ),
-            'imageUrls' => $product->images->pluck('url')->implode("\n"),
+            'imageUrls' => $product->images->whereNull('product_variant_id')->pluck('url')->implode("\n"),
             'nextSequence' => (int) Product::query()->max('id') + 1,
         ];
     }
@@ -159,19 +159,51 @@ class ProductController extends Controller
     }
 
     /**
+     * Shared product gallery (used when a variant has no photos).
+     *
      * @param  list<string>  $urls
      */
     private function syncImages(Product $product, array $urls): void
     {
-        $product->images()->delete();
+        $product->sharedImages()->delete();
 
         foreach (array_values($urls) as $index => $url) {
             ProductImage::query()->create([
                 'product_id' => $product->id,
+                'product_variant_id' => null,
                 'url' => $url,
                 'sort_order' => $index,
             ]);
         }
+    }
+
+    /**
+     * @param  list<string>  $urls
+     */
+    private function syncVariantImages(Product $product, ProductVariant $variant, array $urls): void
+    {
+        $variant->images()->delete();
+
+        foreach (array_values($urls) as $index => $url) {
+            ProductImage::query()->create([
+                'product_id' => $product->id,
+                'product_variant_id' => $variant->id,
+                'url' => $url,
+                'sort_order' => $index,
+            ]);
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function urlLines(?string $raw): array
+    {
+        return collect(preg_split('/\r\n|\r|\n/', (string) $raw) ?: [])
+            ->map(fn ($url) => trim($url))
+            ->filter()
+            ->values()
+            ->all();
     }
 
     /**
@@ -210,6 +242,7 @@ class ProductController extends Controller
                 $variant = $product->variants()->create($attributes);
             }
 
+            $this->syncVariantImages($product, $variant, $this->urlLines($row['image_urls'] ?? null));
             $keptIds[] = $variant->id;
         }
 

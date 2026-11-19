@@ -16,7 +16,7 @@ class HomeController extends Controller
     public function index(): View
     {
         $online = Product::query()
-            ->with(['images', 'category.parent', 'activeVariants'])
+            ->with(['images', 'category.parent', 'activeVariants.images'])
             ->where('is_online', true)
             ->where('status', Product::STATUS_ACTIVE);
 
@@ -41,7 +41,7 @@ class HomeController extends Controller
             ->pluck('material');
 
         $query = Product::query()
-            ->with(['images', 'category.parent', 'activeVariants'])
+            ->with(['images', 'category.parent', 'activeVariants.images'])
             ->select('products.*')
             ->selectSub($this->lowestVariantPrice(), 'from_price')
             ->where('is_online', true)
@@ -100,14 +100,14 @@ class HomeController extends Controller
     public function product(string $slug): View
     {
         $product = Product::query()
-            ->with(['images', 'category.parent', 'activeVariants'])
+            ->with(['images', 'category.parent', 'activeVariants.images'])
             ->where('slug', $slug)
             ->where('is_online', true)
             ->where('status', Product::STATUS_ACTIVE)
             ->firstOrFail();
 
         $related = Product::query()
-            ->with(['images', 'activeVariants'])
+            ->with(['images', 'activeVariants.images'])
             ->where('is_online', true)
             ->where('status', Product::STATUS_ACTIVE)
             ->where('category_id', $product->category_id)
@@ -116,10 +116,12 @@ class HomeController extends Controller
             ->limit(4)
             ->get();
 
+        $variants = $this->sellableVariants($product);
+
         return view('store.product', [
             'product' => $product,
             'related' => $related,
-            'variants' => $this->sellableVariants($product),
+            'variants' => $variants,
         ]);
     }
 
@@ -142,19 +144,29 @@ class HomeController extends Controller
                 ->whereNull('agent_id')
                 ->pluck('quantity', 'product_variant_id');
 
+        $sharedImages = $product->relationLoaded('images')
+            ? $product->images->whereNull('product_variant_id')->pluck('url')->values()->all()
+            : $product->sharedImages()->pluck('url')->all();
+
         return $product->activeVariants
-            ->map(fn (ProductVariant $variant) => [
-                'id' => $variant->id,
-                'sku' => $variant->sku,
-                'colour' => (string) $variant->colour,
-                'colour_hex' => $variant->colour_hex,
-                'finish' => (string) $variant->finish,
-                'upholstery' => (string) $variant->upholstery,
-                'label' => $variant->label(),
-                'price' => $variant->storePrice(),
-                'mrp' => $variant->mrp(),
-                'available' => (int) ($quantities[$variant->id] ?? 0),
-            ])
+            ->map(function (ProductVariant $variant) use ($quantities, $sharedImages) {
+                $variant->loadMissing('images');
+                $images = $variant->images->pluck('url')->values()->all();
+
+                return [
+                    'id' => $variant->id,
+                    'sku' => $variant->sku,
+                    'colour' => (string) $variant->colour,
+                    'colour_hex' => $variant->colour_hex,
+                    'finish' => (string) $variant->finish,
+                    'upholstery' => (string) $variant->upholstery,
+                    'label' => $variant->label(),
+                    'price' => $variant->storePrice(),
+                    'mrp' => $variant->mrp(),
+                    'available' => (int) ($quantities[$variant->id] ?? 0),
+                    'images' => $images !== [] ? $images : $sharedImages,
+                ];
+            })
             ->values()
             ->all();
     }

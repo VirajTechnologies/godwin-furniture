@@ -7,14 +7,14 @@
     @include('store.partials.header')
 
     @php
-        $images = $product->images;
-        if ($images->isEmpty()) {
-            $images = collect([(object) ['url' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800']]);
-        }
-        $main = $images->first()->url;
-
+        $fallbackImage = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800';
         $options = collect($variants);
         $selected = $options->firstWhere('available', '>', 0) ?? $options->first();
+        $imageUrls = collect($selected['images'] ?? [])->filter()->values();
+        if ($imageUrls->isEmpty()) {
+            $imageUrls = collect([$fallbackImage]);
+        }
+        $main = $imageUrls->first();
         $price = $selected['price'] ?? $product->fromPrice();
         $mrp = $selected['mrp'] ?? null;
         $colours = $options->unique('colour')->values();
@@ -46,10 +46,10 @@
             <div class="row g-4">
                 <div class="col-12 col-lg-6">
                     <img id="mainProductImg" src="{{ $main }}" class="img-fluid rounded-4 w-100 object-fit-cover mb-3" style="max-height: 480px;" alt="{{ $product->name }}">
-                    <div class="row g-2">
-                        @foreach ($images as $image)
+                    <div class="row g-2" id="productThumbs">
+                        @foreach ($imageUrls as $url)
                             <div class="col-3">
-                                <img src="{{ $image->url }}" class="img-thumbnail rounded-3 cursor-pointer {{ $loop->first ? '' : 'opacity-75' }}" onclick="document.getElementById('mainProductImg').src=this.src" alt="{{ $product->name }}">
+                                <img src="{{ $url }}" class="img-thumbnail rounded-3 cursor-pointer js-product-thumb {{ $loop->first ? '' : 'opacity-75' }}" alt="{{ $product->name }}">
                             </div>
                         @endforeach
                     </div>
@@ -179,12 +179,43 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveEl = document.getElementById('variant-save');
     const skuEl = document.getElementById('variant-sku');
     const stockEl = document.getElementById('variant-stock');
+    const mainImg = document.getElementById('mainProductImg');
+    const thumbs = document.getElementById('productThumbs');
     const inputs = document.querySelectorAll('.js-variant-input');
     const submits = document.querySelectorAll('.js-variant-submit');
+    const fallbackImage = @json($fallbackImage);
     const selection = {};
 
     function money(amount) {
         return '₹' + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+
+    function renderGallery(urls) {
+        const list = (urls && urls.length) ? urls : [fallbackImage];
+        if (mainImg) {
+            mainImg.src = list[0];
+        }
+        if (!thumbs) {
+            return;
+        }
+        thumbs.innerHTML = list.map(function (url, index) {
+            return '<div class="col-3">'
+                + '<img src="' + url + '" class="img-thumbnail rounded-3 cursor-pointer js-product-thumb' + (index === 0 ? '' : ' opacity-75') + '" alt="">'
+                + '</div>';
+        }).join('');
+    }
+
+    if (thumbs) {
+        thumbs.addEventListener('click', function (event) {
+            const thumb = event.target.closest('.js-product-thumb');
+            if (!thumb || !mainImg) {
+                return;
+            }
+            mainImg.src = thumb.src;
+            thumbs.querySelectorAll('.js-product-thumb').forEach(function (image) {
+                image.classList.toggle('opacity-75', image !== thumb);
+            });
+        });
     }
 
     function matching(partial) {
@@ -257,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
             saveEl.textContent = 'Save ' + money((variant.mrp || 0) - variant.price);
             mrpEl.classList.toggle('d-none', !discounted);
             saveEl.classList.toggle('d-none', !discounted);
+            renderGallery(variant.images || []);
         }
 
         stockEl.textContent = inStock ? 'In stock' : 'Out of stock';

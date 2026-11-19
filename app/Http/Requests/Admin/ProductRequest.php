@@ -60,6 +60,7 @@ class ProductRequest extends FormRequest
             'variants.*.price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
             'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
             'variants.*.status' => ['required', Rule::in([ProductVariant::STATUS_ACTIVE, ProductVariant::STATUS_INACTIVE])],
+            'variants.*.image_urls' => ['nullable', 'string', 'max:5000'],
 
             'branch_prices' => ['nullable', 'array'],
             'branch_prices.*' => ['nullable', 'array'],
