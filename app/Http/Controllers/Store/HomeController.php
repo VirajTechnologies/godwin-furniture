@@ -167,6 +167,10 @@ class HomeController extends Controller
                     'images' => $images !== [] ? $images : $sharedImages,
                 ];
             })
+            ->sortBy([
+                ['price', 'asc'],
+                ['id', 'asc'],
+            ])
             ->values()
             ->all();
     }

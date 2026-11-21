@@ -43,16 +43,61 @@ class SampleDataCommandTest extends TestCase
 
         $this->assertDatabaseHas('stock_transfers', ['code' => 'TR004', 'status' => 'dispatched']);
         $this->assertDatabaseHas('stock_transfers', ['code' => 'TR006', 'status' => 'cancelled']);
-        $this->assertDatabaseHas('customers', ['phone' => '9848011001']);
+        $this->assertDatabaseHas('customers', ['phone' => '9848011001', 'email' => 'customer@godwin.test']);
+        $this->assertDatabaseHas('users', ['email' => 'customer@godwin.test', 'role_id' => null]);
+        $this->assertDatabaseHas('customer_addresses', ['city' => 'Vijayawada', 'pincode' => '520010']);
         $this->assertDatabaseHas('orders', ['channel' => 'branch', 'status' => 'completed']);
+        $this->assertDatabaseHas('orders', ['channel' => 'online', 'status' => 'completed']);
+        $this->assertDatabaseHas('orders', ['channel' => 'online', 'status' => 'placed']);
         $this->assertDatabaseHas('agents', ['code' => 'AG001', 'name' => 'Sri Lakshmi Furniture Mart', 'commission_percent' => 5]);
         $this->assertDatabaseHas('users', ['email' => 'cashier.lakshmi@godwin.test']);
         $this->assertDatabaseHas('agents', ['code' => 'AG002', 'name' => 'Kalanjali Home Studio']);
         $this->assertDatabaseHas('agents', ['code' => 'AG003', 'name' => 'Deccan Living Gallery']);
         $this->assertDatabaseHas('orders', ['channel' => 'agent']);
 
+        $sofa = \App\Models\Product::query()->where('code', 'SF001')->with('variants.images')->firstOrFail();
+        $this->assertGreaterThanOrEqual(2, $sofa->variants->count());
+        foreach ($sofa->variants as $variant) {
+            $this->assertDatabaseHas('stocks', [
+                'product_variant_id' => $variant->id,
+                'warehouse_id' => \App\Models\Warehouse::query()->where('code', 'WH001')->value('id'),
+                'branch_id' => null,
+                'agent_id' => null,
+            ]);
+            $this->assertGreaterThan(
+                0,
+                (int) \App\Models\Stock::query()
+                    ->where('product_variant_id', $variant->id)
+                    ->where('warehouse_id', \App\Models\Warehouse::query()->where('code', 'WH001')->value('id'))
+                    ->whereNull('branch_id')
+                    ->whereNull('agent_id')
+                    ->value('quantity'),
+            );
+        }
+        $sofaUrl = $sofa->variants->first()->images->sortBy('sort_order')->first()?->url;
+        $this->assertNotNull($sofaUrl);
+        $this->assertStringContainsString('photo-1555041469', (string) $sofaUrl);
+
+        $wardrobe = \App\Models\Product::query()->where('code', 'ST001')->with('variants.images')->firstOrFail();
+        $wardrobePrimaryUrls = $wardrobe->variants->map(
+            fn ($variant) => $variant->images->sortBy('sort_order')->first()?->url
+        )->filter()->unique()->values();
+        $this->assertSame(
+            $wardrobe->variants->count(),
+            $wardrobePrimaryUrls->count(),
+            'Each wardrobe colourway should have a distinct primary image for the store PDP.',
+        );
+        foreach ($wardrobePrimaryUrls as $url) {
+            $this->assertTrue(
+                str_contains($url, '813688')
+                    || str_contains($url, '6585756')
+                    || str_contains($url, '1454806')
+                    || str_contains($url, 'photo-1595428774223'),
+                'Wardrobe sample images should come from the wardrobe photo pool, got: '.$url,
+            );
+        }
+
         $lakshmi = \App\Models\Agent::query()->where('code', 'AG001')->firstOrFail();
-        $sofa = \App\Models\Product::query()->where('code', 'SF001')->with('variants')->firstOrFail();
         $sofaVariant = $sofa->variants->firstOrFail();
         $this->assertDatabaseHas('order_items', [
             'product_id' => $sofa->id,

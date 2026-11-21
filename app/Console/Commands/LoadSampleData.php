@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\BranchProductPrice;
 use App\Models\City;
 use App\Models\Customer;
+use App\Models\CustomerAddress;
 use App\Models\District;
 use App\Models\Employee;
 use App\Models\Order;
@@ -25,6 +26,7 @@ use App\Models\Warehouse;
 use App\Support\AgentSale;
 use App\Support\BranchSale;
 use App\Support\Catalog;
+use App\Support\OnlineOrderFulfilment;
 use App\Support\StockLedger;
 use App\Support\StockTransferWorkflow;
 use Illuminate\Console\Command;
@@ -38,7 +40,7 @@ class LoadSampleData extends Command
 
     protected $description = 'Load sample showroom data with factories';
 
-    public function handle(StockLedger $ledger, StockTransferWorkflow $workflow, BranchSale $sales, AgentSale $agentSales): int
+    public function handle(StockLedger $ledger, StockTransferWorkflow $workflow, BranchSale $sales, AgentSale $agentSales, OnlineOrderFulfilment $onlineFulfilment): int
     {
         if (Branch::query()->where('code', 'BR001')->exists()) {
             $this->components->error('Sample data is already loaded. Run migrate:fresh --seed, then sample:load again.');
@@ -55,7 +57,7 @@ class LoadSampleData extends Command
             return self::FAILURE;
         }
 
-        DB::transaction(function () use ($ledger, $workflow, $sales, $agentSales, $warehouse, $admin): void {
+        DB::transaction(function () use ($ledger, $workflow, $sales, $agentSales, $onlineFulfilment, $warehouse, $admin): void {
             $places = $this->places();
             $branches = $this->branches($warehouse, $places);
             $staff = $this->staff($warehouse, $branches);
@@ -63,11 +65,10 @@ class LoadSampleData extends Command
             $agents = $this->agents($warehouse, $places);
             $this->agentCashiers($agents);
             $this->agentTerms($agents, $products);
+            $storeCustomer = $this->storeCustomer();
 
             $this->at(now()->subDays(11)->setTime(10, 0), function () use ($ledger, $products, $warehouse, $admin): void {
-                foreach ($this->openingQuantities() as $code => $quantity) {
-                    $ledger->openWarehouseStock($this->variant($products, $code), $warehouse, $quantity, 'Opening count', $admin->id);
-                }
+                $this->openWarehouseStock($ledger, $products, $warehouse, $admin->id);
             });
 
             $stock = Stock::query()
@@ -145,7 +146,47 @@ class LoadSampleData extends Command
                 ['variant' => $this->variant($products, 'DN002'), 'quantity' => 1],
             ]);
             $this->sale($sales, $branches['BR003'], $staff['cashiers']['BR003'], $this->variant($products, 'SF003'), 1, Payment::METHOD_CARD, 'Anitha Rao', '9848011006', now()->subDay()->setTime(18, 10));
+            // Same phone as the store account so branch + online history share one customer.
             $this->sale($sales, $branches['BR001'], $staff['cashiers']['BR001'], $this->variant($products, 'SF001'), 1, Payment::METHOD_CASH, 'Ravi Kumar', '9848011001', now()->setTime(10, 25));
+
+            $sofaAlt = $this->variantAt($products, 'SF001', 1);
+            $chairAlt = $this->variantAt($products, 'CH001', 1);
+            $bedAlt = $this->variantAt($products, 'BD001', 1);
+
+            $completedOnline = $this->placeOnlineOrder(
+                $storeCustomer,
+                $warehouse,
+                [
+                    ['variant' => $sofaAlt, 'quantity' => 1],
+                    ['variant' => $chairAlt, 'quantity' => 1],
+                ],
+                [
+                    'shipping_address' => '12-4-88, Benz Circle',
+                    'shipping_city' => 'Vijayawada',
+                    'shipping_pincode' => '520010',
+                    'notes' => 'Please call before delivery',
+                ],
+                now()->subDays(5)->setTime(14, 20),
+            );
+
+            $this->at(now()->subDays(5)->setTime(15, 0), fn () => $onlineFulfilment->confirm($completedOnline));
+            $this->at(now()->subDays(4)->setTime(10, 30), fn () => $onlineFulfilment->dispatch($completedOnline->fresh(), $admin->id));
+            $this->at(now()->subDays(3)->setTime(17, 45), fn () => $onlineFulfilment->complete($completedOnline->fresh()));
+
+            $this->placeOnlineOrder(
+                $storeCustomer,
+                $warehouse,
+                [
+                    ['variant' => $bedAlt, 'quantity' => 1],
+                ],
+                [
+                    'shipping_address' => '12-4-88, Benz Circle',
+                    'shipping_city' => 'Vijayawada',
+                    'shipping_pincode' => '520010',
+                    'notes' => 'Weekend delivery preferred',
+                ],
+                now()->subDay()->setTime(19, 10),
+            );
 
             $this->transferToAgent($workflow, 'TR007', $warehouse, $agents['AG001'], $staff['warehouse'], 'Opening stock for Sri Lakshmi Furniture Mart', [
                 'SF001' => 2,
@@ -177,6 +218,7 @@ class LoadSampleData extends Command
         $this->components->info('Sample data loaded.');
         $this->table(['Email', 'Password', 'Role', 'Signs in at'], [
             ['admin@godwin.test', 'password', 'Admin', 'Admin'],
+            ['customer@godwin.test', 'password', 'Customer', 'Online store'],
             ['manager.vijayawada@godwin.test', 'password', 'Manager', 'Vijayawada Showroom'],
             ['cashier.vijayawada@godwin.test', 'password', 'Cashier', 'Vijayawada Showroom'],
             ['manager.guntur@godwin.test', 'password', 'Manager', 'Guntur Showroom'],
@@ -435,74 +477,163 @@ class LoadSampleData extends Command
     }
 
     /**
+     * Spot-checked CDN photos grouped by product kind so the store demo shows related imagery.
+     *
+     * @return array<string, list<string>>
+     */
+    private function sampleImagesByKind(): array
+    {
+        $u = fn (string $id) => "https://images.unsplash.com/{$id}?auto=format&fit=crop&q=80&w=800";
+        $p = fn (int $id) => "https://images.pexels.com/photos/{$id}/pexels-photo-{$id}.jpeg?auto=compress&cs=tinysrgb&w=800";
+
+        return [
+            'sofa' => [
+                $u('photo-1555041469-a586c61ea9bc'),
+                $u('photo-1493663284031-b7e3aefcae8e'),
+                $u('photo-1618221195710-dd6b41faaea6'),
+                $u('photo-1556228453-efd6c1ff04f6'),
+                $u('photo-1493809842364-78817add7ffb'),
+                $p(1571460),
+            ],
+            'bed' => [
+                $u('photo-1505693314120-0d443867891c'),
+                $u('photo-1522771739844-6a9f6d5f14af'),
+                $u('photo-1631049307264-da0ec9d70304'),
+                $u('photo-1505691723518-36a5ac3be353'),
+                $u('photo-1617325247661-675ab4b64ae2'),
+                $u('photo-1616594039964-ae9021a400a0'),
+                $p(164595),
+                $p(271624),
+            ],
+            'dining' => [
+                $u('photo-1617806118233-18e1de247200'),
+                $u('photo-1577140917170-285929fb55b7'),
+                $u('photo-1517248135467-4c7edcad34c4'),
+                $u('photo-1414235077428-338989a2e8c0'),
+                $u('photo-1532372576444-dda954194ad0'),
+                $p(1080696),
+                $p(1395967),
+            ],
+            'chair' => [
+                $u('photo-1592078615290-033ee584e267'),
+                $u('photo-1580480055273-228ff5388ef8'),
+                $u('photo-1519947486511-46149fa0a254'),
+                $u('photo-1567538096630-e0c55bd6374c'),
+                $u('photo-1506439773649-6e0eb8cfb237'),
+                $p(1350789),
+                $p(2762247),
+                $p(963486),
+            ],
+            'wardrobe' => [
+                $p(813688),
+                $p(6585756),
+                $p(1454806),
+                $u('photo-1595428774223-ef52624120d2'),
+            ],
+            'tv' => [
+                $p(271816),
+                $u('photo-1618220179428-22790b461013'),
+                $p(1571453),
+                $u('photo-1583847268964-b28dc8f51f92'),
+            ],
+            'ottoman' => [
+                $u('photo-1580480055273-228ff5388ef8'),
+                $p(276583),
+                $p(1350789),
+            ],
+            'table' => [
+                $u('photo-1532372576444-dda954194ad0'),
+                $u('photo-1617806118233-18e1de247200'),
+                $p(1080696),
+                $u('photo-1524758631624-e2822e304c36'),
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function imagesFor(string $kind, int $count, int $offset = 0): array
+    {
+        $pool = $this->sampleImagesByKind()[$kind] ?? $this->sampleImagesByKind()['sofa'];
+        $urls = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $urls[] = $pool[($offset + $i) % count($pool)];
+        }
+
+        return $urls;
+    }
+
+    private function imageKindForCategory(string $category): string
+    {
+        return match (true) {
+            (bool) preg_match('/Wardrobe|Closet|Dresser|Chest|Cabinet|Storage|Shoe|Filing|Coat|Pantry|Vanity|Mirror Cabinet/i', $category) => 'wardrobe',
+            (bool) preg_match('/Bed|Headboard/i', $category) => 'bed',
+            (bool) preg_match('/Sofa/i', $category) => 'sofa',
+            (bool) preg_match('/Chair|Recliner|Stool|Swing|Lounger/i', $category) => 'chair',
+            (bool) preg_match('/Dining|Buffet|Sideboard|Crockery|Bar Counter/i', $category) => 'dining',
+            (bool) preg_match('/TV|Media|Entertainment/i', $category) => 'tv',
+            (bool) preg_match('/Ottoman|Pouffe/i', $category) => 'ottoman',
+            (bool) preg_match('/Table|Desk|Workstation|Counter|Bench(?!$)/i', $category) => 'table',
+            default => 'sofa',
+        };
+    }
+
+    /**
      * @return array<string, Product>
      */
     private function products(): array
     {
-        $img = fn (string $id) => "https://images.unsplash.com/{$id}?auto=format&fit=crop&q=80&w=800";
-        $imagePool = [
-            $img('photo-1555041469-a586c61ea9bc'),
-            $img('photo-1493663284031-b7e3aefcae8e'),
-            $img('photo-1586023492125-27b2c045efd7'),
-            $img('photo-1505693314120-0d443867891c'),
-            $img('photo-1524758631624-e2822e304c36'),
-            $img('photo-1617806118233-18e1de247200'),
-            $img('photo-1577140917170-285929fb55b7'),
-            $img('photo-1567538096630-e0c55bd6374c'),
-            $img('photo-1595428774223-ef52624120d2'),
-            $img('photo-1532372576444-dda954194ad0'),
-            $img('photo-1540518614846-7ede433c5163'),
-            $img('photo-1522771739844-6a9f6d5f14af'),
-        ];
-
-        // Named products used by stock / sales / transfers. Each gets 2–3 variants.
+        // Named products used by stock / sales / transfers. Each colourway gets a
+        // distinct photo from the matching product-kind pool.
         $rows = [
-            ['SF001', 'Alanis 3-Seater Sofa', 'Furniture', 'Living Room', 'Sofa', 'Chester', 42000, true, true, 'CRCA Steel & Velvet', 'Metal frame three-seater.', [$imagePool[0], $imagePool[1]], Product::STATUS_ACTIVE, [
+            ['SF001', 'Alanis 3-Seater Sofa', 'Furniture', 'Living Room', 'Sofa', 'Chester', 42000, true, true, 'CRCA Steel & Velvet', 'Metal frame three-seater.', $this->imagesFor('sofa', 3, 0), Product::STATUS_ACTIVE, [
                 ['Walnut', 'Matte', 'Velvet', 42000, 54999],
                 ['Forest green', 'Matte', 'Velvet', 43500, 54999],
                 ['Charcoal', 'Textured', 'Linen blend', 41000, 52999],
             ]],
-            ['SF002', 'Four Seater Family Sofa', 'Furniture', 'Living Room', 'Sofa', 'Royal', 62000, true, false, 'Solid Teak & Linen', 'Family sofa with removable cushions.', [$imagePool[1]], Product::STATUS_ACTIVE, [
+            ['SF002', 'Four Seater Family Sofa', 'Furniture', 'Living Room', 'Sofa', 'Royal', 62000, true, false, 'Solid Teak & Linen', 'Family sofa with removable cushions.', $this->imagesFor('sofa', 2, 3), Product::STATUS_ACTIVE, [
                 ['Natural oak', 'Natural wood', 'Linen blend', 62000, 74999],
                 ['Ivory', 'Matte', 'Boucle', 64000, 74999],
             ]],
-            ['SF003', 'Nordic Modular Sectional', 'Furniture', 'Living Room', 'Sofa', 'Modular', 78000, true, true, 'Powder Coated Steel', 'Corner sectional for the living room.', [$imagePool[2]], Product::STATUS_ACTIVE, [
+            ['SF003', 'Nordic Modular Sectional', 'Furniture', 'Living Room', 'Sofa', 'Modular', 78000, true, true, 'Powder Coated Steel', 'Corner sectional for the living room.', $this->imagesFor('sofa', 3, 1), Product::STATUS_ACTIVE, [
                 ['Ash grey', 'Matte', 'Velvet', 78000, 94999],
                 ['Navy', 'Glossy', 'Leatherette', 80000, 96999],
                 ['Charcoal', 'Textured', 'Genuine leather', 85000, 99999],
             ]],
-            ['BD001', 'Queen Size Solid Teak Bed', 'Furniture', 'Bedroom', 'Queen Size Bed', 'Platform', 38000, true, false, 'Solid Teak Wood', 'Queen teak bed with storage drawers.', [$imagePool[3]], Product::STATUS_ACTIVE, [
+            ['BD001', 'Queen Size Solid Teak Bed', 'Furniture', 'Bedroom', 'Queen Size Bed', 'Platform', 38000, true, false, 'Solid Teak Wood', 'Queen teak bed with storage drawers.', $this->imagesFor('bed', 2, 0), Product::STATUS_ACTIVE, [
                 ['Walnut', 'Natural wood', 'Linen blend', 38000, 49999],
                 ['Natural oak', 'Matte', 'Velvet', 39500, 51999],
             ]],
-            ['BD002', 'Imperial King Bed', 'Furniture', 'Bedroom', 'King Size Bed', 'Royal', 45000, true, true, 'CRCA Steel & Seasoned Teak', 'King bed with heavy CRCA frame.', [$imagePool[3], $imagePool[4]], Product::STATUS_ACTIVE, [
+            ['BD002', 'Imperial King Bed', 'Furniture', 'Bedroom', 'King Size Bed', 'Royal', 45000, true, true, 'CRCA Steel & Seasoned Teak', 'King bed with heavy CRCA frame.', $this->imagesFor('bed', 3, 2), Product::STATUS_ACTIVE, [
                 ['Charcoal', 'Matte', 'Velvet', 45000, 59999],
                 ['Walnut', 'Natural wood', 'Genuine leather', 47000, 61999],
                 ['Ivory', 'Duco paint', 'Boucle', 46000, 60999],
             ]],
-            ['DN001', 'Imperial 6-Seater Dining Set', 'Furniture', 'Dining Room', 'Dining Table', 'Rectangular', 54000, true, true, 'CRCA Heavy Steel', 'Dining set with six matching chairs.', [$imagePool[5]], Product::STATUS_ACTIVE, [
+            ['DN001', 'Imperial 6-Seater Dining Set', 'Furniture', 'Dining Room', 'Dining Table', 'Rectangular', 54000, true, true, 'CRCA Heavy Steel', 'Dining set with six matching chairs.', $this->imagesFor('dining', 2, 0), Product::STATUS_ACTIVE, [
                 ['Walnut', 'Matte', '', 54000, 69999],
                 ['Natural oak', 'Natural wood', '', 56000, 71999],
             ]],
-            ['DN002', 'Compact 4-Seater Dining Set', 'Furniture', 'Dining Room', 'Dining Table', 'Round', 42000, true, false, 'Solid Teak Wood', 'Compact dining set for an apartment.', [$imagePool[6]], Product::STATUS_ACTIVE, [
+            ['DN002', 'Compact 4-Seater Dining Set', 'Furniture', 'Dining Room', 'Dining Table', 'Round', 42000, true, false, 'Solid Teak Wood', 'Compact dining set for an apartment.', $this->imagesFor('dining', 2, 2), Product::STATUS_ACTIVE, [
                 ['Natural oak', 'Natural wood', '', 42000, 54999],
                 ['Charcoal', 'Matte', '', 41000, 53999],
             ]],
-            ['CH001', 'Italian Leather Accent Chair', 'Furniture', 'Living Room', 'Accent Chair', 'Lounge', 12500, true, false, 'Italian Leather', 'Single accent chair for the living room.', [$imagePool[2]], Product::STATUS_ACTIVE, [
+            ['CH001', 'Italian Leather Accent Chair', 'Furniture', 'Living Room', 'Accent Chair', 'Lounge', 12500, true, false, 'Italian Leather', 'Single accent chair for the living room.', $this->imagesFor('chair', 3, 0), Product::STATUS_ACTIVE, [
                 ['Tan leather', 'Matte', 'Genuine leather', 12500, 15999],
                 ['Charcoal', 'Textured', 'Leatherette', 11800, 14999],
                 ['Navy', 'Glossy', 'Velvet', 13200, 16999],
             ]],
-            ['CH002', 'Steel & Velvet Recliner', 'Furniture', 'Living Room', 'Recliner', 'Executive', 18500, true, false, 'CRCA Steel & Velvet', 'Cushioned recliner for a lounge corner.', [$imagePool[7]], Product::STATUS_ACTIVE, [
+            ['CH002', 'Steel & Velvet Recliner', 'Furniture', 'Living Room', 'Recliner', 'Executive', 18500, true, false, 'CRCA Steel & Velvet', 'Cushioned recliner for a lounge corner.', $this->imagesFor('chair', 2, 3), Product::STATUS_ACTIVE, [
                 ['Forest green', 'Matte', 'Velvet', 18500, 22999],
                 ['Ash grey', 'Textured', 'Leatherette', 17900, 21999],
             ]],
-            ['ST001', '2-Door Swing Wardrobe', 'Furniture', 'Bedroom', 'Wardrobe', 'Hinged', 36000, true, false, 'Solid Teak Wood', 'Wardrobe with hanging space and shelves.', [$imagePool[8]], Product::STATUS_ACTIVE, [
+            ['ST001', '2-Door Swing Wardrobe', 'Furniture', 'Bedroom', 'Wardrobe', 'Hinged', 36000, true, false, 'Solid Teak Wood', 'Wardrobe with hanging space and shelves.', $this->imagesFor('wardrobe', 3, 0), Product::STATUS_ACTIVE, [
                 ['Walnut', 'Natural wood', '', 36000, 45999],
                 ['Ivory', 'Matte', '', 35000, 44999],
                 ['Charcoal', 'Glossy', '', 37000, 46999],
             ]],
-            ['ST002', 'Industrial TV Console', 'Furniture', 'Living Room', 'TV Console', 'Floor Standing', 18500, true, false, 'Powder Coated Steel', 'Low TV unit with drawers.', [$imagePool[9]], Product::STATUS_ACTIVE, [
+            ['ST002', 'Industrial TV Console', 'Furniture', 'Living Room', 'TV Console', 'Floor Standing', 18500, true, false, 'Powder Coated Steel', 'Low TV unit with drawers.', $this->imagesFor('tv', 2, 0), Product::STATUS_ACTIVE, [
                 ['Charcoal', 'Matte', '', 18500, 24999],
                 ['Walnut', 'Natural wood', '', 19200, 25999],
             ]],
@@ -558,7 +689,8 @@ class LoadSampleData extends Command
                     $material = $materials[($n + $leaf->id) % count($materials)];
                     $base = 2500 + (($leaf->id * 17 + $n * 1300) % 75000);
                     $mrp = (int) round($base * 1.25);
-                    $image = $imagePool[($leaf->id + $n) % count($imagePool)];
+                    $kind = $this->imageKindForCategory($categoryName);
+                    $images = $this->imagesFor($kind, 2, $leaf->id + $n);
                     $family = Catalog::family('Furniture', $categoryName);
                     $types = Catalog::typesFor($categoryName);
                     $type = $types[($n - 1) % count($types)];
@@ -581,7 +713,7 @@ class LoadSampleData extends Command
                         $n === 1,
                         $material,
                         "Sample {$categoryName} piece for the online catalog.",
-                        [$image],
+                        $images,
                         Product::STATUS_ACTIVE,
                         [
                             [$c1, $finish, $up1, $base, $mrp],
@@ -666,7 +798,7 @@ class LoadSampleData extends Command
             ]);
         }
 
-        // Prefer photos on each variant; keep the first URL as a shared fallback too.
+        // Shared fallback gallery (used when a variant has no photos of its own).
         if ($images !== []) {
             ProductImage::query()->create([
                 'product_id' => $product->id,
@@ -676,27 +808,19 @@ class LoadSampleData extends Command
             ]);
         }
 
+        // One photo per colourway. Callers should pass a unique URL per variant so the
+        // store PDP gallery changes when the shopper picks options.
         foreach ($variants as $index => $variant) {
             if ($images === []) {
                 break;
             }
 
-            $url = $images[$index % count($images)];
             ProductImage::query()->create([
                 'product_id' => $product->id,
                 'product_variant_id' => $variant->id,
-                'url' => $url,
+                'url' => $images[$index % count($images)],
                 'sort_order' => 0,
             ]);
-
-            if (isset($images[($index + 1) % count($images)]) && count($images) > 1) {
-                ProductImage::query()->create([
-                    'product_id' => $product->id,
-                    'product_variant_id' => $variant->id,
-                    'url' => $images[($index + 1) % count($images)],
-                    'sort_order' => 1,
-                ]);
-            }
         }
 
         return $product->load('variants');
@@ -707,10 +831,158 @@ class LoadSampleData extends Command
      */
     private function variant(array $products, string $code): ProductVariant
     {
+        return $this->variantAt($products, $code, 0);
+    }
+
+    /**
+     * @param  array<string, Product>  $products
+     */
+    private function variantAt(array $products, string $code, int $index): ProductVariant
+    {
         $product = $products[$code];
         $product->loadMissing('variants');
 
-        return $product->variants->firstOrFail();
+        $variant = $product->variants->values()->get($index);
+
+        if (! $variant) {
+            throw new \RuntimeException("Product {$code} has no variant at index {$index}.");
+        }
+
+        return $variant;
+    }
+
+    private function storeCustomer(): Customer
+    {
+        $user = User::query()->create([
+            'name' => 'Ravi Kumar',
+            'email' => 'customer@godwin.test',
+            'phone' => '9848011001',
+            'password' => 'password',
+            'role_id' => null,
+            'status' => 'active',
+        ]);
+
+        $customer = Customer::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Ravi Kumar',
+            'phone' => '9848011001',
+            'email' => 'customer@godwin.test',
+            'status' => Customer::STATUS_ACTIVE,
+        ]);
+
+        CustomerAddress::query()->create([
+            'customer_id' => $customer->id,
+            'label' => 'Home',
+            'address_line' => '12-4-88, Benz Circle',
+            'city' => 'Vijayawada',
+            'pincode' => '520010',
+            'is_default' => true,
+        ]);
+
+        return $customer;
+    }
+
+    /**
+     * @param  array<string, Product>  $products
+     */
+    private function openWarehouseStock(StockLedger $ledger, array $products, Warehouse $warehouse, int $userId): void
+    {
+        foreach ($this->openingQuantities() as $code => $quantity) {
+            $product = $products[$code];
+            $product->loadMissing('variants');
+
+            foreach ($product->variants->values() as $index => $variant) {
+                // Later colourways keep slightly less opening stock than the primary SKU.
+                $qty = $index === 0
+                    ? $quantity
+                    : max(4, (int) floor($quantity * (0.7 - (($index - 1) * 0.15))));
+
+                $ledger->openWarehouseStock($variant, $warehouse, $qty, 'Opening count', $userId);
+            }
+        }
+
+        // Seed warehouse stock on a slice of catalog fillers so the online store has buyable variants.
+        $gxOpened = 0;
+        foreach ($products as $code => $product) {
+            if (! str_starts_with($code, 'GX') || $gxOpened >= 40) {
+                continue;
+            }
+
+            $product->loadMissing('variants');
+
+            foreach ($product->variants->values() as $index => $variant) {
+                $ledger->openWarehouseStock(
+                    $variant,
+                    $warehouse,
+                    $index === 0 ? 6 : 4,
+                    'Opening count',
+                    $userId,
+                );
+            }
+
+            $gxOpened++;
+        }
+    }
+
+    /**
+     * @param  list<array{variant: ProductVariant, quantity: int}>  $lines
+     * @param  array{shipping_address: string, shipping_city: string, shipping_pincode: string, notes?: string|null}  $shipping
+     */
+    private function placeOnlineOrder(
+        Customer $customer,
+        Warehouse $warehouse,
+        array $lines,
+        array $shipping,
+        Carbon $when,
+    ): Order {
+        return $this->at($when, function () use ($customer, $warehouse, $lines, $shipping) {
+            $order = Order::query()->create([
+                'code' => 'T'.substr((string) Str::ulid(), 0, 19),
+                'channel' => Order::CHANNEL_ONLINE,
+                'customer_id' => $customer->id,
+                'warehouse_id' => $warehouse->id,
+                'placed_by' => null,
+                'total' => 0,
+                'status' => Order::STATUS_PLACED,
+                'delivery_type' => Order::DELIVERY_DELIVERY,
+                'notes' => $shipping['notes'] ?? null,
+                'shipping_address' => $shipping['shipping_address'],
+                'shipping_city' => $shipping['shipping_city'],
+                'shipping_pincode' => $shipping['shipping_pincode'],
+            ]);
+
+            $order->update(['code' => 'W'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT)]);
+
+            $total = 0.0;
+
+            foreach ($lines as $line) {
+                /** @var ProductVariant $variant */
+                $variant = $line['variant'];
+                $quantity = (int) $line['quantity'];
+                $unitPrice = (float) $variant->price;
+                $lineTotal = round($unitPrice * $quantity, 2);
+
+                $order->items()->create([
+                    'product_id' => $variant->product_id,
+                    'product_variant_id' => $variant->id,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'line_total' => $lineTotal,
+                ]);
+
+                $total += $lineTotal;
+            }
+
+            $total = round($total, 2);
+            $order->update(['total' => $total]);
+            $order->payment()->create([
+                'method' => Payment::METHOD_COD,
+                'amount' => $total,
+                'status' => Payment::STATUS_PENDING,
+            ]);
+
+            return $order->refresh()->load(['items', 'payment']);
+        });
     }
 
     /**
@@ -891,11 +1163,15 @@ class LoadSampleData extends Command
         Carbon $when,
         array $extra = [],
     ): void {
-        $customer = Customer::factory()->create([
-            'name' => $customerName,
-            'phone' => $phone,
-            'email' => null,
-        ]);
+        $customer = Customer::query()->where('phone', $phone)->first();
+
+        if (! $customer) {
+            $customer = Customer::factory()->create([
+                'name' => $customerName,
+                'phone' => $phone,
+                'email' => null,
+            ]);
+        }
 
         $lines = [['product_variant_id' => $variant->id, 'quantity' => $quantity]];
 

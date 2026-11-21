@@ -9,6 +9,7 @@
     @php
         $fallbackImage = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800';
         $options = collect($variants);
+        // Variants arrive cheapest-first; prefer the lowest-priced option that is still in stock.
         $selected = $options->firstWhere('available', '>', 0) ?? $options->first();
         $imageUrls = collect($selected['images'] ?? [])->filter()->values();
         if ($imageUrls->isEmpty()) {
@@ -310,6 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Payload is sorted cheapest-first; start on the lowest-priced in-stock option.
     const start = variants.find(function (variant) { return variant.available > 0; }) || variants[0];
     groups.forEach(function (group) {
         selection[group] = start[group];

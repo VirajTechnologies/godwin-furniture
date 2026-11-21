@@ -82,6 +82,55 @@ class StorefrontCatalogTest extends TestCase
             ->assertSee('54,999');
     }
 
+    public function test_product_detail_defaults_to_lowest_priced_variant(): void
+    {
+        Warehouse::query()->create([
+            'code' => 'WH001',
+            'name' => 'Main Warehouse',
+            'address_line' => 'Industrial Area',
+            'pincode' => '520001',
+            'is_primary' => true,
+            'status' => 'active',
+        ]);
+
+        $product = $this->catalogProduct([
+            'code' => 'SF200',
+            'slug' => 'price-order-sofa',
+            'name' => 'Price Order Sofa',
+            'base_price' => 45000,
+            'is_online' => true,
+        ], [
+            [
+                'colour' => 'Walnut',
+                'finish' => 'Matte',
+                'upholstery' => 'Velvet',
+                'price' => 45000,
+            ],
+            [
+                'colour' => 'Charcoal',
+                'finish' => 'Matte',
+                'upholstery' => 'Velvet',
+                'price' => 41000,
+            ],
+        ]);
+
+        $cheapest = $product->variants->firstWhere('colour', 'Charcoal');
+
+        $html = $this->get(route('store.product', $product->slug))
+            ->assertOk()
+            ->assertSee('41,000')
+            ->assertSee('data-variant-selected="colour">Charcoal', false)
+            ->assertSee('value="'.$cheapest->id.'"', false)
+            ->getContent();
+
+        preg_match('/id="variant-data">(.*?)<\/script>/s', $html, $matches);
+        $this->assertNotEmpty($matches[1] ?? null);
+        $payload = json_decode($matches[1], true);
+        $this->assertIsArray($payload);
+        $this->assertSame(41000.0, (float) $payload[0]['price']);
+        $this->assertSame('Charcoal', $payload[0]['colour']);
+    }
+
     public function test_branch_sale_uses_branch_override_price(): void
     {
         $product = $this->catalogProduct([
