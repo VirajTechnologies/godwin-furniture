@@ -669,6 +669,31 @@ class LoadSampleData extends Command
         }
 
         // Fill Furniture leaf categories so the online catalog stays dense.
+        $this->fillCatalogProducts($products, $counts, 'Furniture', 'GX');
+
+        $vijayawada = Branch::query()->where('code', 'BR001')->first();
+        if ($vijayawada) {
+            BranchProductPrice::query()->create([
+                'branch_id' => $vijayawada->id,
+                'product_variant_id' => $this->variant($products, 'SF001')->id,
+                'price' => 40000,
+            ]);
+            BranchProductPrice::query()->create([
+                'branch_id' => $vijayawada->id,
+                'product_variant_id' => $this->variant($products, 'BD002')->id,
+                'price' => 44000,
+            ]);
+        }
+
+        return $products;
+    }
+
+    /**
+     * @param  array<string, Product>  $products
+     * @param  array<int, int>  $counts
+     */
+    private function fillCatalogProducts(array &$products, array &$counts, string $project, string $codePrefix): void
+    {
         $styles = ['Classic', 'Modern', 'Heritage', 'Urban', 'Studio', 'Royal', 'Compact', 'Premium'];
         $materials = ['Solid Teak', 'CRCA Steel', 'Engineered Wood', 'Fabric & Foam', 'Leatherette', 'Cotton Blend'];
         $colourKeys = array_keys(Catalog::colours());
@@ -676,14 +701,14 @@ class LoadSampleData extends Command
         $upholsteries = Catalog::upholsteries();
         $seq = 1;
 
-        foreach (Catalog::tree()['Furniture'] as $room => $categories) {
+        foreach (Catalog::tree()[$project] ?? [] as $room => $categories) {
             foreach ($categories as $categoryName) {
-                $leaf = Catalog::leafCategory('Furniture', $room, $categoryName);
+                $leaf = Catalog::leafCategory($project, $room, $categoryName);
                 $have = $counts[$leaf->id] ?? 0;
                 $target = 5 + (($leaf->id + strlen($categoryName)) % 3); // 5–7 products
 
                 for ($n = $have + 1; $n <= $target; $n++) {
-                    $code = 'GX'.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+                    $code = $codePrefix.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
                     $seq++;
                     $style = $styles[($n + $leaf->id) % count($styles)];
                     $material = $materials[($n + $leaf->id) % count($materials)];
@@ -691,7 +716,7 @@ class LoadSampleData extends Command
                     $mrp = (int) round($base * 1.25);
                     $kind = $this->imageKindForCategory($categoryName);
                     $images = $this->imagesFor($kind, 2, $leaf->id + $n);
-                    $family = Catalog::family('Furniture', $categoryName);
+                    $family = Catalog::family($project, $categoryName);
                     $types = Catalog::typesFor($categoryName);
                     $type = $types[($n - 1) % count($types)];
                     $c1 = $colourKeys[($n + $leaf->id) % count($colourKeys)];
@@ -704,7 +729,7 @@ class LoadSampleData extends Command
                         $code,
                         "{$style} {$categoryName} {$n}",
                         Str::slug($style.'-'.$categoryName.'-'.$n.'-'.$code),
-                        'Furniture',
+                        $project,
                         $room,
                         $categoryName,
                         $type,
@@ -724,22 +749,6 @@ class LoadSampleData extends Command
                 }
             }
         }
-
-        $vijayawada = Branch::query()->where('code', 'BR001')->first();
-        if ($vijayawada) {
-            BranchProductPrice::query()->create([
-                'branch_id' => $vijayawada->id,
-                'product_variant_id' => $this->variant($products, 'SF001')->id,
-                'price' => 40000,
-            ]);
-            BranchProductPrice::query()->create([
-                'branch_id' => $vijayawada->id,
-                'product_variant_id' => $this->variant($products, 'BD002')->id,
-                'price' => 44000,
-            ]);
-        }
-
-        return $products;
     }
 
     /**
@@ -902,9 +911,9 @@ class LoadSampleData extends Command
         }
 
         // Seed warehouse stock on a slice of catalog fillers so the online store has buyable variants.
-        $gxOpened = 0;
+        $fillerOpened = 0;
         foreach ($products as $code => $product) {
-            if (! str_starts_with($code, 'GX') || $gxOpened >= 40) {
+            if (! str_starts_with($code, 'GX') || $fillerOpened >= 40) {
                 continue;
             }
 
@@ -920,7 +929,7 @@ class LoadSampleData extends Command
                 );
             }
 
-            $gxOpened++;
+            $fillerOpened++;
         }
     }
 

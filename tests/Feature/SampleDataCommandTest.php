@@ -35,6 +35,9 @@ class SampleDataCommandTest extends TestCase
         $this->assertDatabaseHas('products', ['code' => 'SF001', 'is_online' => true, 'project_category' => 'Furniture']);
         $this->assertDatabaseHas('products', ['code' => 'OT001', 'status' => 'inactive']);
         $this->assertDatabaseHas('products', ['code' => 'GX0001']);
+        $this->assertDatabaseMissing('products', ['code' => 'IX0001']);
+        $this->assertSame(0, \App\Models\Product::query()->where('project_category', 'Interiors')->count());
+        $this->assertDatabaseMissing('categories', ['name' => 'Interiors', 'parent_id' => null]);
         $this->assertGreaterThanOrEqual(50, \App\Models\Category::query()->whereNotNull('parent_id')->count());
         $this->assertGreaterThanOrEqual(200, \App\Models\Product::query()->where('is_online', true)->count());
         $this->assertGreaterThanOrEqual(2, \App\Models\ProductVariant::query()
