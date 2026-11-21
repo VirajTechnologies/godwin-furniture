@@ -1,0 +1,74 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_PATH: domains/godwin.co.in/public_html/furniture
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Upload to furniture.godwin.co.in
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+
+          if [ "$DEPLOY_PATH" != "domains/godwin.co.in/public_html/furniture" ]; then
+            echo "Refusing deploy. Files can only go to furniture.godwin.co.in."
+            exit 1
+          fi
+
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          if ! grep -q "PRIVATE KEY" ~/.ssh/deploy_key; then
+            echo "SSH_PRIVATE_KEY must be the private key file, including the BEGIN and END lines."
+            exit 1
+          fi
+
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null; then
+            echo "SSH_PRIVATE_KEY could not be read. Replace the GitHub secret with the full Hostinger private key file."
+            exit 1
+          fi
+
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+
+          SSH_CMD="ssh -i ~/.ssh/deploy_key -p $SSH_PORT -o IdentitiesOnly=yes"
+
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "mkdir -p '$DEPLOY_PATH'"
+
+          rsync -az \
+            -e "$SSH_CMD" \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.env' \
+            --exclude '.env.*' \
+            --exclude 'node_modules/' \
+            --exclude 'tests/' \
+            --exclude '_reference/' \
+            ./ \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "chmod -R ug+rwx '$DEPLOY_PATH/storage' '$DEPLOY_PATH/bootstrap/cache'"
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan migrate --force"
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan db:seed --force"
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan config:cache"
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan route:cache"
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan view:cache"
