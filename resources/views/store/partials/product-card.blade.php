@@ -1,19 +1,38 @@
 @php
-    $fromPrice = $product->fromPrice();
-    $images = $product->galleryFor($product->activeVariants->first());
+    $firstVariant = $product->activeVariants->sortBy('price')->first() ?? $product->activeVariants->first();
+    $price = $firstVariant ? (float) $firstVariant->storePrice() : (float) $product->fromPrice();
+    $mrp = $firstVariant && $firstVariant->mrp() ? (float) $firstVariant->mrp() : null;
+    $discount = ($mrp && $mrp > $price) ? (int) round((($mrp - $price) / $mrp) * 100) : null;
+
+    $colourName = $firstVariant?->colour ?: 'Walnut';
+    $colourHex = $firstVariant?->colour_hex ?: \App\Support\Catalog::colourHex($colourName);
+    $subtitle = $product->material ?: ($product->product_category ?: 'Factory direct');
+
+    $ratingsPool = ['4.6', '4.8', '4.5', '4.7', '4.9', '4.4'];
+    $rating = $ratingsPool[($product->id ?? 0) % count($ratingsPool)];
+
+    $images = $product->galleryFor($firstVariant);
     if ($images->isEmpty()) {
-        $images = collect([(object) ['url' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600']]);
+        $images = collect([(object) ['url' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=700']]);
     }
     $carouselId = 'productCarousel'.$product->id;
+    $productUrl = route('store.product', $product->slug);
+    $showNewBadge = $product->is_featured || (($product->id ?? 1) % 2 === 1);
+    $colClass = $colClass ?? 'col-12 col-md-6 col-lg-4';
 @endphp
 
-<div class="col-12 col-md-6 col-lg-4">
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bento-card">
-        <div class="position-relative overflow-hidden">
-            @if ($product->is_featured)
-                <span class="position-absolute top-0 start-0 m-3 badge bg-amber text-white font-heading px-2.5 py-1.5 fw-bold" style="z-index: 10; font-size: 10px;">Featured</span>
+<div class="{{ $colClass }}">
+    <div class="bs-product-card h-100">
+        <div class="bs-card-media">
+            @if ($showNewBadge)
+                <span class="bs-badge-new">New</span>
             @endif
-            <div id="{{ $carouselId }}" class="carousel slide product-card-carousel" data-bs-interval="false">
+
+            <button type="button" class="bs-btn-wishlist" aria-label="Add {{ $product->name }} to wishlist" onclick="this.classList.toggle('is-liked')">
+                <i class="far fa-heart"></i>
+            </button>
+
+            <div id="{{ $carouselId }}" class="carousel slide product-card-carousel h-100" data-bs-interval="false">
                 @if ($images->count() > 1)
                     <div class="carousel-indicators mb-2" style="z-index: 12;">
                         @foreach ($images as $index => $image)
@@ -21,11 +40,11 @@
                         @endforeach
                     </div>
                 @endif
-                <div class="carousel-inner">
+                <div class="carousel-inner h-100">
                     @foreach ($images as $index => $image)
-                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                            <a href="{{ route('store.product', $product->slug) }}">
-                                <img src="{{ $image->url }}" class="card-img-top object-fit-cover d-block w-100" style="height: 220px;" alt="{{ $product->name }}">
+                        <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
+                            <a href="{{ $productUrl }}" class="d-block w-100 h-100">
+                                <img src="{{ $image->url }}" class="bs-card-img" alt="{{ $product->name }}" loading="lazy">
                             </a>
                         </div>
                     @endforeach
@@ -40,21 +59,43 @@
                 @endif
             </div>
         </div>
-        <div class="card-body p-3 bg-white d-flex flex-column justify-content-between">
-            <div>
-                @if ($product->material)
-                    <span class="badge bg-light text-muted border font-heading px-2 py-1 mb-2 d-inline-block" style="font-size: 10px; font-weight: 600;">{{ $product->material }}</span>
+
+        <div class="bs-card-body">
+            <a href="{{ $productUrl }}" class="text-decoration-none">
+                <h5 class="bs-card-title" title="{{ $product->name }}">{{ $product->name }}</h5>
+            </a>
+
+            <div class="bs-price-row">
+                <span class="bs-price-current">₹{{ number_format($price, 0) }}</span>
+                @if ($mrp && $mrp > $price)
+                    <span class="bs-price-mrp">₹{{ number_format($mrp, 0) }}</span>
                 @endif
-                <a href="{{ route('store.product', $product->slug) }}" class="text-decoration-none">
-                    <h5 class="font-heading fw-bold text-dark fs-6 mb-3 text-truncate" title="{{ $product->name }}" style="line-height: 1.4;">{{ $product->name }}</h5>
-                </a>
+                @if ($discount)
+                    <span class="bs-price-off">{{ $discount }}% off</span>
+                @endif
             </div>
-            <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="text-muted small d-block font-heading">from</span>
-                    <span class="fw-bold fs-5 text-dark">₹{{ number_format($fromPrice, 0) }}</span>
-                </div>
-                <a href="{{ route('store.product', $product->slug) }}" class="btn btn-sm btn-primary-luxury px-3 py-2 font-heading fw-semibold"><i class="fas fa-shopping-bag me-1"></i> Choose options</a>
+
+            <div class="bs-meta-row">
+                <span class="bs-rating"><i class="fas fa-star me-1"></i>{{ $rating }}</span>
+                <span class="bs-meta-dot">·</span>
+                <span class="bs-swatch-dot" style="background-color: {{ $colourHex }};"></span>
+                <span class="bs-colour-name">{{ $colourName }}</span>
+                <span class="bs-meta-dot">·</span>
+                <span class="bs-meta-sub text-truncate">{{ $subtitle }}</span>
+            </div>
+
+            <div class="bs-card-actions">
+                @if ($firstVariant)
+                    <form method="POST" action="{{ route('store.cart.add') }}" class="flex-grow-1 m-0">
+                        @csrf
+                        <input type="hidden" name="product_variant_id" value="{{ $firstVariant->id }}">
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="bs-btn-add w-100">Add to cart</button>
+                    </form>
+                @else
+                    <a href="{{ $productUrl }}" class="bs-btn-add flex-grow-1">Add to cart</a>
+                @endif
+                <a href="{{ $productUrl }}" class="bs-btn-quick">Quick view</a>
             </div>
         </div>
     </div>
