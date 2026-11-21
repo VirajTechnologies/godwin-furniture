@@ -35,8 +35,7 @@ class StorefrontCatalogTest extends TestCase
             ->assertOk()
             ->assertSee('Living Room')
             ->assertSee('3 Seater Sofas')
-            ->assertSee('All Living Room')
-            ->assertDontSee('form-check-input', false);
+            ->assertSee('All Living Room');
 
         $this->get(route('store.catalog', ['category' => $category->slug]))
             ->assertOk()
@@ -80,6 +79,74 @@ class StorefrontCatalogTest extends TestCase
             ->assertSee('SF001')
             ->assertSee('38,999')
             ->assertSee('54,999');
+    }
+
+    public function test_catalog_filters_by_variant_colour_and_finish(): void
+    {
+        $walnutSofa = $this->catalogProduct([
+            'code' => 'SF301',
+            'slug' => 'walnut-sofa',
+            'name' => 'Walnut Filter Sofa',
+            'material' => 'Solid Teak',
+            'base_price' => 42000,
+            'is_online' => true,
+        ], [
+            [
+                'colour' => 'Walnut',
+                'finish' => 'Matte',
+                'upholstery' => 'Velvet',
+                'price' => 42000,
+            ],
+        ]);
+
+        $navyChair = $this->catalogProduct([
+            'code' => 'CH301',
+            'slug' => 'navy-chair',
+            'name' => 'Navy Filter Chair',
+            'material' => 'CRCA Steel',
+            'product_category' => 'Accent Chair',
+            'design_type' => 'Lounge',
+            'base_price' => 12000,
+            'is_online' => true,
+        ], [
+            [
+                'colour' => 'Navy',
+                'finish' => 'Glossy',
+                'upholstery' => 'Genuine leather',
+                'price' => 12000,
+            ],
+        ]);
+
+        $this->get(route('store.catalog'))
+            ->assertOk()
+            ->assertSee('name="colours[]"', false)
+            ->assertSee('name="finishes[]"', false)
+            ->assertSee('Walnut')
+            ->assertSee('Navy');
+
+        $this->get(route('store.catalog', ['colours' => ['Walnut']]))
+            ->assertOk()
+            ->assertSee($walnutSofa->name)
+            ->assertDontSee($navyChair->name);
+
+        $this->get(route('store.catalog', ['finishes' => ['Glossy']]))
+            ->assertOk()
+            ->assertSee($navyChair->name)
+            ->assertDontSee($walnutSofa->name);
+
+        $this->get(route('store.catalog', [
+            'colours' => ['Walnut'],
+            'finishes' => ['Glossy'],
+        ]))
+            ->assertOk()
+            ->assertSee('No products match these filters')
+            ->assertDontSee($walnutSofa->name)
+            ->assertDontSee($navyChair->name);
+
+        $this->get(route('store.catalog', ['materials' => ['Solid Teak']]))
+            ->assertOk()
+            ->assertSee($walnutSofa->name)
+            ->assertDontSee($navyChair->name);
     }
 
     public function test_product_detail_defaults_to_lowest_priced_variant(): void

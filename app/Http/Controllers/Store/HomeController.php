@@ -8,7 +8,9 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\Warehouse;
+use App\Support\Catalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class HomeController extends Controller
@@ -30,15 +32,22 @@ class HomeController extends Controller
     public function catalog(Request $request): View
     {
         $rooms = $this->navigationTree();
+        $facetOptions = $this->catalogFacetOptions();
 
-        $materials = Product::query()
-            ->where('is_online', true)
-            ->where('status', Product::STATUS_ACTIVE)
-            ->whereNotNull('material')
-            ->where('material', '!=', '')
-            ->distinct()
-            ->orderBy('material')
-            ->pluck('material');
+        $colours = $this->stringList($request->input('colours', []));
+        $finishes = $this->stringList($request->input('finishes', []));
+        $upholsteries = $this->stringList($request->input('upholsteries', []));
+        $materials = $this->stringList($request->input('materials', []));
+
+        // Keep older single-material links working.
+        if ($materials === [] && $request->filled('material')) {
+            $materials = [$request->string('material')->toString()];
+        }
+
+        $colours = array_values(array_intersect($colours, $facetOptions['colours']->all()));
+        $finishes = array_values(array_intersect($finishes, $facetOptions['finishes']->all()));
+        $upholsteries = array_values(array_intersect($upholsteries, $facetOptions['upholsteries']->all()));
+        $materials = array_values(array_intersect($materials, $facetOptions['materials']->all()));
 
         $query = Product::query()
             ->with(['images', 'category.parent', 'activeVariants.images'])
@@ -63,14 +72,29 @@ class HomeController extends Controller
             }
         }
 
-        if ($request->filled('material')) {
-            $query->where('material', $request->string('material')->toString());
+        if ($materials !== []) {
+            $query->whereIn('material', $materials);
         }
 
-        if ($request->filled('max_price')) {
-            $max = (float) $request->input('max_price');
-            // A product qualifies when its cheapest variant is within budget.
-            $query->whereHas('activeVariants', fn ($variants) => $variants->where('price', '<=', $max));
+        $maxPrice = $request->filled('max_price') ? (float) $request->input('max_price') : null;
+        $hasVariantFilters = $colours !== [] || $finishes !== [] || $upholsteries !== [] || $maxPrice !== null;
+
+        if ($hasVariantFilters) {
+            // One matching variant must satisfy every selected facet (and price).
+            $query->whereHas('activeVariants', function ($variants) use ($colours, $finishes, $upholsteries, $maxPrice): void {
+                if ($colours !== []) {
+                    $variants->whereIn('colour', $colours);
+                }
+                if ($finishes !== []) {
+                    $variants->whereIn('finish', $finishes);
+                }
+                if ($upholsteries !== []) {
+                    $variants->whereIn('upholstery', $upholsteries);
+                }
+                if ($maxPrice !== null) {
+                    $variants->where('price', '<=', $maxPrice);
+                }
+            });
         }
 
         $sort = $request->string('sort')->toString();
@@ -86,11 +110,14 @@ class HomeController extends Controller
         return view('store.catalog', [
             'products' => $products,
             'rooms' => $rooms,
-            'materials' => $materials,
+            'facetOptions' => $facetOptions,
             'filters' => [
                 'q' => $request->string('q')->toString(),
                 'category' => $request->string('category')->toString(),
-                'material' => $request->string('material')->toString(),
+                'colours' => $colours,
+                'finishes' => $finishes,
+                'upholsteries' => $upholsteries,
+                'materials' => $materials,
                 'max_price' => $request->input('max_price', 150000),
                 'sort' => $sort !== '' ? $sort : 'popular',
             ],
@@ -182,6 +209,62 @@ class HomeController extends Controller
             ->whereColumn('product_variants.product_id', 'products.id')
             ->where('status', ProductVariant::STATUS_ACTIVE)
             ->toBase();
+    }
+
+    /**
+     * Distinct facet values that currently exist on sellable online products.
+     *
+     * @return array{colours: Collection<int, string>, finishes: Collection<int, string>, upholsteries: Collection<int, string>, materials: Collection<int, string>}
+     */
+    private function catalogFacetOptions(): array
+    {
+        $onlineVariants = ProductVariant::query()
+            ->where('status', ProductVariant::STATUS_ACTIVE)
+            ->whereHas('product', fn ($products) => $products
+                ->where('is_online', true)
+                ->where('status', Product::STATUS_ACTIVE));
+
+        return [
+            'colours' => (clone $onlineVariants)
+                ->where('colour', '!=', '')
+                ->distinct()
+                ->orderBy('colour')
+                ->pluck('colour'),
+            'finishes' => (clone $onlineVariants)
+                ->where('finish', '!=', '')
+                ->distinct()
+                ->orderBy('finish')
+                ->pluck('finish'),
+            'upholsteries' => (clone $onlineVariants)
+                ->where('upholstery', '!=', '')
+                ->distinct()
+                ->orderBy('upholstery')
+                ->pluck('upholstery'),
+            'materials' => Product::query()
+                ->where('is_online', true)
+                ->where('status', Product::STATUS_ACTIVE)
+                ->whereNotNull('material')
+                ->where('material', '!=', '')
+                ->distinct()
+                ->orderBy('material')
+                ->pluck('material'),
+        ];
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<string>
+     */
+    private function stringList(mixed $value): array
+    {
+        if (! is_array($value)) {
+            $value = $value === null || $value === '' ? [] : [$value];
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn ($item) => trim((string) $item),
+            $value,
+        ), static fn (string $item) => $item !== '')));
     }
 
     /**

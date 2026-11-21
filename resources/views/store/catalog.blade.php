@@ -24,6 +24,24 @@
 @section('content')
     @include('store.partials.header')
 
+    @php
+        $preservedFilters = array_filter([
+            'q' => $filters['q'] !== '' ? $filters['q'] : null,
+            'colours' => $filters['colours'] !== [] ? $filters['colours'] : null,
+            'finishes' => $filters['finishes'] !== [] ? $filters['finishes'] : null,
+            'upholsteries' => $filters['upholsteries'] !== [] ? $filters['upholsteries'] : null,
+            'materials' => $filters['materials'] !== [] ? $filters['materials'] : null,
+            'max_price' => (string) $filters['max_price'] !== '150000' ? $filters['max_price'] : null,
+            'sort' => $filters['sort'] !== 'popular' ? $filters['sort'] : null,
+        ], fn ($value) => $value !== null && $value !== '');
+        $hasFacetFilters = $filters['colours'] !== []
+            || $filters['finishes'] !== []
+            || $filters['upholsteries'] !== []
+            || $filters['materials'] !== []
+            || $filters['q'] !== ''
+            || (string) $filters['max_price'] !== '150000';
+    @endphp
+
     <section class="bg-white border-bottom py-3">
         <div class="container-fluid px-4 px-lg-5">
             <nav aria-label="breadcrumb">
@@ -35,7 +53,7 @@
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mt-2">
                 <div>
                     <h2 class="font-heading fw-bold text-dark m-0">Furniture Catalog</h2>
-                    <p class="text-muted small m-0">Browse the factory collection by room, material, and price.</p>
+                    <p class="text-muted small m-0">Browse by room, colour, finish, material, and price.</p>
                 </div>
             </div>
         </div>
@@ -49,15 +67,6 @@
                         <h6 class="font-heading fw-bold text-dark m-0"><i class="fas fa-sliders-h text-amber me-2"></i> Filter Products</h6>
                         <a href="{{ route('store.catalog') }}" class="text-amber small text-decoration-none fw-semibold">Reset All</a>
                     </div>
-
-                    @php
-                        $preservedFilters = array_filter([
-                            'q' => $filters['q'] !== '' ? $filters['q'] : null,
-                            'material' => $filters['material'] !== '' ? $filters['material'] : null,
-                            'max_price' => (string) $filters['max_price'] !== '150000' ? $filters['max_price'] : null,
-                            'sort' => $filters['sort'] !== 'popular' ? $filters['sort'] : null,
-                        ], fn ($value) => $value !== null && $value !== '');
-                    @endphp
 
                     <div class="mb-4">
                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -109,21 +118,69 @@
                         @if ($filters['category'] !== '')
                             <input type="hidden" name="category" value="{{ $filters['category'] }}">
                         @endif
+
                         <div class="mb-3">
                             <label class="font-heading fw-bold small text-dark mb-2 d-block">Search</label>
                             <input type="text" name="q" class="form-control shadow-none" value="{{ $filters['q'] }}" placeholder="Sofa, bed, desk...">
                         </div>
-                        @if ($materials->isNotEmpty())
+
+                        @if ($facetOptions['colours']->isNotEmpty())
                             <div class="mb-4 border-top pt-3">
-                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Material & Build</label>
-                                <select name="material" class="form-select form-select-sm shadow-none font-heading">
-                                    <option value="">All Materials</option>
-                                    @foreach ($materials as $material)
-                                        <option value="{{ $material }}" @selected($filters['material'] === $material)>{{ $material }}</option>
+                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Colour</label>
+                                <div class="d-flex flex-column gap-1" style="max-height: 11rem; overflow-y: auto;">
+                                    @foreach ($facetOptions['colours'] as $colour)
+                                        <label class="form-check small font-heading mb-0 d-flex align-items-center gap-2">
+                                            <input type="checkbox" class="form-check-input mt-0" name="colours[]" value="{{ $colour }}" @checked(in_array($colour, $filters['colours'], true))>
+                                            <span class="d-inline-block rounded-circle border flex-shrink-0" style="width: 14px; height: 14px; background: {{ \App\Support\Catalog::colourHex($colour) }};"></span>
+                                            <span>{{ $colour }}</span>
+                                        </label>
                                     @endforeach
-                                </select>
+                                </div>
                             </div>
                         @endif
+
+                        @if ($facetOptions['finishes']->isNotEmpty())
+                            <div class="mb-4 border-top pt-3">
+                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Finish</label>
+                                <div class="d-flex flex-column gap-1" style="max-height: 9rem; overflow-y: auto;">
+                                    @foreach ($facetOptions['finishes'] as $finish)
+                                        <label class="form-check small font-heading mb-0">
+                                            <input type="checkbox" class="form-check-input" name="finishes[]" value="{{ $finish }}" @checked(in_array($finish, $filters['finishes'], true))>
+                                            {{ $finish }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($facetOptions['upholsteries']->isNotEmpty())
+                            <div class="mb-4 border-top pt-3">
+                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Upholstery</label>
+                                <div class="d-flex flex-column gap-1" style="max-height: 9rem; overflow-y: auto;">
+                                    @foreach ($facetOptions['upholsteries'] as $upholstery)
+                                        <label class="form-check small font-heading mb-0">
+                                            <input type="checkbox" class="form-check-input" name="upholsteries[]" value="{{ $upholstery }}" @checked(in_array($upholstery, $filters['upholsteries'], true))>
+                                            {{ $upholstery }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($facetOptions['materials']->isNotEmpty())
+                            <div class="mb-4 border-top pt-3">
+                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Material & Build</label>
+                                <div class="d-flex flex-column gap-1" style="max-height: 9rem; overflow-y: auto;">
+                                    @foreach ($facetOptions['materials'] as $material)
+                                        <label class="form-check small font-heading mb-0">
+                                            <input type="checkbox" class="form-check-input" name="materials[]" value="{{ $material }}" @checked(in_array($material, $filters['materials'], true))>
+                                            {{ $material }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="mb-4 border-top pt-3">
                             <label class="font-heading fw-bold small text-dark mb-2 d-block">Max Price (₹)</label>
                             <input type="range" class="form-range" min="5000" max="150000" step="1000" name="max_price" value="{{ $filters['max_price'] }}" id="priceRange" oninput="document.getElementById('priceLabel').textContent='₹'+Number(this.value).toLocaleString('en-IN')">
@@ -135,6 +192,9 @@
                         </div>
                         <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
                         <button class="btn btn-primary-luxury w-100 py-2 font-heading fw-bold small"><i class="fas fa-filter me-1"></i> Apply Filters</button>
+                        @if ($hasFacetFilters)
+                            <a href="{{ route('store.catalog', array_filter(['category' => $filters['category'] !== '' ? $filters['category'] : null, 'sort' => $filters['sort'] !== 'popular' ? $filters['sort'] : null])) }}" class="btn btn-light w-100 mt-2 py-2 font-heading fw-semibold small">Clear Facets</a>
+                        @endif
                     </form>
                 </div>
             </div>
@@ -145,7 +205,13 @@
                         <span class="small font-heading fw-semibold text-muted">Showing <strong class="text-dark">{{ $products->total() }}</strong> Furniture Products</span>
                         <form method="GET" action="{{ route('store.catalog') }}" class="d-flex align-items-center gap-2">
                             @foreach (request()->except('sort', 'page') as $key => $value)
-                                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                @if (is_array($value))
+                                    @foreach ($value as $item)
+                                        <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                                    @endforeach
+                                @else
+                                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                @endif
                             @endforeach
                             <span class="small font-heading fw-semibold text-muted me-1">Sort By:</span>
                             <select name="sort" class="form-select form-select-sm shadow-none font-heading fw-semibold text-dark" style="width: 200px;" onchange="this.form.submit()">

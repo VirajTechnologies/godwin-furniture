@@ -24,16 +24,61 @@ class ProductController extends Controller
 {
     use UpdatesActiveStatus;
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $filters = [
+            'q' => $request->string('q')->trim()->toString(),
+            'status' => $request->string('status')->toString(),
+            'online' => $request->string('online')->toString(),
+            'featured' => $request->string('featured')->toString(),
+            'project_category' => $request->string('project_category')->toString(),
+            'room' => $request->string('room')->toString(),
+        ];
+
+        if (! in_array($filters['status'], ['', Product::STATUS_ACTIVE, Product::STATUS_INACTIVE], true)) {
+            $filters['status'] = '';
+        }
+
+        if (! in_array($filters['online'], ['', '1', '0'], true)) {
+            $filters['online'] = '';
+        }
+
+        if (! in_array($filters['featured'], ['', '1', '0'], true)) {
+            $filters['featured'] = '';
+        }
+
+        $projects = Catalog::projects();
+        if ($filters['project_category'] !== '' && ! in_array($filters['project_category'], $projects, true)) {
+            $filters['project_category'] = '';
+        }
+
+        $rooms = $this->filterRooms($filters['project_category'] !== '' ? $filters['project_category'] : null);
+        if ($filters['room'] !== '' && ! in_array($filters['room'], $rooms, true)) {
+            $filters['room'] = '';
+        }
+
         $products = Product::query()
             ->with(['variants', 'category.parent'])
             ->withSum('stocks as stock_total', 'quantity')
+            ->when($filters['q'] !== '', function ($query) use ($filters): void {
+                $query->where(function ($builder) use ($filters): void {
+                    $builder->where('name', 'like', '%'.$filters['q'].'%')
+                        ->orWhere('code', 'like', '%'.$filters['q'].'%');
+                });
+            })
+            ->when($filters['status'] !== '', fn ($query) => $query->where('status', $filters['status']))
+            ->when($filters['online'] !== '', fn ($query) => $query->where('is_online', $filters['online'] === '1'))
+            ->when($filters['featured'] !== '', fn ($query) => $query->where('is_featured', $filters['featured'] === '1'))
+            ->when($filters['project_category'] !== '', fn ($query) => $query->where('project_category', $filters['project_category']))
+            ->when($filters['room'] !== '', fn ($query) => $query->where('room', $filters['room']))
             ->orderBy('name')
             ->get();
 
         return view('admin.products.index', [
             'products' => $products,
+            'filters' => $filters,
+            'filterProjects' => $projects,
+            'filterRooms' => $rooms,
         ]);
     }
 
@@ -113,6 +158,29 @@ class ProductController extends Controller
     public function updateStatus(Request $request, Product $product): RedirectResponse
     {
         return $this->updateActiveStatus($request, $product, $product->name);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function filterRooms(?string $project = null): array
+    {
+        $rooms = [];
+
+        foreach (Catalog::projects() as $projectName) {
+            if ($project !== null && $projectName !== $project) {
+                continue;
+            }
+
+            foreach (Catalog::rooms($projectName) as $room) {
+                $rooms[$room] = $room;
+            }
+        }
+
+        $rooms = array_values($rooms);
+        sort($rooms, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $rooms;
     }
 
     /**

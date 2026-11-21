@@ -392,7 +392,51 @@ class AdminCatalogTest extends TestCase
             ->assertSee($first->name)
             ->assertSee($second->name)
             ->assertSee('js-datatable', false)
-            ->assertSee('dataTables.bootstrap5.min.js', false);
+            ->assertSee('dataTables.bootstrap5.min.js', false)
+            ->assertSee('name="q"', false)
+            ->assertSee('name="status"', false);
+    }
+
+    public function test_the_product_list_can_be_filtered(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        $sofa = $this->product();
+        $bed = $this->catalogProduct([
+            'code' => 'BD001',
+            'slug' => 'teak-bed',
+            'name' => 'Queen Size Teak Bed',
+            'room' => 'Bedroom',
+            'product_category' => 'Queen Size Bed',
+            'design_type' => 'Platform',
+            'base_price' => 36000,
+            'is_online' => true,
+            'status' => Product::STATUS_INACTIVE,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.products.index', ['q' => 'BD001']))
+            ->assertOk()
+            ->assertSee($bed->name)
+            ->assertDontSee($sofa->name);
+
+        $this->actingAs($admin)
+            ->get(route('admin.products.index', ['room' => 'Bedroom']))
+            ->assertOk()
+            ->assertSee($bed->name)
+            ->assertDontSee($sofa->name);
+
+        $this->actingAs($admin)
+            ->get(route('admin.products.index', ['status' => 'inactive', 'online' => '1']))
+            ->assertOk()
+            ->assertSee($bed->name)
+            ->assertDontSee($sofa->name);
+
+        $this->actingAs($admin)
+            ->get(route('admin.products.index', ['q' => 'no-such-product']))
+            ->assertOk()
+            ->assertSee('No products match')
+            ->assertDontSee($sofa->name)
+            ->assertDontSee($bed->name);
     }
 
     public function test_add_subcategory_link_preselects_the_room(): void
