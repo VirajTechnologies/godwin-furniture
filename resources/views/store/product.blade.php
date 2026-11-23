@@ -1,7 +1,7 @@
 @extends('layouts.store')
 
 @section('title', $product->name)
-@section('body_class', 'bg-light')
+@section('body_class', 'gw-theme-body')
 
 @section('content')
     @include('store.partials.header')
@@ -27,376 +27,256 @@
             ? $options->pluck('upholstery')->filter()->unique()->values()
             : collect();
 
-        $ratingsPool = ['4.7', '4.8', '4.9', '4.6'];
+        $showVariantPicker = $colours->count() > 1 || $finishes->count() > 1 || $upholsteries->count() > 1;
+
+        $ratingsPool = ['4.6', '4.7', '4.8', '4.9'];
         $rating = $ratingsPool[($product->id ?? 0) % count($ratingsPool)];
-        $reviewCount = 24 + ((($product->id ?? 1) * 17) % 90);
         $inStock = ($selected['available'] ?? 0) > 0;
 
-        $widthCm = $product->width_cm;
-        $depthCm = $product->depth_cm;
-        $heightCm = $product->height_cm;
-        $weightKg = $product->weight_kg;
-        $hasDimensions = $widthCm || $depthCm || $heightCm || $weightKg;
+        $dims = collect([
+            $product->width_cm ? number_format((float) $product->width_cm, 0).'W' : null,
+            $product->depth_cm ? number_format((float) $product->depth_cm, 0).'D' : null,
+            $product->height_cm ? number_format((float) $product->height_cm, 0).'H' : null,
+        ])->filter()->implode(' × ');
+
         $customSpecs = is_array($product->specs) ? array_filter($product->specs, fn ($v) => $v !== null && $v !== '') : [];
-        $hasSpecRows = filled($product->material) || filled($product->design_type) || filled($product->room) || $customSpecs !== [];
-        $showSpecsAccordion = $hasDimensions || $hasSpecRows;
+        $customWhatsApp = 'https://wa.me/917418759171?text='.rawurlencode('Hi GODWIN, I would like to request customization for '.$product->name.' (SKU: '.($selected['sku'] ?? $product->code).')');
     @endphp
 
-    <!-- Breadcrumb Bar -->
-    <section class="pdp-breadcrumb-bar">
-        <div class="container-fluid px-4 px-lg-5">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb m-0 font-heading small">
-                        <li class="breadcrumb-item"><a href="{{ route('store.home') }}" class="text-muted text-decoration-none">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('store.catalog') }}" class="text-muted text-decoration-none">Catalog</a></li>
-                        @if ($product->category?->parent)
-                            <li class="breadcrumb-item"><a href="{{ route('store.catalog', ['category' => $product->category->parent->slug]) }}" class="text-muted text-decoration-none">{{ $product->category->parent->name }}</a></li>
-                        @endif
-                        @if ($product->category)
-                            <li class="breadcrumb-item"><a href="{{ route('store.catalog', ['category' => $product->category->slug]) }}" class="text-muted text-decoration-none">{{ $product->category->name }}</a></li>
-                        @endif
-                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ $product->name }}</li>
-                    </ol>
-                </nav>
-                <a href="{{ $product->category ? route('store.catalog', ['category' => $product->category->slug]) : route('store.catalog') }}" class="pdp-back-link">
-                    <i class="fas fa-arrow-left me-1.5"></i> Back to {{ $product->category?->name ?? 'Catalog' }}
+    <section class="gw-wrap gw-pdp-wrap">
+        <nav aria-label="breadcrumb" class="gw-cat-crumbs mb-4">
+            <a href="{{ route('store.home') }}">Home</a>
+            <span>/</span>
+            @if ($product->category?->parent)
+                <a href="{{ route('store.catalog', ['category' => $product->category->parent->slug]) }}">
+                    {{ strcasecmp($product->category->parent->name, 'Dining Room') === 0 ? 'Dining' : $product->category->parent->name }}
                 </a>
-            </div>
-        </div>
-    </section>
+                <span>/</span>
+            @endif
+            @if ($product->category)
+                <a href="{{ route('store.catalog', ['category' => $product->category->slug]) }}">
+                    {{ strcasecmp($product->category->name, 'Dining Room') === 0 ? 'Dining' : $product->category->name }}
+                </a>
+                <span>/</span>
+            @endif
+            <span>{{ $product->name }}</span>
+        </nav>
 
-    <!-- Main Product Detail Section -->
-    <section class="container-fluid px-4 px-lg-5 my-4">
-        <div class="pdp-main-card">
-            <div class="row g-4 g-xl-5">
-                <!-- Left Column: Product Visual Gallery -->
-                <div class="col-12 col-lg-6">
-                    <div class="pdp-gallery-sticky">
-                        <div class="pdp-main-stage">
-                            <div class="pdp-stage-badges">
-                                @if ($product->is_featured)
-                                    <span class="pdp-badge-featured">Featured</span>
-                                @else
-                                    <span class="pdp-badge-new">New Edition</span>
-                                @endif
-                                <span class="pdp-badge-direct"><i class="fas fa-industry me-1"></i> Factory Direct</span>
-                            </div>
+        <div class="gw-pdp-grid">
+            {{-- Left Column: Product Gallery --}}
+            <div>
+                <div class="gw-pdp-stage">
+                    <img id="mainProductImg" src="{{ $main }}" alt="{{ $product->name }}">
+                </div>
 
-                            <button type="button" class="pdp-wishlist-btn" aria-label="Add to wishlist" onclick="this.classList.toggle('is-liked')">
-                                <i class="far fa-heart"></i>
+                @if ($imageUrls->count() > 1)
+                    <div class="gw-pdp-thumbs" id="productThumbs">
+                        @foreach ($imageUrls as $url)
+                            <button type="button" class="gw-pdp-thumb js-product-thumb {{ $loop->first ? 'is-active' : '' }}" data-src="{{ $url }}" aria-label="View image {{ $loop->iteration }}">
+                                <img src="{{ $url }}" alt="{{ $product->name }}">
                             </button>
-
-                            <img id="mainProductImg" src="{{ $main }}" class="pdp-main-img" alt="{{ $product->name }}">
-                        </div>
-
-                        <div class="row g-2 mt-2" id="productThumbs">
-                            @foreach ($imageUrls as $url)
-                                <div class="col-3 col-sm-2">
-                                    <div class="pdp-thumb-wrap {{ $loop->first ? 'is-active' : '' }}">
-                                        <img src="{{ $url }}" class="img-thumbnail pdp-thumb-img cursor-pointer js-product-thumb {{ $loop->first ? '' : 'opacity-75' }}" alt="{{ $product->name }}">
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <!-- Gallery Bottom Assurance Bar -->
-                        <div class="pdp-gallery-assurance mt-3">
-                            <div class="pdp-assure-chip">
-                                <i class="fas fa-check-circle text-amber"></i>
-                                <span>100% Seasoned Grade-A Materials</span>
-                            </div>
-                            <div class="pdp-assure-chip">
-                                <i class="fas fa-camera text-amber"></i>
-                                <span>Actual Factory Finish Studio Photos</span>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
+                @else
+                    <div class="gw-pdp-thumbs d-none" id="productThumbs"></div>
+                @endif
+            </div>
+
+            {{-- Right Column: Details, Specs, Quantity & Actions --}}
+            <div>
+                <p class="gw-pdp-sku-line">
+                    SKU <span id="variant-sku">{{ $selected['sku'] ?? $product->code }}</span>
+                    @if ($product->category)
+                        · {{ $product->category->name }}
+                    @endif
+                </p>
+
+                <h1 class="gw-pdp-title">{{ $product->name }}</h1>
+
+                <div class="gw-pdp-price">
+                    <span id="variant-price">₹{{ number_format($price, 0) }}</span>
+                    <s id="variant-mrp" class="{{ $hasDiscount ? '' : 'd-none' }}">₹{{ number_format((float) $mrp, 0) }}</s>
+                    <span id="variant-pct" class="gw-off {{ $hasDiscount ? '' : 'd-none' }}">{{ $discountPct }}% off</span>
                 </div>
 
-                <!-- Right Column: Product Configuration & Purchase -->
-                <div class="col-12 col-lg-6">
-                    <div class="pdp-info-panel">
-                        <!-- Top Meta Row: Category, SKU & Stock Pill -->
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                @if ($product->room || $product->product_category)
-                                    <span class="pdp-eyebrow-tag">{{ collect([$product->room, $product->product_category])->filter()->implode(' • ') }}</span>
-                                @endif
-                                <span class="pdp-sku-pill">SKU: <strong id="variant-sku">{{ $selected['sku'] ?? $product->code }}</strong></span>
-                            </div>
-                            <span class="pdp-stock-pill {{ $inStock ? 'in-stock text-success' : 'out-stock text-danger' }}" id="variant-stock">
-                                {{ $inStock ? 'In stock' : 'Out of stock' }}
-                            </span>
-                        </div>
+                <div class="gw-pdp-rating">
+                    <span class="gw-star">★</span> {{ $rating }} ·
+                    <span id="variant-stock">{{ $inStock ? 'In Stock' : 'Out of Stock' }}</span>
+                </div>
 
-                        <!-- Product Title -->
-                        <h1 class="pdp-title">{{ $product->name }}</h1>
-
-                        <!-- Rating & Material Subtitle Row -->
-                        <div class="pdp-rating-row mb-3">
-                            <div class="pdp-stars">
-                                <i class="fas fa-star"></i>
-                                <span>{{ $rating }}</span>
-                                <span class="pdp-review-count">({{ $reviewCount }} Verified Reviews)</span>
-                            </div>
-                            @if ($product->material)
-                                <span class="pdp-dot">•</span>
-                                <span class="pdp-material-tag"><i class="fas fa-layer-group me-1 text-amber"></i>{{ $product->material }}</span>
-                            @endif
-                            @if ($product->design_type)
-                                <span class="pdp-dot">•</span>
-                                <span class="pdp-design-tag">{{ $product->design_type }} Series</span>
-                            @endif
-                        </div>
-
-                        <!-- Pricing Card -->
-                        <div class="pdp-price-box mb-4">
-                            <div class="d-flex align-items-baseline gap-3 flex-wrap">
-                                <span class="pdp-price-current" id="variant-price">₹{{ number_format($price, 0) }}</span>
-                                <span class="pdp-price-mrp {{ $hasDiscount ? '' : 'd-none' }}" id="variant-mrp">₹{{ number_format((float) $mrp, 0) }}</span>
-                                <span class="pdp-price-discount {{ $hasDiscount ? '' : 'd-none' }}" id="variant-pct">{{ $discountPct }}% off</span>
-                                <span class="pdp-price-save {{ $hasDiscount ? '' : 'd-none' }}" id="variant-save">Save ₹{{ number_format((float) $mrp - $price, 0) }}</span>
-                            </div>
-                            <div class="pdp-tax-note mt-1">
-                                Inclusive of all taxes • Direct factory price with GST invoice available
-                            </div>
-                        </div>
-
-                        <!-- Interactive Variant Picker -->
-                        @if ($options->isNotEmpty())
-                            <div id="variant-picker" class="pdp-variant-picker mb-4">
-                                <div class="pdp-option-group mb-3">
-                                    <div class="pdp-option-header">
-                                        <span class="pdp-option-label">Colour</span>
-                                        <span class="pdp-option-selected" data-variant-selected="colour">{{ $selected['colour'] ?? '' }}</span>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        @foreach ($colours as $option)
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-dark pdp-variant-btn js-variant-option"
-                                                    data-group="colour"
-                                                    data-value="{{ $option['colour'] }}">
-                                                <span class="pdp-swatch-circle" style="background-color: {{ $option['colour_hex'] }};"></span>
-                                                <span>{{ $option['colour'] }}</span>
-                                            </button>
-                                        @endforeach
-                                    </div>
+                @if ($options->isNotEmpty())
+                    <div id="variant-picker" class="gw-pdp-variants {{ $showVariantPicker ? '' : 'd-none' }}">
+                        @if ($colours->count() > 1)
+                            <div>
+                                <div class="gw-pdp-var-label">
+                                    Colour: <strong data-variant-selected="colour">{{ $selected['colour'] ?? '' }}</strong>
                                 </div>
-
-                                @if ($finishes->isNotEmpty())
-                                    <div class="pdp-option-group mb-3">
-                                        <div class="pdp-option-header">
-                                            <span class="pdp-option-label">Surface Finish</span>
-                                            <span class="pdp-option-selected" data-variant-selected="finish">{{ $selected['finish'] ?? '' }}</span>
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @foreach ($finishes as $finish)
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-dark pdp-variant-btn js-variant-option"
-                                                        data-group="finish"
-                                                        data-value="{{ $finish }}">
-                                                    {{ $finish }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-
-                                @if ($upholsteries->isNotEmpty())
-                                    <div class="pdp-option-group mb-2">
-                                        <div class="pdp-option-header">
-                                            <span class="pdp-option-label">Upholstery</span>
-                                            <span class="pdp-option-selected" data-variant-selected="upholstery">{{ $selected['upholstery'] ?? '' }}</span>
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @foreach ($upholsteries as $upholstery)
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-dark pdp-variant-btn js-variant-option"
-                                                        data-group="upholstery"
-                                                        data-value="{{ $upholstery }}">
-                                                    {{ $upholstery }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                            <script type="application/json" id="variant-data">@json($variants)</script>
-                        @endif
-
-                        @if ($product->description)
-                            <p class="pdp-short-desc mb-4">{{ $product->description }}</p>
-                        @endif
-
-                        <!-- Quantity & Primary Action Buttons -->
-                        <div class="pdp-purchase-row mb-4">
-                            <div class="pdp-qty-box">
-                                <button type="button" class="pdp-qty-btn" onclick="changePdpQty(-1)" aria-label="Decrease quantity">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" id="pdpQtyDisplay" class="pdp-qty-input" value="1" min="1" max="10" readonly>
-                                <button type="button" class="pdp-qty-btn" onclick="changePdpQty(1)" aria-label="Increase quantity">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-
-                            <form method="POST" action="{{ route('store.cart.add') }}" class="flex-grow-1 m-0">
-                                @csrf
-                                <input type="hidden" name="product_variant_id" value="{{ $selected['id'] ?? '' }}" class="js-variant-input">
-                                <input type="hidden" name="quantity" value="1" class="js-qty-input">
-                                <button type="submit" class="pdp-btn-add w-100 js-variant-submit" @disabled(! $inStock)>
-                                    <i class="fas fa-shopping-bag me-2"></i> Add to cart
-                                </button>
-                            </form>
-
-                            <form method="POST" action="{{ route('store.cart.add') }}" class="m-0">
-                                @csrf
-                                <input type="hidden" name="product_variant_id" value="{{ $selected['id'] ?? '' }}" class="js-variant-input">
-                                <input type="hidden" name="quantity" value="1" class="js-qty-input">
-                                <input type="hidden" name="redirect" value="cart">
-                                <button type="submit" class="pdp-btn-buy js-variant-submit" @disabled(! $inStock)>
-                                    <i class="fas fa-bolt me-1.5"></i> Buy Now
-                                </button>
-                            </form>
-                        </div>
-
-                        <!-- Dimensions, Specs & Care Accordion -->
-                        <div class="accordion pdp-specs-accordion mb-4" id="pdpSpecsAccordion">
-                            @if ($showSpecsAccordion)
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pdpCollapseSpecs" aria-expanded="true">
-                                            <i class="fas fa-ruler-horizontal text-amber me-2"></i> Dimensions &amp; Specifications
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach ($colours as $option)
+                                        <button type="button"
+                                                class="gw-pdp-opt-btn js-variant-option"
+                                                data-group="colour"
+                                                data-value="{{ $option['colour'] }}">
+                                            <span class="gw-sw" style="background: {{ $option['colour_hex'] }}; margin: 0;"></span>
+                                            <span>{{ $option['colour'] }}</span>
                                         </button>
-                                    </h2>
-                                    <div id="pdpCollapseSpecs" class="accordion-collapse collapse show" data-bs-parent="#pdpSpecsAccordion">
-                                        <div class="accordion-body">
-                                            @if ($hasDimensions)
-                                                <div class="pdp-dims-grid mb-3">
-                                                    @if ($widthCm)
-                                                        <div class="pdp-dim-box">
-                                                            <span class="pdp-dim-label">Width</span>
-                                                            <strong class="pdp-dim-val">{{ number_format((float) $widthCm, 0) }} cm</strong>
-                                                        </div>
-                                                    @endif
-                                                    @if ($depthCm)
-                                                        <div class="pdp-dim-box">
-                                                            <span class="pdp-dim-label">Depth</span>
-                                                            <strong class="pdp-dim-val">{{ number_format((float) $depthCm, 0) }} cm</strong>
-                                                        </div>
-                                                    @endif
-                                                    @if ($heightCm)
-                                                        <div class="pdp-dim-box">
-                                                            <span class="pdp-dim-label">Height</span>
-                                                            <strong class="pdp-dim-val">{{ number_format((float) $heightCm, 0) }} cm</strong>
-                                                        </div>
-                                                    @endif
-                                                    @if ($weightKg)
-                                                        <div class="pdp-dim-box">
-                                                            <span class="pdp-dim-label">Weight</span>
-                                                            <strong class="pdp-dim-val">{{ number_format((float) $weightKg, 0) }} kg</strong>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
-                                            @if ($hasSpecRows)
-                                                <div class="pdp-spec-table">
-                                                    @if ($product->material)
-                                                        <div class="pdp-spec-row">
-                                                            <span>Primary Material</span>
-                                                            <strong>{{ $product->material }}</strong>
-                                                        </div>
-                                                    @endif
-                                                    @if ($product->design_type)
-                                                        <div class="pdp-spec-row">
-                                                            <span>Design Style</span>
-                                                            <strong>{{ $product->design_type }}</strong>
-                                                        </div>
-                                                    @endif
-                                                    @if ($product->room)
-                                                        <div class="pdp-spec-row">
-                                                            <span>Recommended Room</span>
-                                                            <strong>{{ $product->room }}</strong>
-                                                        </div>
-                                                    @endif
-                                                    @foreach ($customSpecs as $specKey => $specVal)
-                                                        <div class="pdp-spec-row">
-                                                            <span>{{ is_string($specKey) ? ucfirst(str_replace('_', ' ', $specKey)) : 'Specification' }}</span>
-                                                            <strong>{{ is_array($specVal) ? implode(', ', $specVal) : $specVal }}</strong>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
+                        @if ($finishes->count() > 1)
+                            <div>
+                                <div class="gw-pdp-var-label">
+                                    Metal finish: <strong data-variant-selected="finish">{{ $selected['finish'] ?? '' }}</strong>
                                 </div>
-                            @endif
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach ($finishes as $finish)
+                                        <button type="button"
+                                                class="gw-pdp-opt-btn js-variant-option"
+                                                data-group="finish"
+                                                data-value="{{ $finish }}">
+                                            {{ $finish }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button {{ $showSpecsAccordion ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#pdpCollapseDelivery" aria-expanded="{{ $showSpecsAccordion ? 'false' : 'true' }}">
-                                        <i class="fas fa-box-open text-amber me-2"></i> Delivery, Assembly &amp; Care
-                                    </button>
-                                </h2>
-                                <div id="pdpCollapseDelivery" class="accordion-collapse collapse {{ $showSpecsAccordion ? '' : 'show' }}" data-bs-parent="#pdpSpecsAccordion">
-                                    <div class="accordion-body small text-muted" style="line-height: 1.7;">
-                                        <ul class="mb-0 ps-3">
-                                            <li><strong>White-Glove Installation:</strong> Our factory-trained technicians deliver, unpack, assemble, and position your furniture in your room of choice.</li>
-                                            <li><strong>7-Tank Treated Steel:</strong> All metal components undergo anti-rust phosphating and oven-baked powder coating for humidity resistance.</li>
-                                            <li><strong>Care Instructions:</strong> Wipe daily with a soft dry microfiber cloth. Avoid direct harsh chemical solvents on wood or powder-coated surfaces.</li>
-                                        </ul>
-                                    </div>
+                        @if ($upholsteries->count() > 1)
+                            <div>
+                                <div class="gw-pdp-var-label">
+                                    Upholstery: <strong data-variant-selected="upholstery">{{ $selected['upholstery'] ?? '' }}</strong>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach ($upholsteries as $upholstery)
+                                        <button type="button"
+                                                class="gw-pdp-opt-btn js-variant-option"
+                                                data-group="upholstery"
+                                                data-value="{{ $upholstery }}">
+                                            {{ $upholstery }}
+                                        </button>
+                                    @endforeach
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Value / Service Highlights Grid -->
-                        <div class="pdp-perks-grid mb-4">
-                            <div class="pdp-perk-item">
-                                <span class="pdp-perk-icon"><i class="fas fa-truck"></i></span>
-                                <div>
-                                    <h6>White-Glove Delivery</h6>
-                                    <span>Free in-home setup above ₹49,999</span>
-                                </div>
-                            </div>
-                            <div class="pdp-perk-item">
-                                <span class="pdp-perk-icon"><i class="fas fa-shield-alt"></i></span>
-                                <div>
-                                    <h6>10-Year Structural Warranty</h6>
-                                    <span>CRCA heavy steel &amp; seasoned wood</span>
-                                </div>
-                            </div>
-                            <div class="pdp-perk-item">
-                                <span class="pdp-perk-icon"><i class="fas fa-ruler-combined"></i></span>
-                                <div>
-                                    <h6>Custom Sizing Available</h6>
-                                    <span>Built to order at Godwin factory</span>
-                                </div>
-                            </div>
-                            <div class="pdp-perk-item">
-                                <span class="pdp-perk-icon"><i class="fas fa-file-invoice"></i></span>
-                                <div>
-                                    <h6>GST Business Billing</h6>
-                                    <span>Claim input tax credit on orders</span>
-                                </div>
-                            </div>
-                        </div>
+                        @endif
                     </div>
+                    <script type="application/json" id="variant-data">@json($variants)</script>
+                @endif
+
+                {{-- Specification Table (Exact Reference Style) --}}
+                <table class="gw-pdp-specs">
+                    <tbody>
+                        <tr>
+                            <th>Material</th>
+                            <td>{{ $product->material ?: 'Metal + Upholstery' }}</td>
+                        </tr>
+                        @if ($selected['finish'] ?? false)
+                            <tr>
+                                <th>Metal finish</th>
+                                <td id="spec-finish">{{ $selected['finish'] }}</td>
+                            </tr>
+                        @endif
+                        @if ($selected['colour'] ?? false)
+                            <tr>
+                                <th>Colour</th>
+                                <td id="spec-colour">{{ $selected['colour'] }}</td>
+                            </tr>
+                        @endif
+                        @if ($selected['upholstery'] ?? false)
+                            <tr>
+                                <th>Upholstery</th>
+                                <td id="spec-upholstery">{{ $selected['upholstery'] }}</td>
+                            </tr>
+                        @endif
+                        @if ($product->design_type)
+                            <tr>
+                                <th>Style</th>
+                                <td>{{ $product->design_type }}</td>
+                            </tr>
+                        @endif
+                        @if ($dims !== '')
+                            <tr>
+                                <th>Dimensions</th>
+                                <td>{{ $dims }} cm</td>
+                            </tr>
+                        @endif
+                        @foreach ($customSpecs as $specKey => $specVal)
+                            <tr>
+                                <th>{{ is_string($specKey) ? ucfirst(str_replace('_', ' ', $specKey)) : 'Specification' }}</th>
+                                <td>{{ is_array($specVal) ? implode(', ', $specVal) : $specVal }}</td>
+                            </tr>
+                        @endforeach
+                        <tr>
+                            <th>Warranty</th>
+                            <td>10-Year Structural Warranty</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                {{-- Quantity & Pincode Row --}}
+                <div class="gw-pdp-qty-pin">
+                    <label for="pdpQtyDisplay">Quantity</label>
+                    <input type="number"
+                           id="pdpQtyDisplay"
+                           class="gw-pdp-qty-input"
+                           value="1"
+                           min="1"
+                           max="10"
+                           oninput="syncPdpQty(this.value)">
+
+                    <label for="pdpPincode">Pincode</label>
+                    <input type="text"
+                           id="pdpPincode"
+                           class="gw-pdp-pin-input"
+                           placeholder="520001"
+                           maxlength="6"
+                           inputmode="numeric">
+
+                    <button type="button" class="gw-pdp-sub-btn" onclick="checkPdpDelivery()">Check delivery</button>
                 </div>
+                <div id="pdpPinMsg" class="gw-pdp-pin-msg d-none"></div>
+
+                {{-- Action Buttons Row --}}
+                <div class="gw-pdp-actions">
+                    <form method="POST" action="{{ route('store.cart.add') }}" class="m-0">
+                        @csrf
+                        <input type="hidden" name="product_variant_id" value="{{ $selected['id'] ?? '' }}" class="js-variant-input">
+                        <input type="hidden" name="quantity" value="1" class="js-qty-input">
+                        <button type="submit" class="gw-btn js-variant-submit" @disabled(! $inStock)>Add to cart</button>
+                    </form>
+
+                    <form method="POST" action="{{ route('store.cart.add') }}" class="m-0">
+                        @csrf
+                        <input type="hidden" name="product_variant_id" value="{{ $selected['id'] ?? '' }}" class="js-variant-input">
+                        <input type="hidden" name="quantity" value="1" class="js-qty-input">
+                        <input type="hidden" name="redirect" value="cart">
+                        <button type="submit" class="gw-btn gw-btn-outline js-variant-submit" @disabled(! $inStock)>Buy now</button>
+                    </form>
+
+                    <button type="button"
+                            class="gw-pdp-sub-btn"
+                            onclick="this.textContent = this.textContent.trim() === 'Wishlist' ? 'Saved ♥' : 'Wishlist'">
+                        Wishlist
+                    </button>
+
+                    <a href="{{ $customWhatsApp }}" target="_blank" rel="noopener" class="gw-pdp-sub-btn">
+                        Request customization
+                    </a>
+                </div>
+
+                @if ($product->description)
+                    <p class="gw-pdp-desc">{{ $product->description }}</p>
+                @endif
             </div>
         </div>
 
-        <!-- Related Products Section -->
+        {{-- Related Products Section --}}
         @if ($related->isNotEmpty())
-            <div class="mt-5 pt-2">
-                <div class="d-flex align-items-end justify-content-between mb-4">
-                    <div>
-                        <span class="shop-cat-kicker">COMPLETE THE SUITE</span>
-                        <h2 class="bs-section-heading m-0">Related Products</h2>
-                    </div>
-                    <a href="{{ route('store.catalog', ['category' => $product->category?->slug]) }}" class="bs-view-all-link">View all</a>
+            <div class="mt-5 pt-4" style="border-top: 1px solid var(--stone);">
+                <div class="gw-bar">
+                    <h2 class="m-0">Related products</h2>
+                    <a href="{{ route('store.catalog', ['category' => $product->category?->slug]) }}" class="gw-view-link">View all</a>
                 </div>
                 <div class="row g-4">
                     @foreach ($related as $item)
@@ -413,20 +293,48 @@
 
 @push('scripts')
 <script>
-function changePdpQty(delta) {
-    const display = document.getElementById('pdpQtyDisplay');
-    if (!display) return;
-    const current = parseInt(display.value || '1', 10);
-    const next = Math.max(1, Math.min(10, current + delta));
-    display.value = next;
+function syncPdpQty(val) {
+    var qty = Math.max(1, Math.min(10, parseInt(val || '1', 10) || 1));
     document.querySelectorAll('.js-qty-input').forEach(function (input) {
-        input.value = next;
+        input.value = qty;
     });
+}
+
+function checkPdpDelivery() {
+    var input = document.getElementById('pdpPincode');
+    var msg = document.getElementById('pdpPinMsg');
+    if (!input || !msg) return;
+    var pin = input.value.trim();
+    msg.classList.remove('d-none');
+    if (!/^\d{6}$/.test(pin)) {
+        msg.textContent = 'Please enter a valid 6-digit pincode.';
+        msg.style.color = '#b43c2f';
+        return;
+    }
+    msg.textContent = 'Delivery available to ' + pin + ' · Estimated dispatch in 5–7 business days.';
+    msg.style.color = '#2f6f4e';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     const picker = document.getElementById('variant-picker');
     const payload = document.getElementById('variant-data');
+    const mainImg = document.getElementById('mainProductImg');
+    const thumbs = document.getElementById('productThumbs');
+    const fallbackImage = @json($fallbackImage);
+
+    function bindThumbClicks() {
+        if (!thumbs) return;
+        thumbs.addEventListener('click', function (event) {
+            const thumb = event.target.closest('.js-product-thumb');
+            if (!thumb || !mainImg) return;
+            mainImg.src = thumb.dataset.src || thumb.querySelector('img')?.src || mainImg.src;
+            thumbs.querySelectorAll('.js-product-thumb').forEach(function (btn) {
+                btn.classList.toggle('is-active', btn === thumb);
+            });
+        });
+    }
+    bindThumbClicks();
+
     if (!picker || !payload) {
         return;
     }
@@ -441,15 +349,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const priceEl = document.getElementById('variant-price');
     const mrpEl = document.getElementById('variant-mrp');
-    const saveEl = document.getElementById('variant-save');
     const pctEl = document.getElementById('variant-pct');
     const skuEl = document.getElementById('variant-sku');
     const stockEl = document.getElementById('variant-stock');
-    const mainImg = document.getElementById('mainProductImg');
-    const thumbs = document.getElementById('productThumbs');
+    const specFinish = document.getElementById('spec-finish');
+    const specColour = document.getElementById('spec-colour');
+    const specUpholstery = document.getElementById('spec-upholstery');
     const inputs = document.querySelectorAll('.js-variant-input');
     const submits = document.querySelectorAll('.js-variant-submit');
-    const fallbackImage = @json($fallbackImage);
     const selection = {};
 
     function money(amount) {
@@ -461,33 +368,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mainImg) {
             mainImg.src = list[0];
         }
-        if (!thumbs) {
+        if (!thumbs) return;
+        if (list.length <= 1) {
+            thumbs.classList.add('d-none');
+            thumbs.innerHTML = '';
             return;
         }
+        thumbs.classList.remove('d-none');
         thumbs.innerHTML = list.map(function (url, index) {
-            return '<div class="col-3 col-sm-2">'
-                + '<div class="pdp-thumb-wrap' + (index === 0 ? ' is-active' : '') + '">'
-                + '<img src="' + url + '" class="img-thumbnail pdp-thumb-img cursor-pointer js-product-thumb' + (index === 0 ? '' : ' opacity-75') + '" alt="">'
-                + '</div>'
-                + '</div>';
+            return '<button type="button" class="gw-pdp-thumb js-product-thumb' + (index === 0 ? ' is-active' : '') + '" data-src="' + url + '">'
+                + '<img src="' + url + '" alt="">'
+                + '</button>';
         }).join('');
-    }
-
-    if (thumbs) {
-        thumbs.addEventListener('click', function (event) {
-            const thumb = event.target.closest('.js-product-thumb');
-            if (!thumb || !mainImg) {
-                return;
-            }
-            mainImg.src = thumb.src;
-            thumbs.querySelectorAll('.js-product-thumb').forEach(function (image) {
-                image.classList.toggle('opacity-75', image !== thumb);
-                const wrap = image.closest('.pdp-thumb-wrap');
-                if (wrap) {
-                    wrap.classList.toggle('is-active', image === thumb);
-                }
-            });
-        });
     }
 
     function matching(partial) {
@@ -500,18 +392,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function currentVariant() {
         const found = matching(selection);
-
         return found.find(function (variant) { return variant.available > 0; }) || found[0] || null;
     }
 
     function choose(group, value) {
         selection[group] = value;
-
-        // Keep the other groups on a combination that actually exists.
         groups.forEach(function (other) {
-            if (other === group || matching(selection).length > 0) {
-                return;
-            }
+            if (other === group || matching(selection).length > 0) return;
             const partial = Object.assign({}, selection);
             delete partial[other];
             const options = matching(partial);
@@ -520,7 +407,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 selection[other] = pick[other];
             }
         });
-
         render();
     }
 
@@ -536,10 +422,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const chosen = selection[group] === value;
 
                 button.disabled = !sellable;
-                button.classList.toggle('btn-dark', chosen);
-                button.classList.toggle('btn-outline-dark', !chosen);
                 button.classList.toggle('is-selected', chosen);
-                button.classList.toggle('text-decoration-line-through', !sellable);
                 button.classList.toggle('opacity-50', sellable && !here.some(function (variant) { return variant.available > 0; }));
                 button.title = sellable ? '' : 'Out of stock';
             });
@@ -554,26 +437,27 @@ document.addEventListener('DOMContentLoaded', function () {
         const inStock = Boolean(variant) && variant.available > 0;
 
         if (variant) {
-            priceEl.textContent = money(variant.price);
-            skuEl.textContent = variant.sku;
+            if (priceEl) priceEl.textContent = money(variant.price);
+            if (skuEl) skuEl.textContent = variant.sku;
             const discounted = variant.mrp !== null && Number(variant.mrp) > Number(variant.price);
             const pct = discounted ? Math.round(((Number(variant.mrp) - Number(variant.price)) / Number(variant.mrp)) * 100) : 0;
-            mrpEl.textContent = money(variant.mrp || 0);
-            saveEl.textContent = 'Save ' + money((variant.mrp || 0) - variant.price);
+            if (mrpEl) {
+                mrpEl.textContent = money(variant.mrp || 0);
+                mrpEl.classList.toggle('d-none', !discounted);
+            }
             if (pctEl) {
                 pctEl.textContent = pct + '% off';
                 pctEl.classList.toggle('d-none', !discounted);
             }
-            mrpEl.classList.toggle('d-none', !discounted);
-            saveEl.classList.toggle('d-none', !discounted);
+            if (specFinish && variant.finish) specFinish.textContent = variant.finish;
+            if (specColour && variant.colour) specColour.textContent = variant.colour;
+            if (specUpholstery && variant.upholstery) specUpholstery.textContent = variant.upholstery;
             renderGallery(variant.images || []);
         }
 
-        stockEl.textContent = inStock ? 'In stock' : 'Out of stock';
-        stockEl.classList.toggle('text-success', inStock);
-        stockEl.classList.toggle('text-danger', !inStock);
-        stockEl.classList.toggle('in-stock', inStock);
-        stockEl.classList.toggle('out-stock', !inStock);
+        if (stockEl) {
+            stockEl.textContent = inStock ? 'In Stock' : 'Out of Stock';
+        }
 
         inputs.forEach(function (input) {
             input.value = variant ? variant.id : '';
@@ -590,7 +474,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Payload is sorted cheapest-first; start on the lowest-priced in-stock option.
     const start = variants.find(function (variant) { return variant.available > 0; }) || variants[0];
     groups.forEach(function (group) {
         selection[group] = start[group];

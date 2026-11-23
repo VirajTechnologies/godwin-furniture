@@ -1,87 +1,108 @@
 @extends('layouts.store')
 
 @section('title', 'Order '.$order->code)
-@section('body_class', 'bg-light')
+@section('body_class', 'gw-theme-body')
 
 @section('content')
     @include('store.partials.header')
 
-    <section class="container-fluid px-4 px-lg-5 my-5">
+    @unless ($justPlaced)
+        <section class="gw-page-head">
+            <div class="gw-page-head-inner">
+                <nav aria-label="breadcrumb">
+                    <ol class="gw-breadcrumb">
+                        <li><a href="{{ route('store.home') }}">Home</a></li>
+                        <li class="gw-bc-sep">/</li>
+                        <li><a href="{{ route('store.orders.index') }}">My Orders</a></li>
+                        <li class="gw-bc-sep">/</li>
+                        <li class="is-current" aria-current="page">{{ $order->code }}</li>
+                    </ol>
+                </nav>
+                <div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-2">
+                    <div>
+                        <h1 class="gw-page-title">Order {{ $order->code }}</h1>
+                        <p class="gw-page-sub">Placed {{ $order->created_at?->format('d M Y, h:i A') }}</p>
+                    </div>
+                    <a href="{{ route('store.orders.index') }}" class="gw-view-link">
+                        <i class="fas fa-arrow-left me-1"></i> All Orders
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endunless
+
+    <section class="gw-page-wrap">
         <div class="row justify-content-center">
-            <div class="col-12 col-lg-8">
+            <div class="col-12 col-lg-9">
                 @if (session('success'))
-                    <div class="alert alert-success border-0 shadow-sm rounded-3 font-heading mb-4">{{ session('success') }}</div>
+                    <div class="gw-alert gw-alert-success mb-4">{{ session('success') }}</div>
                 @endif
 
                 @if ($justPlaced)
-                    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white text-center mb-4">
+                    <div class="gw-panel p-4 p-md-5 text-center mb-4">
                         <div class="mb-3">
-                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 text-success" style="width: 64px; height: 64px;">
+                            <span class="d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border: 1px solid var(--acc); color: var(--acc); background: rgba(168, 132, 90, 0.08);">
                                 <i class="fas fa-check fa-lg"></i>
                             </span>
                         </div>
-                        <h2 class="font-heading fw-bold text-dark mb-2">Thank you for your order</h2>
-                        <p class="text-muted font-heading mb-0">Your order <span class="fw-bold text-dark">{{ $order->code }}</span> is placed. Pay cash on delivery.</p>
-                    </div>
-                @else
-                    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-4">
-                        <div>
-                            <h2 class="font-heading fw-bold text-dark m-0">Order {{ $order->code }}</h2>
-                            <p class="text-muted small m-0">Placed {{ $order->created_at?->format('d M Y, h:i A') }}</p>
-                        </div>
-                        <a href="{{ route('store.orders.index') }}" class="text-amber font-heading fw-semibold text-decoration-none small">
-                            <i class="fas fa-arrow-left me-1"></i> All Orders
-                        </a>
+                        <h1 class="gw-page-title mb-2">Thank you for your order</h1>
+                        <p class="gw-page-sub mb-0">
+                            Your order <strong style="color: var(--ink);">{{ $order->code }}</strong> is placed. Pay cash on delivery.
+                        </p>
                     </div>
                 @endif
 
                 @include('store.partials.order-timeline')
 
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-                    <div class="row g-3 mb-4">
+                <div class="gw-panel mb-4">
+                    <div class="row g-3 mb-4 pb-3" style="border-bottom: 1px solid var(--stone);">
                         <div class="col-sm-6">
-                            <div class="small text-muted font-heading">Status</div>
-                            <div class="fw-semibold font-heading text-dark">{{ $order->statusLabel() }}</div>
+                            <div class="gw-label mb-1" style="color: var(--mut);">Status</div>
+                            <span class="gw-badge gw-badge-accent">{{ $order->statusLabel() }}</span>
                         </div>
                         <div class="col-sm-6">
-                            <div class="small text-muted font-heading">Payment</div>
-                            <div class="fw-semibold font-heading text-dark">
+                            <div class="gw-label mb-1" style="color: var(--mut);">Payment</div>
+                            <div class="fw-medium" style="color: var(--ink);">
                                 {{ $order->payment?->methodLabel() ?? 'Cash on Delivery' }}
-                                <span class="text-muted fw-normal small">({{ $order->payment?->statusLabel() ?? 'Pending' }})</span>
+                                <span class="small fw-normal" style="color: var(--mut);">({{ $order->payment?->statusLabel() ?? 'Pending' }})</span>
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="small text-muted font-heading">Customer</div>
-                            <div class="fw-semibold font-heading text-dark">{{ $order->customer?->name }}</div>
-                            <div class="small font-heading text-muted">{{ $order->customer?->phone }}</div>
+                            <div class="gw-label mb-1" style="color: var(--mut);">Customer</div>
+                            <div class="fw-medium" style="color: var(--ink);">{{ $order->customer?->name }}</div>
+                            <div class="small" style="color: var(--mut);">{{ $order->customer?->phone }}</div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="small text-muted font-heading">Deliver to</div>
-                            <div class="fw-semibold font-heading text-dark">{{ $order->shipping_address }}</div>
-                            <div class="small font-heading text-muted">{{ $order->shipping_city }} — {{ $order->shipping_pincode }}</div>
+                            <div class="gw-label mb-1" style="color: var(--mut);">Deliver to</div>
+                            <div class="fw-medium" style="color: var(--ink);">{{ $order->shipping_address }}</div>
+                            <div class="small" style="color: var(--mut);">{{ $order->shipping_city }} — {{ $order->shipping_pincode }}</div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="small text-muted font-heading">Total</div>
-                            <div class="fw-bold font-heading text-dark fs-5">₹{{ number_format((float) $order->total, 2) }}</div>
+                            <div class="gw-label mb-1" style="color: var(--mut);">Total</div>
+                            <div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.65rem; font-weight: 600; color: var(--ink);">
+                                ₹{{ number_format((float) $order->total, 2) }}
+                            </div>
                         </div>
                     </div>
 
-                    <h5 class="font-heading fw-bold text-dark pb-3 border-bottom mb-3">Items</h5>
+                    <h2 class="gw-panel-title">
+                        <span><i class="fas fa-couch me-2"></i>Items</span>
+                    </h2>
                     @foreach ($order->items as $item)
-                        <div class="d-flex justify-content-between gap-3 font-heading {{ ! $loop->last ? 'pb-3 border-bottom mb-3' : '' }}">
+                        <div class="d-flex justify-content-between gap-3 {{ ! $loop->last ? 'pb-3 mb-3' : '' }}" style="{{ ! $loop->last ? 'border-bottom: 1px solid var(--stone);' : '' }}">
                             <div>
-                                <div class="fw-semibold text-dark">{{ $item->variant?->product?->name ?? $item->product?->name }}</div>
-                                <div class="small text-muted">{{ $item->variant?->label() }}</div>
-                                <div class="small text-muted">{{ $item->variant?->sku ?? $item->product?->code }} × {{ $item->quantity }}</div>
+                                <div class="fw-medium" style="color: var(--ink);">{{ $item->variant?->product?->name ?? $item->product?->name }}</div>
+                                <div class="small" style="color: var(--mut);">{{ $item->variant?->label() }}</div>
+                                <div class="small" style="color: var(--mut);">{{ $item->variant?->sku ?? $item->product?->code }} × {{ $item->quantity }}</div>
                             </div>
-                            <div class="fw-bold text-dark text-nowrap">₹{{ number_format((float) $item->line_total, 0) }}</div>
+                            <div class="fw-semibold text-nowrap" style="color: var(--ink);">₹{{ number_format((float) $item->line_total, 0) }}</div>
                         </div>
                     @endforeach
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-                    <a href="{{ route('store.orders.index') }}" class="btn btn-outline-secondary font-heading fw-semibold px-4">My Orders</a>
-                    <a href="{{ route('store.catalog') }}" class="btn btn-primary-luxury font-heading fw-bold px-4">Continue Shopping</a>
+                    <a href="{{ route('store.orders.index') }}" class="gw-btn gw-btn-outline text-center">My Orders</a>
+                    <a href="{{ route('store.catalog') }}" class="gw-btn text-center">Continue Shopping</a>
                 </div>
             </div>
         </div>
