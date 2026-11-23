@@ -702,16 +702,9 @@
                                 </div>
 
                                 <div class="bs-card-actions">
-                                    @if ($item['variant_id'])
-                                        <form method="POST" action="{{ route('store.cart.add') }}" class="flex-grow-1 m-0">
-                                            @csrf
-                                            <input type="hidden" name="product_variant_id" value="{{ $item['variant_id'] }}">
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="bs-btn-add w-100">Add to cart</button>
-                                        </form>
-                                    @else
-                                        <a href="{{ $item['url'] }}" class="bs-btn-add flex-grow-1">Add to cart</a>
-                                    @endif
+                                    <a href="{{ $item['url'] }}" class="bs-btn-add flex-grow-1">
+                                        <i class="fas fa-shopping-bag me-1"></i> Choose options
+                                    </a>
                                     <a href="{{ $item['url'] }}" class="bs-btn-quick">Quick view</a>
                                 </div>
                             </div>
