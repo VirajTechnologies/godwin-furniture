@@ -1,24 +1,24 @@
 @if ($order->isOnline())
     @php($timeline = $order->fulfilmentTimeline())
-    <div class="{{ $compact ?? false ? '' : 'card border-0 shadow-sm rounded-4 p-4 bg-white mb-4' }}">
+    <div class="{{ $compact ?? false ? '' : 'gw-panel mb-4' }}">
         @unless ($compact ?? false)
-            <h5 class="font-heading fw-bold text-dark pb-3 border-bottom mb-3">
-                <i class="fas fa-route text-amber me-2"></i> Order Progress
-            </h5>
+            <h2 class="gw-panel-title">
+                <span><i class="fas fa-route me-2"></i>Order Progress</span>
+            </h2>
         @endunless
 
         <div class="row g-3">
             @foreach ($timeline as $step)
                 <div class="col-6 col-md-3">
-                    <div class="border rounded-3 p-3 h-100 {{ $step['current'] ? 'border-primary bg-primary-subtle' : ($step['done'] ? 'border-success bg-success-subtle' : 'bg-light') }}">
-                        <div class="small text-muted {{ isset($compact) && $compact ? '' : 'font-heading' }} mb-1">{{ $step['label'] }}</div>
+                    <div class="gw-timeline-step {{ $step['current'] ? 'is-current' : ($step['done'] ? 'is-done' : '') }}">
+                        <div class="gw-timeline-label">{{ $step['label'] }}</div>
                         @if ($step['at'])
-                            <div class="fw-semibold {{ isset($compact) && $compact ? '' : 'font-heading' }} text-dark small">
+                            <div class="fw-semibold small" style="color: var(--ink);">
                                 {{ $step['at']->format('d M Y') }}
-                                <div class="fw-normal text-muted">{{ $step['at']->format('h:i A') }}</div>
+                                <div class="fw-normal" style="color: var(--mut);">{{ $step['at']->format('h:i A') }}</div>
                             </div>
                         @else
-                            <div class="fw-semibold {{ isset($compact) && $compact ? '' : 'font-heading' }} text-muted small">Pending</div>
+                            <div class="small" style="color: var(--mut);">Pending</div>
                         @endif
                     </div>
                 </div>

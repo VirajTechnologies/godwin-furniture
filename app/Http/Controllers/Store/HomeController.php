@@ -65,10 +65,11 @@ class HomeController extends Controller
             });
         }
 
+        $activeCategory = null;
         if ($request->filled('category')) {
-            $category = Category::query()->where('slug', $request->string('category')->toString())->first();
-            if ($category) {
-                $query->whereIn('category_id', $this->catalogCategoryIds($category));
+            $activeCategory = Category::query()->where('slug', $request->string('category')->toString())->first();
+            if ($activeCategory) {
+                $query->whereIn('category_id', $this->catalogCategoryIds($activeCategory));
             }
         }
 
@@ -76,12 +77,13 @@ class HomeController extends Controller
             $query->whereIn('material', $materials);
         }
 
+        $minPrice = $request->filled('min_price') ? (float) $request->input('min_price') : null;
         $maxPrice = $request->filled('max_price') ? (float) $request->input('max_price') : null;
-        $hasVariantFilters = $colours !== [] || $finishes !== [] || $upholsteries !== [] || $maxPrice !== null;
+        $hasVariantFilters = $colours !== [] || $finishes !== [] || $upholsteries !== [] || $minPrice !== null || $maxPrice !== null;
 
         if ($hasVariantFilters) {
             // One matching variant must satisfy every selected facet (and price).
-            $query->whereHas('activeVariants', function ($variants) use ($colours, $finishes, $upholsteries, $maxPrice): void {
+            $query->whereHas('activeVariants', function ($variants) use ($colours, $finishes, $upholsteries, $minPrice, $maxPrice): void {
                 if ($colours !== []) {
                     $variants->whereIn('colour', $colours);
                 }
@@ -91,6 +93,9 @@ class HomeController extends Controller
                 if ($upholsteries !== []) {
                     $variants->whereIn('upholstery', $upholsteries);
                 }
+                if ($minPrice !== null) {
+                    $variants->where('price', '>=', $minPrice);
+                }
                 if ($maxPrice !== null) {
                     $variants->where('price', '<=', $maxPrice);
                 }
@@ -99,9 +104,14 @@ class HomeController extends Controller
 
         $sort = $request->string('sort')->toString();
         match ($sort) {
+            'best_selling' => $query->orderByDesc('is_featured')->orderByDesc('id'),
+            'newest' => $query->orderByDesc('id'),
             'price_asc' => $query->orderBy('from_price'),
             'price_desc' => $query->orderByDesc('from_price'),
-            'newest' => $query->orderByDesc('id'),
+            'rating' => $query->orderByDesc('is_featured')->orderBy('id'),
+            'discount_desc' => $query->selectSub($this->maxVariantDiscount(), 'max_discount')->orderByDesc('max_discount')->orderBy('from_price'),
+            'name_asc' => $query->orderBy('name'),
+            'name_desc' => $query->orderByDesc('name'),
             default => $query->orderByDesc('is_featured')->orderBy('name'),
         };
 
@@ -110,6 +120,7 @@ class HomeController extends Controller
         return view('store.catalog', [
             'products' => $products,
             'rooms' => $rooms,
+            'activeCategory' => $activeCategory,
             'facetOptions' => $facetOptions,
             'filters' => [
                 'q' => $request->string('q')->toString(),
@@ -118,7 +129,8 @@ class HomeController extends Controller
                 'finishes' => $finishes,
                 'upholsteries' => $upholsteries,
                 'materials' => $materials,
-                'max_price' => $request->input('max_price', 150000),
+                'min_price' => $request->input('min_price', ''),
+                'max_price' => $request->input('max_price', ''),
                 'sort' => $sort !== '' ? $sort : 'popular',
             ],
         ]);
@@ -206,6 +218,15 @@ class HomeController extends Controller
     {
         return ProductVariant::query()
             ->selectRaw('MIN(price)')
+            ->whereColumn('product_variants.product_id', 'products.id')
+            ->where('status', ProductVariant::STATUS_ACTIVE)
+            ->toBase();
+    }
+
+    private function maxVariantDiscount(): \Illuminate\Database\Query\Builder
+    {
+        return ProductVariant::query()
+            ->selectRaw('MAX(CASE WHEN compare_at_price > price AND compare_at_price > 0 THEN ((compare_at_price - price) / compare_at_price) ELSE 0 END)')
             ->whereColumn('product_variants.product_id', 'products.id')
             ->where('status', ProductVariant::STATUS_ACTIVE)
             ->toBase();
