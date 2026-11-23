@@ -32,11 +32,14 @@
         $reviewCount = 24 + ((($product->id ?? 1) * 17) % 90);
         $inStock = ($selected['available'] ?? 0) > 0;
 
-        $widthCm = $product->width_cm ?: 200;
-        $depthCm = $product->depth_cm ?: 90;
-        $heightCm = $product->height_cm ?: 85;
-        $weightKg = $product->weight_kg ?: 45;
+        $widthCm = $product->width_cm;
+        $depthCm = $product->depth_cm;
+        $heightCm = $product->height_cm;
+        $weightKg = $product->weight_kg;
+        $hasDimensions = $widthCm || $depthCm || $heightCm || $weightKg;
         $customSpecs = is_array($product->specs) ? array_filter($product->specs, fn ($v) => $v !== null && $v !== '') : [];
+        $hasSpecRows = filled($product->material) || filled($product->design_type) || filled($product->room) || $customSpecs !== [];
+        $showSpecsAccordion = $hasDimensions || $hasSpecRows;
     @endphp
 
     <!-- Breadcrumb Bar -->
@@ -258,6 +261,97 @@
                             </form>
                         </div>
 
+                        <!-- Dimensions, Specs & Care Accordion -->
+                        <div class="accordion pdp-specs-accordion mb-4" id="pdpSpecsAccordion">
+                            @if ($showSpecsAccordion)
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pdpCollapseSpecs" aria-expanded="true">
+                                            <i class="fas fa-ruler-horizontal text-amber me-2"></i> Dimensions &amp; Specifications
+                                        </button>
+                                    </h2>
+                                    <div id="pdpCollapseSpecs" class="accordion-collapse collapse show" data-bs-parent="#pdpSpecsAccordion">
+                                        <div class="accordion-body">
+                                            @if ($hasDimensions)
+                                                <div class="pdp-dims-grid mb-3">
+                                                    @if ($widthCm)
+                                                        <div class="pdp-dim-box">
+                                                            <span class="pdp-dim-label">Width</span>
+                                                            <strong class="pdp-dim-val">{{ number_format((float) $widthCm, 0) }} cm</strong>
+                                                        </div>
+                                                    @endif
+                                                    @if ($depthCm)
+                                                        <div class="pdp-dim-box">
+                                                            <span class="pdp-dim-label">Depth</span>
+                                                            <strong class="pdp-dim-val">{{ number_format((float) $depthCm, 0) }} cm</strong>
+                                                        </div>
+                                                    @endif
+                                                    @if ($heightCm)
+                                                        <div class="pdp-dim-box">
+                                                            <span class="pdp-dim-label">Height</span>
+                                                            <strong class="pdp-dim-val">{{ number_format((float) $heightCm, 0) }} cm</strong>
+                                                        </div>
+                                                    @endif
+                                                    @if ($weightKg)
+                                                        <div class="pdp-dim-box">
+                                                            <span class="pdp-dim-label">Weight</span>
+                                                            <strong class="pdp-dim-val">{{ number_format((float) $weightKg, 0) }} kg</strong>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endif
+
+                                            @if ($hasSpecRows)
+                                                <div class="pdp-spec-table">
+                                                    @if ($product->material)
+                                                        <div class="pdp-spec-row">
+                                                            <span>Primary Material</span>
+                                                            <strong>{{ $product->material }}</strong>
+                                                        </div>
+                                                    @endif
+                                                    @if ($product->design_type)
+                                                        <div class="pdp-spec-row">
+                                                            <span>Design Style</span>
+                                                            <strong>{{ $product->design_type }}</strong>
+                                                        </div>
+                                                    @endif
+                                                    @if ($product->room)
+                                                        <div class="pdp-spec-row">
+                                                            <span>Recommended Room</span>
+                                                            <strong>{{ $product->room }}</strong>
+                                                        </div>
+                                                    @endif
+                                                    @foreach ($customSpecs as $specKey => $specVal)
+                                                        <div class="pdp-spec-row">
+                                                            <span>{{ is_string($specKey) ? ucfirst(str_replace('_', ' ', $specKey)) : 'Specification' }}</span>
+                                                            <strong>{{ is_array($specVal) ? implode(', ', $specVal) : $specVal }}</strong>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button {{ $showSpecsAccordion ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#pdpCollapseDelivery" aria-expanded="{{ $showSpecsAccordion ? 'false' : 'true' }}">
+                                        <i class="fas fa-box-open text-amber me-2"></i> Delivery, Assembly &amp; Care
+                                    </button>
+                                </h2>
+                                <div id="pdpCollapseDelivery" class="accordion-collapse collapse {{ $showSpecsAccordion ? '' : 'show' }}" data-bs-parent="#pdpSpecsAccordion">
+                                    <div class="accordion-body small text-muted" style="line-height: 1.7;">
+                                        <ul class="mb-0 ps-3">
+                                            <li><strong>White-Glove Installation:</strong> Our factory-trained technicians deliver, unpack, assemble, and position your furniture in your room of choice.</li>
+                                            <li><strong>7-Tank Treated Steel:</strong> All metal components undergo anti-rust phosphating and oven-baked powder coating for humidity resistance.</li>
+                                            <li><strong>Care Instructions:</strong> Wipe daily with a soft dry microfiber cloth. Avoid direct harsh chemical solvents on wood or powder-coated surfaces.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Value / Service Highlights Grid -->
                         <div class="pdp-perks-grid mb-4">
                             <div class="pdp-perk-item">
@@ -286,81 +380,6 @@
                                 <div>
                                     <h6>GST Business Billing</h6>
                                     <span>Claim input tax credit on orders</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Dimensions, Specs & Care Accordion -->
-                        <div class="accordion pdp-specs-accordion" id="pdpSpecsAccordion">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pdpCollapseSpecs" aria-expanded="true">
-                                        <i class="fas fa-ruler-horizontal text-amber me-2"></i> Dimensions &amp; Specifications
-                                    </button>
-                                </h2>
-                                <div id="pdpCollapseSpecs" class="accordion-collapse collapse show" data-bs-parent="#pdpSpecsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="pdp-dims-grid mb-3">
-                                            <div class="pdp-dim-box">
-                                                <span class="pdp-dim-label">Width</span>
-                                                <strong class="pdp-dim-val">{{ number_format((float) $widthCm, 0) }} cm</strong>
-                                            </div>
-                                            <div class="pdp-dim-box">
-                                                <span class="pdp-dim-label">Depth</span>
-                                                <strong class="pdp-dim-val">{{ number_format((float) $depthCm, 0) }} cm</strong>
-                                            </div>
-                                            <div class="pdp-dim-box">
-                                                <span class="pdp-dim-label">Height</span>
-                                                <strong class="pdp-dim-val">{{ number_format((float) $heightCm, 0) }} cm</strong>
-                                            </div>
-                                            <div class="pdp-dim-box">
-                                                <span class="pdp-dim-label">Weight</span>
-                                                <strong class="pdp-dim-val">{{ number_format((float) $weightKg, 0) }} kg</strong>
-                                            </div>
-                                        </div>
-
-                                        <div class="pdp-spec-table">
-                                            <div class="pdp-spec-row">
-                                                <span>Primary Material</span>
-                                                <strong>{{ $product->material ?: 'CRCA Steel & Solid Wood' }}</strong>
-                                            </div>
-                                            @if ($product->design_type)
-                                                <div class="pdp-spec-row">
-                                                    <span>Design Style</span>
-                                                    <strong>{{ $product->design_type }}</strong>
-                                                </div>
-                                            @endif
-                                            @if ($product->room)
-                                                <div class="pdp-spec-row">
-                                                    <span>Recommended Room</span>
-                                                    <strong>{{ $product->room }}</strong>
-                                                </div>
-                                            @endif
-                                            @foreach ($customSpecs as $specKey => $specVal)
-                                                <div class="pdp-spec-row">
-                                                    <span>{{ is_string($specKey) ? ucfirst(str_replace('_', ' ', $specKey)) : 'Specification' }}</span>
-                                                    <strong>{{ is_array($specVal) ? implode(', ', $specVal) : $specVal }}</strong>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pdpCollapseDelivery" aria-expanded="false">
-                                        <i class="fas fa-box-open text-amber me-2"></i> Delivery, Assembly &amp; Care
-                                    </button>
-                                </h2>
-                                <div id="pdpCollapseDelivery" class="accordion-collapse collapse" data-bs-parent="#pdpSpecsAccordion">
-                                    <div class="accordion-body small text-muted" style="line-height: 1.7;">
-                                        <ul class="mb-0 ps-3">
-                                            <li><strong>White-Glove Installation:</strong> Our factory-trained technicians deliver, unpack, assemble, and position your furniture in your room of choice.</li>
-                                            <li><strong>7-Tank Treated Steel:</strong> All metal components undergo anti-rust phosphating and oven-baked powder coating for humidity resistance.</li>
-                                            <li><strong>Care Instructions:</strong> Wipe daily with a soft dry microfiber cloth. Avoid direct harsh chemical solvents on wood or powder-coated surfaces.</li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
                         </div>
