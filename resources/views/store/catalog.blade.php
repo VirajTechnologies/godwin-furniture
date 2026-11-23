@@ -1,25 +1,7 @@
 @extends('layouts.store')
 
-@section('title', 'Furniture Catalog')
-@section('body_class', 'bg-light')
-
-@push('scripts')
-<script>
-    function slideProductCarousel(carouselId, direction, event) {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
-        var elem = document.getElementById(carouselId);
-        if (!elem || typeof bootstrap === 'undefined') return;
-        var carousel = bootstrap.Carousel.getOrCreateInstance(elem, { interval: false });
-        direction === 'prev' ? carousel.prev() : carousel.next();
-    }
-    function goToProductSlide(carouselId, index, event) {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
-        var elem = document.getElementById(carouselId);
-        if (!elem || typeof bootstrap === 'undefined') return;
-        bootstrap.Carousel.getOrCreateInstance(elem, { interval: false }).to(index);
-    }
-</script>
-@endpush
+@section('title', $activeCategory ? $activeCategory->name : 'Furniture Catalog')
+@section('body_class', 'gw-theme-body')
 
 @section('content')
     @include('store.partials.header')
@@ -31,215 +13,220 @@
             'finishes' => $filters['finishes'] !== [] ? $filters['finishes'] : null,
             'upholsteries' => $filters['upholsteries'] !== [] ? $filters['upholsteries'] : null,
             'materials' => $filters['materials'] !== [] ? $filters['materials'] : null,
-            'max_price' => (string) $filters['max_price'] !== '150000' ? $filters['max_price'] : null,
+            'min_price' => $filters['min_price'] !== '' ? $filters['min_price'] : null,
+            'max_price' => $filters['max_price'] !== '' ? $filters['max_price'] : null,
             'sort' => $filters['sort'] !== 'popular' ? $filters['sort'] : null,
         ], fn ($value) => $value !== null && $value !== '');
-        $hasFacetFilters = $filters['colours'] !== []
-            || $filters['finishes'] !== []
-            || $filters['upholsteries'] !== []
-            || $filters['materials'] !== []
-            || $filters['q'] !== ''
-            || (string) $filters['max_price'] !== '150000';
+
+        $pageHeading = $activeCategory
+            ? (strcasecmp($activeCategory->name, 'Dining Room') === 0 ? 'Dining' : $activeCategory->name)
+            : ($filters['q'] !== '' ? 'Search: "'.$filters['q'].'"' : 'All Products');
     @endphp
 
-    <section class="bg-white border-bottom py-3">
-        <div class="container-fluid px-4 px-lg-5">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb m-0 font-heading small">
-                    <li class="breadcrumb-item"><a href="{{ route('store.home') }}" class="text-muted text-decoration-none">Home</a></li>
-                    <li class="breadcrumb-item active text-amber fw-bold" aria-current="page">Furniture Catalog</li>
-                </ol>
-            </nav>
-            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mt-2">
-                <div>
-                    <h2 class="font-heading fw-bold text-dark m-0">Furniture Catalog</h2>
-                    <p class="text-muted small m-0">Browse by room, colour, finish, material, and price.</p>
-                </div>
+    <section class="gw-wrap gw-catalog-wrap">
+        <nav aria-label="breadcrumb" class="gw-cat-crumbs">
+            <a href="{{ route('store.home') }}">Home</a>
+            <span>/</span>
+            @if ($activeCategory && $activeCategory->parent)
+                <a href="{{ route('store.catalog', ['category' => $activeCategory->parent->slug]) }}">
+                    {{ strcasecmp($activeCategory->parent->name, 'Dining Room') === 0 ? 'Dining' : $activeCategory->parent->name }}
+                </a>
+                <span>/</span>
+            @endif
+            <span>{{ $pageHeading }}</span>
+        </nav>
+
+        <h1 class="gw-cat-heading">{{ $pageHeading }}</h1>
+
+        <div class="gw-cat-topbar">
+            <div class="gw-cat-count">
+                {{ $products->total() }} {{ $products->total() === 1 ? 'product' : 'products' }} · Godwin catalogue
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <button type="button"
+                        class="gw-btn gw-btn-sm gw-btn-outline gw-filter-mobile-btn"
+                        onclick="document.getElementById('gwCatalogAside').classList.toggle('open')">
+                    Filters
+                </button>
+
+                <form method="GET" action="{{ route('store.catalog') }}" class="m-0">
+                    @foreach (request()->except('sort', 'page') as $key => $value)
+                        @if (is_array($value))
+                            @foreach ($value as $item)
+                                <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                            @endforeach
+                        @else
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endif
+                    @endforeach
+                    <select name="sort" class="gw-catalog-sort" aria-label="Sort products" onchange="this.form.submit()">
+                        <option value="popular" @selected($filters['sort'] === 'popular')>Recommended</option>
+                        <option value="best_selling" @selected($filters['sort'] === 'best_selling')>Best selling</option>
+                        <option value="newest" @selected($filters['sort'] === 'newest')>New arrivals</option>
+                        <option value="price_asc" @selected($filters['sort'] === 'price_asc')>Price: low to high</option>
+                        <option value="price_desc" @selected($filters['sort'] === 'price_desc')>Price: high to low</option>
+                        <option value="rating" @selected($filters['sort'] === 'rating')>Customer ratings</option>
+                        <option value="discount_desc" @selected($filters['sort'] === 'discount_desc')>Discount: high to low</option>
+                        <option value="name_asc" @selected($filters['sort'] === 'name_asc')>A–Z</option>
+                        <option value="name_desc" @selected($filters['sort'] === 'name_desc')>Z–A</option>
+                    </select>
+                </form>
             </div>
         </div>
-    </section>
 
-    <section class="container-fluid px-4 px-lg-5 my-4">
-        <div class="row g-4">
-            <div class="col-12 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 80px; z-index: 10;">
-                    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-3">
-                        <h6 class="font-heading fw-bold text-dark m-0"><i class="fas fa-sliders-h text-amber me-2"></i> Filter Products</h6>
-                        <a href="{{ route('store.catalog') }}" class="text-amber small text-decoration-none fw-semibold">Reset All</a>
-                    </div>
+        <div class="gw-cat-layout">
+            <aside class="gw-aside" id="gwCatalogAside">
+                <form method="GET" action="{{ route('store.catalog') }}" id="gwFilterForm">
+                    @if ($filters['category'] !== '')
+                        <input type="hidden" name="category" value="{{ $filters['category'] }}">
+                    @endif
+                    @if ($filters['q'] !== '')
+                        <input type="hidden" name="q" value="{{ $filters['q'] }}">
+                    @endif
+                    <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
 
-                    <div class="mb-4">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <label class="font-heading fw-bold small text-dark m-0">Categories</label>
-                            @if ($filters['category'] !== '')
-                                <a href="{{ route('store.catalog', $preservedFilters) }}" class="text-muted small text-decoration-none">Clear</a>
-                            @endif
+                    {{-- Price (₹) --}}
+                    <details class="gw-filter-group" open>
+                        <summary>Price (₹)</summary>
+                        <div class="gw-price-inputs">
+                            <input type="number"
+                                   name="min_price"
+                                   id="gwMinPrice"
+                                   value="{{ $filters['min_price'] }}"
+                                   placeholder="Min"
+                                   min="0"
+                                   step="500">
+                            <input type="number"
+                                   name="max_price"
+                                   id="gwMaxPrice"
+                                   value="{{ $filters['max_price'] }}"
+                                   placeholder="Max"
+                                   min="0"
+                                   step="500">
                         </div>
-                        <div class="accordion accordion-flush catalog-category-accordion" id="catalogCategoryAccordion">
+                        <div class="gw-price-chips">
+                            <button type="button"
+                                    class="gw-price-chip {{ (string) $filters['min_price'] === '0' && (string) $filters['max_price'] === '10000' ? 'is-active' : '' }}"
+                                    onclick="gwSetPriceRange(0, 10000)">₹0k–10k</button>
+                            <button type="button"
+                                    class="gw-price-chip {{ (string) $filters['min_price'] === '10000' && (string) $filters['max_price'] === '25000' ? 'is-active' : '' }}"
+                                    onclick="gwSetPriceRange(10000, 25000)">₹10k–25k</button>
+                            <button type="button"
+                                    class="gw-price-chip {{ (string) $filters['min_price'] === '25000' && (string) $filters['max_price'] === '50000' ? 'is-active' : '' }}"
+                                    onclick="gwSetPriceRange(25000, 50000)">₹25k–50k</button>
+                            <button type="button"
+                                    class="gw-price-chip {{ (string) $filters['min_price'] === '50000' && (string) $filters['max_price'] === '' ? 'is-active' : '' }}"
+                                    onclick="gwSetPriceRange(50000, '')">Above ₹50k</button>
+                        </div>
+                    </details>
+
+                    {{-- Product type / Categories --}}
+                    <details class="gw-filter-group" open>
+                        <summary>Product type</summary>
+                        <div class="gw-filter-list">
                             @foreach ($rooms as $room)
                                 @php
-                                    $roomOpen = $filters['category'] === $room->slug
-                                        || $room->children->contains(fn ($child) => $child->slug === $filters['category']);
-                                    $collapseId = 'catalog-room-'.$room->id;
+                                    $roomLabel = strcasecmp($room->name, 'Dining Room') === 0 ? 'Dining' : $room->name;
                                 @endphp
-                                <div class="accordion-item border-0 border-bottom">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button {{ $roomOpen ? '' : 'collapsed' }} px-0 py-2 shadow-none font-heading fw-bold small text-dark bg-transparent"
-                                                type="button"
-                                                data-bs-toggle="collapse"
-                                                data-bs-target="#{{ $collapseId }}"
-                                                aria-expanded="{{ $roomOpen ? 'true' : 'false' }}"
-                                                aria-controls="{{ $collapseId }}">
-                                            {{ $room->name }}
-                                        </button>
-                                    </h2>
-                                    <div id="{{ $collapseId }}" class="accordion-collapse collapse {{ $roomOpen ? 'show' : '' }}" data-bs-parent="#catalogCategoryAccordion">
-                                        <div class="accordion-body px-0 pt-0 pb-3">
-                                            <a href="{{ route('store.catalog', array_merge($preservedFilters, ['category' => $room->slug])) }}"
-                                               class="d-block small py-1 text-decoration-none {{ $filters['category'] === $room->slug ? 'text-amber fw-bold' : 'text-muted' }}">
-                                                All {{ $room->name }}
-                                            </a>
-                                            @forelse ($room->children as $child)
-                                                <a href="{{ route('store.catalog', array_merge($preservedFilters, ['category' => $child->slug])) }}"
-                                                   class="d-block small py-1 ps-2 text-decoration-none {{ $filters['category'] === $child->slug ? 'text-amber fw-bold' : 'text-dark' }}">
-                                                    {{ $child->name }}
-                                                </a>
-                                            @empty
-                                                <span class="text-muted small">No subcategories</span>
-                                            @endforelse
-                                        </div>
-                                    </div>
-                                </div>
+                                <a href="{{ route('store.catalog', array_merge($preservedFilters, ['category' => $room->slug])) }}"
+                                   class="gw-aside-cat-link {{ $filters['category'] === $room->slug ? 'is-active' : '' }}">
+                                    {{ $roomLabel }}
+                                </a>
+                                @foreach ($room->children as $child)
+                                    <a href="{{ route('store.catalog', array_merge($preservedFilters, ['category' => $child->slug])) }}"
+                                       class="gw-aside-cat-link gw-aside-sub {{ $filters['category'] === $child->slug ? 'is-active' : '' }}">
+                                        {{ $child->name }}
+                                    </a>
+                                @endforeach
                             @endforeach
                         </div>
+                    </details>
+
+                    {{-- Metal finish --}}
+                    @if ($facetOptions['finishes']->isNotEmpty())
+                        <details class="gw-filter-group" open>
+                            <summary>Metal finish</summary>
+                            <div class="gw-filter-list">
+                                @foreach ($facetOptions['finishes'] as $finish)
+                                    <label class="gw-aside-check">
+                                        <input type="checkbox" name="finishes[]" value="{{ $finish }}" @checked(in_array($finish, $filters['finishes'], true)) onchange="this.form.submit()">
+                                        <span>{{ $finish }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </details>
+                    @endif
+
+                    {{-- Colour --}}
+                    @if ($facetOptions['colours']->isNotEmpty())
+                        <details class="gw-filter-group" open>
+                            <summary>Colour</summary>
+                            <div class="gw-filter-list">
+                                @foreach ($facetOptions['colours'] as $colour)
+                                    <label class="gw-aside-check">
+                                        <input type="checkbox" name="colours[]" value="{{ $colour }}" @checked(in_array($colour, $filters['colours'], true)) onchange="this.form.submit()">
+                                        <span>{{ $colour }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </details>
+                    @endif
+
+                    {{-- Upholstery --}}
+                    @if ($facetOptions['upholsteries']->isNotEmpty())
+                        <details class="gw-filter-group" open>
+                            <summary>Upholstery</summary>
+                            <div class="gw-filter-list">
+                                @foreach ($facetOptions['upholsteries'] as $upholstery)
+                                    <label class="gw-aside-check">
+                                        <input type="checkbox" name="upholsteries[]" value="{{ $upholstery }}" @checked(in_array($upholstery, $filters['upholsteries'], true)) onchange="this.form.submit()">
+                                        <span>{{ $upholstery }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </details>
+                    @endif
+
+                    {{-- Material & Build --}}
+                    @if ($facetOptions['materials']->isNotEmpty())
+                        <details class="gw-filter-group" open>
+                            <summary>Material &amp; build</summary>
+                            <div class="gw-filter-list">
+                                @foreach ($facetOptions['materials'] as $material)
+                                    <label class="gw-aside-check">
+                                        <input type="checkbox" name="materials[]" value="{{ $material }}" @checked(in_array($material, $filters['materials'], true)) onchange="this.form.submit()">
+                                        <span>{{ $material }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </details>
+                    @endif
+
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <a href="{{ route('store.catalog') }}" class="gw-btn gw-btn-sm gw-btn-outline">Clear all</a>
+                        <button type="submit" class="gw-btn gw-btn-sm">Apply</button>
                     </div>
+                </form>
+            </aside>
 
-                    <form method="GET" action="{{ route('store.catalog') }}">
-                        @if ($filters['category'] !== '')
-                            <input type="hidden" name="category" value="{{ $filters['category'] }}">
-                        @endif
-
-                        <div class="mb-3">
-                            <label class="font-heading fw-bold small text-dark mb-2 d-block">Search</label>
-                            <input type="text" name="q" class="form-control shadow-none" value="{{ $filters['q'] }}" placeholder="Sofa, bed, desk...">
-                        </div>
-
-                        @if ($facetOptions['colours']->isNotEmpty())
-                            <div class="mb-4 border-top pt-3">
-                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Colour</label>
-                                <div class="d-flex flex-column gap-1" style="max-height: 11rem; overflow-y: auto;">
-                                    @foreach ($facetOptions['colours'] as $colour)
-                                        <label class="form-check small font-heading mb-0 d-flex align-items-center gap-2">
-                                            <input type="checkbox" class="form-check-input mt-0" name="colours[]" value="{{ $colour }}" @checked(in_array($colour, $filters['colours'], true))>
-                                            <span class="d-inline-block rounded-circle border flex-shrink-0" style="width: 14px; height: 14px; background: {{ \App\Support\Catalog::colourHex($colour) }};"></span>
-                                            <span>{{ $colour }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        @if ($facetOptions['finishes']->isNotEmpty())
-                            <div class="mb-4 border-top pt-3">
-                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Finish</label>
-                                <div class="d-flex flex-column gap-1" style="max-height: 9rem; overflow-y: auto;">
-                                    @foreach ($facetOptions['finishes'] as $finish)
-                                        <label class="form-check small font-heading mb-0">
-                                            <input type="checkbox" class="form-check-input" name="finishes[]" value="{{ $finish }}" @checked(in_array($finish, $filters['finishes'], true))>
-                                            {{ $finish }}
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        @if ($facetOptions['upholsteries']->isNotEmpty())
-                            <div class="mb-4 border-top pt-3">
-                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Upholstery</label>
-                                <div class="d-flex flex-column gap-1" style="max-height: 9rem; overflow-y: auto;">
-                                    @foreach ($facetOptions['upholsteries'] as $upholstery)
-                                        <label class="form-check small font-heading mb-0">
-                                            <input type="checkbox" class="form-check-input" name="upholsteries[]" value="{{ $upholstery }}" @checked(in_array($upholstery, $filters['upholsteries'], true))>
-                                            {{ $upholstery }}
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        @if ($facetOptions['materials']->isNotEmpty())
-                            <div class="mb-4 border-top pt-3">
-                                <label class="font-heading fw-bold small text-dark mb-2 d-block">Material & Build</label>
-                                <div class="d-flex flex-column gap-1" style="max-height: 9rem; overflow-y: auto;">
-                                    @foreach ($facetOptions['materials'] as $material)
-                                        <label class="form-check small font-heading mb-0">
-                                            <input type="checkbox" class="form-check-input" name="materials[]" value="{{ $material }}" @checked(in_array($material, $filters['materials'], true))>
-                                            {{ $material }}
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        <div class="mb-4 border-top pt-3">
-                            <label class="font-heading fw-bold small text-dark mb-2 d-block">Max Price (₹)</label>
-                            <input type="range" class="form-range" min="5000" max="150000" step="1000" name="max_price" value="{{ $filters['max_price'] }}" id="priceRange" oninput="document.getElementById('priceLabel').textContent='₹'+Number(this.value).toLocaleString('en-IN')">
-                            <div class="d-flex justify-content-between small text-muted font-heading fw-semibold mt-1">
-                                <span>₹5,000</span>
-                                <span class="text-amber fw-bold" id="priceLabel">₹{{ number_format((float) $filters['max_price'], 0) }}</span>
-                                <span>₹1,50,000</span>
-                            </div>
-                        </div>
-                        <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
-                        <button class="btn btn-primary-luxury w-100 py-2 font-heading fw-bold small"><i class="fas fa-filter me-1"></i> Apply Filters</button>
-                        @if ($hasFacetFilters)
-                            <a href="{{ route('store.catalog', array_filter(['category' => $filters['category'] !== '' ? $filters['category'] : null, 'sort' => $filters['sort'] !== 'popular' ? $filters['sort'] : null])) }}" class="btn btn-light w-100 mt-2 py-2 font-heading fw-semibold small">Clear Facets</a>
-                        @endif
-                    </form>
-                </div>
-            </div>
-
-            <div class="col-12 col-lg-9">
-                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
-                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                        <span class="small font-heading fw-semibold text-muted">Showing <strong class="text-dark">{{ $products->total() }}</strong> Furniture Products</span>
-                        <form method="GET" action="{{ route('store.catalog') }}" class="d-flex align-items-center gap-2">
-                            @foreach (request()->except('sort', 'page') as $key => $value)
-                                @if (is_array($value))
-                                    @foreach ($value as $item)
-                                        <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
-                                    @endforeach
-                                @else
-                                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                                @endif
-                            @endforeach
-                            <span class="small font-heading fw-semibold text-muted me-1">Sort By:</span>
-                            <select name="sort" class="form-select form-select-sm shadow-none font-heading fw-semibold text-dark" style="width: 200px;" onchange="this.form.submit()">
-                                <option value="popular" @selected($filters['sort'] === 'popular')>Popular & Featured</option>
-                                <option value="price_asc" @selected($filters['sort'] === 'price_asc')>Price: Low to High</option>
-                                <option value="price_desc" @selected($filters['sort'] === 'price_desc')>Price: High to Low</option>
-                                <option value="newest" @selected($filters['sort'] === 'newest')>Newest</option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
-
+            <div>
                 <div class="row g-4">
                     @forelse ($products as $product)
                         @include('store.partials.product-card', ['product' => $product])
                     @empty
                         <div class="col-12">
-                            <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
-                                <h5 class="font-heading fw-bold">No products match these filters</h5>
-                                <p class="text-muted mb-3">Try clearing the filters or choosing another room.</p>
-                                <a href="{{ route('store.catalog') }}" class="btn btn-primary-luxury">Reset Filters</a>
+                            <div class="gw-panel p-5 text-center">
+                                <h3 class="gw-panel-subtitle mb-2">No products match these filters</h3>
+                                <p class="gw-page-sub mb-4">Try clearing the filters or choosing another room.</p>
+                                <a href="{{ route('store.catalog') }}" class="gw-btn gw-btn-sm">Clear all</a>
                             </div>
                         </div>
                     @endforelse
                 </div>
 
                 @if ($products->hasPages())
-                    <div class="mt-4">{{ $products->links() }}</div>
+                    <div class="mt-4 gw-pagination">{{ $products->links() }}</div>
                 @endif
             </div>
         </div>
@@ -248,3 +235,16 @@
     @include('store.partials.footer')
     @include('store.partials.whatsapp')
 @endsection
+
+@push('scripts')
+<script>
+    function gwSetPriceRange(minVal, maxVal) {
+        var minEl = document.getElementById('gwMinPrice');
+        var maxEl = document.getElementById('gwMaxPrice');
+        var form = document.getElementById('gwFilterForm');
+        if (minEl) minEl.value = minVal;
+        if (maxEl) maxEl.value = maxVal;
+        if (form) form.submit();
+    }
+</script>
+@endpush

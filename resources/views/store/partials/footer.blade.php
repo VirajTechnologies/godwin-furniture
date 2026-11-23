@@ -4,10 +4,10 @@
             <div class="row g-4 border-bottom border-secondary border-opacity-25 pb-5">
                 <!-- Col 1: Brand & Contact Info -->
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="bg-white p-2 rounded-3 d-inline-block mb-3">
-                        <img src="{{ asset('store/images/logo.png') }}" alt="Godwin Groups Manufacturing" style="height: 42px; max-width: 200px; object-fit: contain;">
-                    </div>
-                    <p class="small text-slate-400 pe-lg-3 mb-3">Crafting heavy metal, solid teak & executive workplace furniture for Godwin Groups since 1998.</p>
+                    <a href="{{ route('store.home') }}" class="d-inline-block mb-3 bg-white px-2.5 py-1.5" style="padding: 8px 12px;">
+                        <img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" style="height: 40px; max-width: 210px; object-fit: contain; display: block;">
+                    </a>
+                    <p class="small text-slate-400 pe-lg-3 mb-3">Furniture, designed to stand apart. From design to manufacturing. Excellence in every detail.</p>
                     <div class="small text-slate-300 d-flex flex-column gap-2 mb-3" style="font-size: 12px;">
                         <div><i class="fas fa-map-marker-alt text-amber me-2"></i> Plot 45, Central Avenue, Industrial Hub, Nagpur</div>
                         <div><i class="fas fa-phone-alt text-amber me-2"></i> +91 7418759171 (Mon-Sat, 9AM-8PM)</div>

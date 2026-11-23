@@ -1,65 +1,66 @@
 /* ==========================================================================
-   Godwin Metal Furniture Manufacturing - Godwin Groups Design System
-   Font: Plus Jakarta Sans
+   Godwin Metal Furniture Manufacturing - GODWIN Editorial Design System
+   Fonts: Cormorant Garamond (Headings) & Jost (Body / UI)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap');
 
 :root {
-    /* Fonts - Enforced Plus Jakarta Sans Throughout */
-    --font-serif: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-cinzel: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Exact Reference Palette */
+    --ink: #222224;
+    --bg: #f6f2ea;
+    --sur: #ffffff;
+    --acc: #a8845a;
+    --stone: #d9d2c5;
+    --mut: #6d6a64;
+    --ph1: #cbc3b4;
+    --ph2: #b9b2a6;
+    --ph3: #a9a49b;
 
-    /* Quiet Luxury Palette */
-    --ws-primary: #C2652B;
-    /* Warm Timber Amber */
-    --ws-primary-hover: #A34E1A;
-    /* Deep Mahogany Amber */
-    --ws-primary-light: #FDF6F0;
-    /* Soft Amber Glow */
-    --ws-gold: #D4AF37;
-    /* Warm Champagne Gold */
+    /* Fonts */
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-heading: 'Cormorant Garamond', Georgia, serif;
+    --font-primary: 'Jost';
+    --font-cinzel: 'Cormorant Garamond', Georgia, serif;
+    --font-family: 'Jost';
 
-    --ws-dark: #0F172A;
-    /* Slate Charcoal Dark */
-    --ws-dark-surface: #1E293B;
-    /* Deep Slate Container */
-    --ws-text: #334155;
-    /* Crisp Slate Body Text */
-    --ws-muted: #64748B;
-    /* Muted Subtitle Gray */
+    /* Mapped Legacy Tokens to Reference Palette */
+    --ws-primary: #a8845a;
+    --ws-primary-hover: #8f6e46;
+    --ws-primary-light: #f6f2ea;
+    --ws-gold: #a8845a;
 
-    --ws-bg: #FAFAF8;
-    /* Warm Off-White Canvas */
-    --ws-surface: #FFFFFF;
-    /* Pure White Surface */
-    --ws-border: #E2E8F0;
-    /* Soft Border Accent */
-    --ws-border-hover: #CBD5E1;
+    --ws-dark: #222224;
+    --ws-dark-surface: #222224;
+    --ws-text: #222224;
+    --ws-muted: #6d6a64;
+
+    --ws-bg: #f6f2ea;
+    --ws-surface: #ffffff;
+    --ws-border: #d9d2c5;
+    --ws-border-hover: #b9b2a6;
 
     /* Glassmorphism & Shadows */
-    --ws-glass-bg: rgba(255, 255, 255, 0.85);
-    --ws-glass-border: rgba(255, 255, 255, 0.4);
-    --ws-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
-    --ws-shadow-md: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-    --ws-shadow-lg: 0 20px 40px -6px rgba(15, 23, 42, 0.12), 0 8px 20px -4px rgba(15, 23, 42, 0.06);
+    --ws-glass-bg: rgba(246, 242, 234, 0.94);
+    --ws-glass-border: #d9d2c5;
+    --ws-shadow-sm: 0 2px 8px rgba(34, 34, 36, 0.04);
+    --ws-shadow-md: 0 10px 30px -5px rgba(34, 34, 36, 0.07);
+    --ws-shadow-lg: 0 20px 40px -6px rgba(34, 34, 36, 0.1);
 
     /* Radii & Timing */
-    --ws-radius-sm: 8px;
-    --ws-radius-md: 14px;
-    --ws-radius-lg: 24px;
+    --ws-radius-sm: 0px;
+    --ws-radius-md: 0px;
+    --ws-radius-lg: 0px;
     --ws-radius-pill: 50rem;
 
-    --ws-transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    --ws-transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    --ws-transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    --ws-transition-fast: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Base Reset & Smooth Typography */
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: 70px;
 }
 
 body,
@@ -67,38 +68,57 @@ button,
 input,
 select,
 textarea {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    color: var(--ws-text);
-    background-color: var(--ws-bg);
+    font-family: 'Jost' !important;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+    background-color: var(--bg);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    line-height: 1.6;
 }
 
 /* Headlines & Utility Font Classes */
 .font-serif,
-.font-cinzel,
+.font-cinzel {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+}
+
 .font-heading {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: 'Jost' !important;
 }
 
 h1,
 h2,
 h3,
-h4,
-h5,
-h6,
 .h1,
 .h2,
-.h3,
-.h4,
-.h5,
-.h6 {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    color: var(--ws-dark);
-    letter-spacing: -0.02em;
-    font-weight: 700;
+.h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0 0 0.5em;
+}
+
+h1, .h1 {
+    font-size: clamp(2.4rem, 6vw, 5rem);
+}
+
+h2, .h2 {
+    font-size: clamp(1.8rem, 3.6vw, 3rem);
+}
+
+h3, .h3 {
+    font-size: 1.3rem;
+}
+
+h4, h5, h6, .h4, .h5, .h6 {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    color: var(--ink);
+    font-weight: 500;
 }
 
 /* Utilities & Buttons */
@@ -3438,4 +3458,2065 @@ margin-bottom: 20px;
     width: 0.9rem;
     height: 0.9rem;
     background-size: 0.9rem;
+}
+
+/* ==========================================================================
+   GODWIN EDITORIAL HOMEPAGE & THEME SYSTEM (MATCHING ATTACHED REFERENCE)
+   Colors: --ink:#222224, --bg:#f6f2ea, --sur:#fff, --acc:#a8845a, --stone:#d9d2c5, --mut:#6d6a64
+   Fonts: Cormorant Garamond (Headings) & Jost (Body 300 16px/1.6)
+   ========================================================================== */
+
+body.gw-home-theme {
+    background-color: var(--bg) !important;
+    color: var(--ink) !important;
+    font-family: 'Jost' !important;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   SINGLE-ROW GODWIN HEADER & NAVIGATION BAR (MATCHING ATTACHED SCREENSHOT)
+   ========================================================================== */
+.gw-ann {
+    background: var(--ink);
+    color: var(--bg);
+    text-align: center;
+    padding: 0.5em 1em;
+    font-family: 'Jost';
+    font-size: 0.9rem;
+    font-weight: 300;
+}
+
+.gw-nav {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 1050;
+    background: var(--bg);
+    border-bottom: 1px solid var(--stone);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    flex-wrap: nowrap;
+}
+
+.gw-logo {
+    font: 600 1.7rem 'Cormorant Garamond', Georgia, serif !important;
+    letter-spacing: 0.2em;
+    color: var(--ink) !important;
+    text-decoration: none !important;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.gw-logo-img {
+    height: 32px;
+    width: auto;
+    max-width: 145px;
+    object-fit: contain;
+    display: block;
+}
+
+.gw-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    flex: 1;
+    flex-wrap: nowrap;
+    font-family: 'Jost';
+    font-size: calc(0.75rem + 1px);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.gw-menu-item {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.gw-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+}
+
+.gw-menu-item > a,
+.gw-menu-trigger > a {
+    color: var(--ink) !important;
+    text-decoration: none !important;
+    display: block;
+    padding: 0.3em 0;
+    text-transform: uppercase;
+    transition: color 0.15s ease;
+}
+
+.gw-menu-item > a:hover,
+.gw-menu-trigger > a:hover,
+.gw-menu-item > a.is-active,
+.gw-menu-trigger > a.is-active {
+    color: var(--acc) !important;
+}
+
+.gw-caret-btn {
+    border: 0;
+    background: transparent;
+    color: var(--mut);
+    font-size: 8px;
+    padding: 1px 2px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.65;
+}
+
+.gw-caret-btn:hover {
+    color: var(--ink);
+    opacity: 1;
+}
+
+/* Submenu Dropdown (.gw-dd) */
+.gw-dd {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--sur);
+    border: 1px solid var(--stone);
+    padding: 0.8rem 1.2rem;
+    min-width: 195px;
+    z-index: 99999;
+    box-shadow: 0 10px 25px rgba(34, 34, 36, 0.08);
+}
+
+.gw-menu-item:hover .gw-dd,
+.gw-menu-item:focus-within .gw-dd,
+.gw-menu-item.dd-open .gw-dd {
+    display: block;
+}
+
+.gw-dd-group {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mut);
+    margin: 0.35rem 0 0.15rem 0;
+    border-bottom: 1px solid var(--stone);
+    padding-bottom: 0.15rem;
+}
+
+.gw-dd-group:first-child {
+    margin-top: 0;
+}
+
+.gw-dd a {
+    display: block;
+    padding: 0.25em 0;
+    letter-spacing: 0;
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: var(--ink) !important;
+    text-decoration: none !important;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.gw-dd a:hover,
+.gw-dd a.is-active {
+    color: var(--acc) !important;
+}
+
+/* Right Utility Tools (.gw-tools) & Search (.gw-search-form) */
+.gw-search-form {
+    flex-shrink: 0;
+}
+
+.gw-search-form input[type="text"],
+.gw-tools input[type="text"] {
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    padding: 0.3em 0.55em;
+    width: 145px;
+    font-family: 'Jost';
+    font-size: 0.82rem;
+    font-weight: 300;
+    border-radius: 0;
+    outline: none;
+    display: block;
+}
+
+.gw-search-form input[type="text"]:focus,
+.gw-tools input[type="text"]:focus {
+    border-color: var(--acc);
+}
+
+.gw-tools {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    font-family: 'Jost';
+    font-size: 0.88rem;
+    font-weight: 300;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.gw-tools a,
+.gw-tool-btn {
+    color: var(--ink) !important;
+    text-decoration: none !important;
+    font-weight: 300;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.gw-tools a:hover,
+.gw-tool-btn:hover {
+    color: var(--acc) !important;
+}
+
+.gw-tool-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    line-height: 1.15 !important;
+}
+
+.gw-fb {
+    display: none !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.gw-fb:hover {
+    border-color: var(--ink);
+    color: var(--acc);
+}
+
+@media (max-width: 1120px) {
+    .gw-nav {
+        flex-wrap: wrap;
+        gap: 0.55rem 0.65rem;
+        padding: 0.55rem 0.85rem;
+    }
+
+    .gw-fb {
+        display: inline-flex !important;
+        order: 1;
+    }
+
+    .gw-logo {
+        order: 2;
+    }
+
+    .gw-logo-img {
+        height: 26px;
+        max-width: 112px;
+    }
+
+    .gw-tools {
+        order: 3;
+        margin-left: auto;
+        gap: 0.65rem;
+        font-size: 0.84rem;
+    }
+
+    .gw-search-form {
+        order: 4;
+        flex: 1 0 100%;
+        width: 100%;
+    }
+
+    .gw-search-form input[type="text"] {
+        width: 100%;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.88rem;
+    }
+
+    .gw-menu {
+        display: none;
+        order: 5;
+        flex: 1 0 100%;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0;
+        padding-top: 0.35rem;
+        margin-top: 0.15rem;
+        border-top: 1px solid var(--stone);
+        max-height: calc(100vh - 145px);
+        overflow-y: auto;
+        font-size: 0.88rem;
+        white-space: normal;
+    }
+
+    .gw-menu.open {
+        display: flex;
+    }
+
+    .gw-menu-item {
+        width: 100%;
+        border-bottom: 1px solid rgba(217, 210, 197, 0.55);
+    }
+
+    .gw-menu-item:last-child {
+        border-bottom: 0;
+    }
+
+    .gw-menu-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .gw-menu-item > a,
+    .gw-menu-trigger > a {
+        padding: 0.75rem 0.2rem;
+        flex: 1;
+        font-weight: 400;
+    }
+
+    .gw-caret-btn {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        opacity: 0.85;
+        transition: transform 0.2s ease;
+    }
+
+    .gw-menu-item.dd-open .gw-caret-btn {
+        transform: rotate(180deg);
+        color: var(--acc);
+    }
+
+    .gw-menu-item:hover .gw-dd,
+    .gw-menu-item:focus-within .gw-dd {
+        display: none;
+    }
+
+    .gw-menu-item.dd-open .gw-dd {
+        display: block;
+    }
+
+    .gw-dd {
+        position: static;
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        box-shadow: none;
+        background: rgba(34, 34, 36, 0.03);
+        padding: 0.35rem 0.75rem 0.65rem 1rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .gw-dd a {
+        padding: 0.4rem 0;
+        font-size: 0.92rem;
+        white-space: normal;
+    }
+}
+
+/* Editorial Buttons (.gw-btn) */
+.gw-btn {
+    display: inline-block;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--bg) !important;
+    padding: 0.7em 1.6em;
+    cursor: pointer;
+    text-decoration: none !important;
+    letter-spacing: 0.06em;
+    font-family: 'Jost' !important;
+    font-weight: 400;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    border-radius: 0;
+    transition: all 0.2s ease;
+}
+
+.gw-btn:hover {
+    background: var(--acc);
+    border-color: var(--acc);
+    color: var(--sur) !important;
+}
+
+.gw-btn.gw-btn-outline {
+    background: transparent;
+    color: var(--ink) !important;
+    border-color: var(--ink);
+}
+
+.gw-btn.gw-btn-outline:hover {
+    background: var(--ink);
+    color: var(--bg) !important;
+}
+
+.gw-btn.gw-btn-light {
+    background: var(--bg);
+    color: #222224 !important;
+    border-color: var(--bg);
+}
+
+.gw-btn.gw-btn-light:hover {
+    background: var(--acc);
+    border-color: var(--acc);
+    color: #ffffff !important;
+}
+
+.gw-btn.gw-btn-sm {
+    padding: 0.4em 1em;
+    font-size: 0.85rem;
+}
+
+/* Container Wrapper (.gw-wrap) */
+.gw-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 3rem 1.2rem;
+}
+
+.gw-wrap h2,
+.gw-room-tx h2,
+.gw-banner-tx h2,
+.gw-full-tx h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 500 !important;
+    font-size: clamp(1.8rem, 3.6vw, 3rem) !important;
+    line-height: 1.1 !important;
+    color: inherit !important;
+    margin: 0 0 0.5em 0;
+}
+
+/* 1. Hero Section (.gw-hero) */
+.gw-hero {
+    position: relative;
+    min-height: 78vh;
+    display: flex;
+    align-items: center;
+    background: var(--ph1);
+    overflow: hidden;
+}
+
+.gw-hero-media {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.gw-hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gw-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(246, 242, 234, 0.92) 0%, rgba(246, 242, 234, 0.78) 46%, rgba(246, 242, 234, 0.18) 100%);
+}
+
+.gw-hero-tx {
+    position: relative;
+    z-index: 2;
+    color: var(--ink);
+    max-width: 680px;
+    padding: 2rem 1.2rem 2rem 6vw;
+}
+
+.gw-hero-tx h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 500 !important;
+    font-size: clamp(2.4rem, 6vw, 5rem) !important;
+    line-height: 1.08 !important;
+    color: var(--ink) !important;
+    margin: 0 0 0.45em 0;
+}
+
+.gw-hero-tx p {
+    max-width: 46ch;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin: 0 0 1.4rem 0;
+}
+
+/* 2. Spaces Split Rows (.gw-room) */
+.gw-spaces-section {
+    padding-top: 2rem;
+}
+
+.gw-room {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    align-items: center;
+    gap: 0;
+    background: var(--bg);
+}
+
+.gw-room:nth-of-type(even) {
+    grid-template-columns: 1fr 1.4fr;
+}
+
+.gw-room:nth-of-type(even) .gw-room-media {
+    order: 2;
+}
+
+.gw-room-media {
+    position: relative;
+    min-height: 64vh;
+    background: var(--ph2);
+    overflow: hidden;
+}
+
+.gw-room-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gw-room:hover .gw-room-media img {
+    transform: scale(1.03);
+}
+
+.gw-room-tx {
+    padding: 3rem 8%;
+    color: var(--ink);
+}
+
+.gw-room-tx p {
+    color: var(--mut);
+    margin: 0 0 1.5rem 0;
+    max-width: 44ch;
+}
+
+/* 3. Horizontal Scroll Rows (.gw-row) */
+.gw-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 1rem;
+}
+
+.gw-row > * {
+    flex: 0 0 min(275px, 74vw);
+    scroll-snap-align: start;
+}
+
+/* Category & Look Cards (.gw-cat-card) */
+.gw-cat-card {
+    flex: 0 0 min(220px, 60vw);
+    text-decoration: none !important;
+    color: var(--ink) !important;
+    display: block;
+}
+
+.gw-cat-card.gw-look-card {
+    flex: 0 0 min(340px, 80vw);
+}
+
+.gw-cat-media {
+    height: 260px;
+    background: var(--ph1);
+    overflow: hidden;
+    position: relative;
+}
+
+.gw-cat-media.gw-look-media {
+    height: 340px;
+}
+
+.gw-cat-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gw-cat-card:hover .gw-cat-media img {
+    transform: scale(1.05);
+}
+
+.gw-cat-card b {
+    font-family: 'Jost';
+    font-weight: 500;
+    font-size: 1rem;
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--ink);
+}
+
+/* Section Bar (.gw-bar) */
+.gw-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0 0 1.2rem 0;
+}
+
+.gw-view-link {
+    font-family: 'Jost';
+    font-size: 0.95rem;
+    color: var(--ink) !important;
+    text-decoration: underline !important;
+    text-underline-offset: 4px;
+}
+
+.gw-view-link:hover {
+    color: var(--acc) !important;
+}
+
+.gw-arrow-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.gw-arrow-btn:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+}
+
+/* 4. Product Cards (.gw-card) */
+.gw-card {
+    background: var(--sur);
+    position: relative;
+    border: 1px solid rgba(217, 210, 197, 0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.gw-card-media {
+    display: block;
+    height: 240px;
+    background: var(--ph1);
+    overflow: hidden;
+    position: relative;
+}
+
+.gw-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gw-card:hover .gw-card-media img {
+    transform: scale(1.05);
+}
+
+.gw-tag {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.72rem;
+    font-weight: 400;
+    padding: 0.15em 0.6em;
+    z-index: 2;
+}
+
+.gw-hb {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    z-index: 2;
+    background: var(--sur);
+    color: var(--ink);
+    border: 0;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gw-card-in {
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.gw-card-nm {
+    font-weight: 400;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gw-card-nm a {
+    color: var(--ink) !important;
+    text-decoration: none !important;
+}
+
+.gw-card-nm a:hover {
+    color: var(--acc) !important;
+}
+
+.gw-card-pr {
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 0.2rem;
+}
+
+.gw-card-pr s {
+    color: var(--mut);
+    margin: 0 0.4em;
+}
+
+.gw-off {
+    color: var(--acc);
+    font-weight: 400;
+}
+
+.gw-card-meta {
+    font-size: 0.85rem;
+    color: var(--mut);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.6rem;
+}
+
+.gw-sw {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 1px solid var(--stone);
+    margin-right: 4px;
+    border-radius: 50%;
+    vertical-align: -2px;
+}
+
+.gw-card-actions {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+/* 5. Split Banners (.gw-banner) */
+.gw-banner {
+    background: var(--ink);
+    color: var(--bg);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+}
+
+.gw-banner.gw-banner-stone {
+    background: var(--stone);
+    color: var(--ink);
+}
+
+.gw-banner-media {
+    position: relative;
+    min-height: 380px;
+    height: 100%;
+    background: var(--ph2);
+    overflow: hidden;
+}
+
+.gw-banner-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gw-banner-tx {
+    padding: 3rem 6%;
+}
+
+.gw-banner-tx p {
+    margin: 0 0 1.2rem 0;
+    max-width: 48ch;
+}
+
+/* 6. Full-Width Feature Sections (.gw-full) */
+.gw-full {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    background: var(--ph3);
+    overflow: hidden;
+}
+
+.gw-full-media {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.gw-full-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gw-full-tx {
+    position: relative;
+    z-index: 2;
+    padding: 3rem 5%;
+    max-width: 700px;
+    background: rgba(246, 242, 234, 0.92);
+    color: #222224;
+    margin-left: 6vw;
+    margin-right: 1.2rem;
+}
+
+.gw-full-tx p {
+    margin: 0 0 1.4rem 0;
+    max-width: 54ch;
+}
+
+/* 7. Why GODWIN Columns (.gw-cols) */
+.gw-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 1.2rem;
+}
+
+.gw-pillar-item {
+    border-top: 1px solid var(--stone);
+    padding-top: 1rem;
+}
+
+.gw-pillar-item h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-size: 1.35rem !important;
+    font-weight: 500 !important;
+    color: var(--ink) !important;
+    margin: 0 0 0.35rem 0;
+}
+
+.gw-pillar-item p {
+    font-size: 0.92rem;
+    color: var(--mut);
+}
+
+.gw-reviews-note {
+    color: var(--mut);
+    max-width: 64ch;
+    margin: 0;
+}
+
+/* Footer Matched to Reference (--ink background, --bg text) */
+footer.footer-luxury {
+    background: var(--ink) !important;
+    color: var(--bg) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+footer.footer-luxury h5 {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 500 !important;
+    color: var(--bg) !important;
+}
+
+.footer-nav-link {
+    color: var(--bg) !important;
+    opacity: 0.8;
+}
+
+.footer-nav-link:hover {
+    color: var(--acc) !important;
+    opacity: 1;
+}
+
+/* Responsive Breakpoints Matching Reference (@media (max-width: 860px)) */
+@media (max-width: 860px) {
+    .gw-room,
+    .gw-room:nth-of-type(even),
+    .gw-banner {
+        grid-template-columns: 1fr;
+    }
+
+    .gw-room:nth-of-type(even) .gw-room-media {
+        order: 0;
+    }
+
+    .gw-room-media {
+        min-height: 44vh;
+    }
+
+    .gw-room-tx,
+    .gw-banner-tx {
+        padding: 2.2rem 1.2rem;
+    }
+
+    .gw-full-tx {
+        margin-left: 1.2rem;
+        padding: 2rem 1.5rem;
+    }
+}
+
+/* ==========================================================================
+   GODWIN EDITORIAL INNER PAGES (Catalog, Cart, Checkout, Auth, Account, Orders)
+   ========================================================================== */
+
+body.gw-theme-body {
+    background: var(--bg) !important;
+    color: var(--ink);
+    font-family: 'Jost';
+}
+
+.gw-page-head {
+    background: var(--sur);
+    border-bottom: 1px solid var(--stone);
+    padding: 1.85rem 0;
+}
+
+.gw-page-head-inner,
+.gw-page-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+}
+
+.gw-page-wrap {
+    padding-top: 2.25rem;
+    padding-bottom: 4rem;
+}
+
+.gw-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.65rem 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mut);
+}
+
+.gw-breadcrumb a {
+    color: var(--mut) !important;
+    text-decoration: none !important;
+}
+
+.gw-breadcrumb a:hover {
+    color: var(--acc) !important;
+}
+
+.gw-breadcrumb .gw-bc-sep {
+    opacity: 0.5;
+}
+
+.gw-breadcrumb .is-current {
+    color: var(--acc);
+    font-weight: 500;
+}
+
+.gw-page-title {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 500 !important;
+    font-size: clamp(1.85rem, 3.2vw, 2.65rem) !important;
+    line-height: 1.1 !important;
+    color: var(--ink) !important;
+    margin: 0 0 0.3rem 0;
+}
+
+.gw-page-sub {
+    color: var(--mut);
+    font-size: 0.94rem;
+    font-weight: 300;
+    margin: 0;
+}
+
+.gw-panel {
+    background: var(--sur);
+    border: 1px solid var(--stone);
+    padding: 1.65rem;
+    border-radius: 0;
+}
+
+.gw-panel-title {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 500 !important;
+    font-size: 1.45rem !important;
+    color: var(--ink) !important;
+    padding-bottom: 0.75rem;
+    margin: 0 0 1.25rem 0;
+    border-bottom: 1px solid var(--stone);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.gw-panel-title i {
+    color: var(--acc);
+    font-size: 0.95rem;
+}
+
+.gw-panel-subtitle {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 500 !important;
+    font-size: 1.2rem !important;
+    color: var(--ink) !important;
+    margin: 0 0 0.9rem 0;
+}
+
+/* Editorial Form Controls */
+.gw-label {
+    display: block;
+    font-family: 'Jost';
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+}
+
+.gw-input,
+.gw-select,
+.gw-textarea {
+    width: 100%;
+    border: 1px solid var(--stone) !important;
+    border-radius: 0 !important;
+    background: var(--sur) !important;
+    color: var(--ink) !important;
+    font-family: 'Jost' !important;
+    font-size: 0.94rem !important;
+    font-weight: 400;
+    padding: 0.62rem 0.85rem !important;
+    box-shadow: none !important;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.gw-input:focus,
+.gw-select:focus,
+.gw-textarea:focus {
+    border-color: var(--acc) !important;
+}
+
+.gw-input.is-invalid,
+.gw-textarea.is-invalid {
+    border-color: #b43c2f !important;
+}
+
+.gw-check-input {
+    border-color: var(--stone) !important;
+    border-radius: 0 !important;
+}
+
+.gw-check-input:checked {
+    background-color: var(--ink) !important;
+    border-color: var(--ink) !important;
+}
+
+.gw-radio-input {
+    border-color: var(--stone) !important;
+}
+
+.gw-radio-input:checked {
+    background-color: var(--ink) !important;
+    border-color: var(--ink) !important;
+}
+
+.gw-range {
+    accent-color: var(--ink);
+}
+
+/* Editorial Alerts */
+.gw-alert {
+    padding: 0.9rem 1.15rem;
+    border: 1px solid var(--stone);
+    border-left: 3px solid var(--ink);
+    background: var(--sur);
+    color: var(--ink);
+    font-size: 0.92rem;
+    margin-bottom: 1.25rem;
+}
+
+.gw-alert-success {
+    border-left-color: #2f6f4e;
+    background: #f4faf6;
+    color: #1f4d35;
+}
+
+.gw-alert-danger {
+    border-left-color: #b43c2f;
+    background: #fdf5f4;
+    color: #84281f;
+}
+
+/* Editorial Badges */
+.gw-badge {
+    display: inline-block;
+    padding: 0.22rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--stone);
+    background: var(--bg);
+    color: var(--ink);
+    border-radius: 0;
+}
+
+.gw-badge-accent {
+    background: rgba(168, 132, 90, 0.14);
+    border-color: rgba(168, 132, 90, 0.4);
+    color: #7c5c36;
+}
+
+.gw-badge-success {
+    background: rgba(47, 111, 78, 0.1);
+    border-color: rgba(47, 111, 78, 0.35);
+    color: #255a3e;
+}
+
+.gw-badge-dark {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+}
+
+/* Catalog Filter Accordion */
+.gw-filter-accordion .accordion-item {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--stone);
+    border-radius: 0;
+}
+
+.gw-filter-accordion .accordion-button {
+    font-family: 'Jost';
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink) !important;
+    background: transparent !important;
+    padding: 0.65rem 0;
+    box-shadow: none !important;
+}
+
+.gw-filter-accordion .accordion-button:not(.collapsed) {
+    color: var(--acc) !important;
+}
+
+.gw-filter-link {
+    display: block;
+    padding: 0.25rem 0;
+    font-size: 0.88rem;
+    color: var(--mut) !important;
+    text-decoration: none !important;
+    transition: color 0.15s ease;
+}
+
+.gw-filter-link:hover,
+.gw-filter-link.is-active {
+    color: var(--acc) !important;
+    font-weight: 500;
+}
+
+/* Cart Quantity Controls */
+.gw-qty-group {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--stone);
+    background: var(--sur);
+}
+
+.gw-qty-btn {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.gw-qty-btn:hover:not(:disabled) {
+    background: var(--bg);
+    color: var(--acc);
+}
+
+.gw-qty-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.gw-qty-val {
+    width: 40px;
+    height: 34px;
+    border: 0;
+    border-left: 1px solid var(--stone);
+    border-right: 1px solid var(--stone);
+    text-align: center;
+    font-family: 'Jost';
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--sur);
+}
+
+.gw-remove-btn {
+    border: 0;
+    background: transparent;
+    color: var(--mut);
+    font-size: 0.95rem;
+    padding: 0.35rem;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.gw-remove-btn:hover {
+    color: #b43c2f;
+}
+
+/* Choice Cards (Checkout Address & Payment) */
+.gw-choice-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.gw-choice-card:hover {
+    border-color: var(--acc);
+    background: rgba(246, 242, 234, 0.45);
+}
+
+/* Editorial Table (Orders) */
+.gw-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Jost';
+}
+
+.gw-table thead th {
+    background: var(--bg);
+    color: var(--mut);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--stone);
+    white-space: nowrap;
+}
+
+.gw-table tbody td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--stone);
+    color: var(--ink);
+    font-size: 0.93rem;
+    vertical-align: middle;
+}
+
+.gw-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Order Timeline */
+.gw-timeline-step {
+    border: 1px solid var(--stone);
+    background: var(--bg);
+    padding: 1rem;
+    height: 100%;
+}
+
+.gw-timeline-step.is-done {
+    background: var(--sur);
+    border-color: var(--ink);
+}
+
+.gw-timeline-step.is-current {
+    background: rgba(168, 132, 90, 0.08);
+    border-color: var(--acc);
+}
+
+.gw-timeline-label {
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mut);
+    margin-bottom: 0.35rem;
+}
+
+.gw-timeline-step.is-current .gw-timeline-label {
+    color: var(--acc);
+}
+
+.gw-timeline-step.is-done .gw-timeline-label {
+    color: var(--ink);
+}
+
+/* Auth Pages (Login & Register) */
+.gw-auth-shell {
+    min-height: calc(100vh - 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.2rem;
+}
+
+.gw-auth-card {
+    background: var(--sur);
+    border: 1px solid var(--stone);
+    width: 100%;
+    max-width: 460px;
+    padding: 2.5rem;
+}
+
+.gw-auth-card.gw-auth-wide {
+    max-width: 560px;
+}
+
+/* Editorial Pagination */
+.gw-pagination .pagination {
+    gap: 0.35rem;
+}
+
+.gw-pagination .page-link {
+    border-radius: 0 !important;
+    border-color: var(--stone);
+    color: var(--ink);
+    background: var(--sur);
+    font-family: 'Jost';
+    font-size: 0.88rem;
+}
+
+.gw-pagination .page-item.active .page-link {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+}
+
+.gw-pagination .page-link:hover {
+    border-color: var(--acc);
+    color: var(--acc);
+    background: var(--bg);
+}
+
+/* Danger Outline Button */
+.gw-btn-danger-outline {
+    background: transparent;
+    color: #b43c2f !important;
+    border-color: rgba(180, 60, 47, 0.45);
+}
+
+.gw-btn-danger-outline:hover {
+    background: #b43c2f;
+    border-color: #b43c2f;
+    color: #ffffff !important;
+}
+
+@media (max-width: 767px) {
+    .gw-panel {
+        padding: 1.2rem;
+    }
+
+    .gw-auth-card {
+        padding: 1.75rem 1.25rem;
+    }
+}
+
+/* ==========================================================================
+   GODWIN EDITORIAL CATALOG PAGE (Reference Match)
+   ========================================================================== */
+
+.gw-catalog-wrap {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+.gw-cat-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Jost';
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--mut);
+    margin-bottom: 0.5rem;
+}
+
+.gw-cat-crumbs a {
+    color: var(--mut) !important;
+    text-decoration: underline !important;
+    text-underline-offset: 2px;
+}
+
+.gw-cat-crumbs a:hover {
+    color: var(--ink) !important;
+}
+
+.gw-cat-heading {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 500 !important;
+    font-size: clamp(2.1rem, 4vw, 3.1rem) !important;
+    line-height: 1.08 !important;
+    color: var(--ink) !important;
+    margin: 0 0 1.4rem 0;
+}
+
+.gw-cat-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.gw-cat-count {
+    font-family: 'Jost';
+    font-size: 0.94rem;
+    font-weight: 300;
+    color: var(--mut);
+}
+
+.gw-catalog-sort {
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    font-family: 'Jost';
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 0.45rem 0.9rem;
+    min-width: 175px;
+    border-radius: 0;
+    outline: none;
+    cursor: pointer;
+}
+
+.gw-catalog-sort:focus {
+    border-color: var(--acc);
+}
+
+.gw-cat-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.gw-aside {
+    background: transparent;
+}
+
+.gw-filter-group {
+    border-bottom: 1px solid var(--stone);
+    padding: 0.85rem 0;
+}
+
+.gw-filter-group:first-of-type {
+    padding-top: 0;
+}
+
+.gw-filter-group summary {
+    font-family: 'Jost';
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: disclosure-closed;
+    user-select: none;
+    padding: 0.15rem 0;
+}
+
+.gw-filter-group[open] summary {
+    list-style: disclosure-open;
+    margin-bottom: 0.65rem;
+}
+
+.gw-price-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    margin-bottom: 0.55rem;
+}
+
+.gw-price-inputs input {
+    width: 100%;
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    font-family: 'Jost';
+    font-size: 0.85rem;
+    font-weight: 300;
+    padding: 0.42rem 0.55rem;
+    border-radius: 0;
+    outline: none;
+}
+
+.gw-price-inputs input:focus {
+    border-color: var(--acc);
+}
+
+.gw-price-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.gw-price-chip {
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    font-family: 'Jost';
+    font-size: 0.78rem;
+    font-weight: 300;
+    padding: 0.28rem 0.55rem;
+    border-radius: 0;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.gw-price-chip:hover,
+.gw-price-chip.is-active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+}
+
+.gw-filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.32rem;
+    max-height: 13.5rem;
+    overflow-y: auto;
+}
+
+.gw-aside-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Jost';
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--ink);
+    cursor: pointer;
+    margin: 0;
+}
+
+.gw-aside-check input[type="checkbox"] {
+    accent-color: var(--ink);
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.gw-aside-cat-link {
+    display: block;
+    font-family: 'Jost';
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--ink) !important;
+    text-decoration: none !important;
+    padding: 0.1rem 0;
+    transition: color 0.15s ease;
+}
+
+.gw-aside-cat-link.gw-aside-sub {
+    padding-left: 0.85rem;
+    font-weight: 300;
+    color: var(--mut) !important;
+}
+
+.gw-aside-cat-link:hover,
+.gw-aside-cat-link.is-active {
+    color: var(--acc) !important;
+    font-weight: 500;
+}
+
+.gw-filter-mobile-btn {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .gw-filter-mobile-btn {
+        display: inline-block;
+    }
+
+    .gw-cat-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .gw-aside {
+        display: none;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--stone);
+    }
+
+    .gw-aside.open {
+        display: block;
+    }
+}
+
+/* ==========================================================================
+   GODWIN EDITORIAL PRODUCT DETAILS PAGE (Reference Match)
+   ========================================================================== */
+
+.gw-pdp-wrap {
+    padding-top: 1.75rem;
+    padding-bottom: 4rem;
+}
+
+.gw-pdp-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+}
+
+.gw-pdp-stage {
+    background: var(--ph2);
+    width: 100%;
+    aspect-ratio: 4 / 3.6;
+    overflow: hidden;
+    position: relative;
+}
+
+.gw-pdp-stage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gw-pdp-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.gw-pdp-thumb {
+    width: 72px;
+    height: 72px;
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    opacity: 0.7;
+    transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.gw-pdp-thumb.is-active,
+.gw-pdp-thumb:hover {
+    border-color: var(--ink);
+    opacity: 1;
+}
+
+.gw-pdp-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gw-pdp-sku-line {
+    font-family: 'Jost';
+    font-size: 0.86rem;
+    font-weight: 300;
+    color: var(--mut);
+    margin: 0 0 0.25rem 0;
+}
+
+.gw-pdp-title {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 500 !important;
+    font-size: clamp(2rem, 3.6vw, 2.9rem) !important;
+    line-height: 1.08 !important;
+    color: var(--ink) !important;
+    margin: 0 0 0.85rem 0;
+}
+
+.gw-pdp-price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    font-family: 'Jost';
+    font-size: 1.45rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 0.65rem;
+}
+
+.gw-pdp-price s {
+    color: var(--mut);
+    font-weight: 300;
+    font-size: 1.35rem;
+}
+
+.gw-pdp-price .gw-off {
+    color: var(--acc);
+    font-size: 1.25rem;
+    font-weight: 400;
+}
+
+.gw-pdp-rating {
+    font-family: 'Jost';
+    font-size: 0.92rem;
+    font-weight: 300;
+    color: var(--mut);
+    margin-bottom: 1.1rem;
+}
+
+.gw-pdp-rating .gw-star {
+    color: var(--ink);
+}
+
+.gw-pdp-variants {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.15rem;
+}
+
+.gw-pdp-var-label {
+    font-family: 'Jost';
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--mut);
+    margin-bottom: 0.35rem;
+}
+
+.gw-pdp-var-label strong {
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.gw-pdp-opt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    font-family: 'Jost';
+    font-size: 0.84rem;
+    font-weight: 300;
+    padding: 0.32rem 0.7rem;
+    border-radius: 0;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.gw-pdp-opt-btn:hover:not(:disabled) {
+    border-color: var(--ink);
+}
+
+.gw-pdp-opt-btn.is-selected {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+}
+
+.gw-pdp-opt-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.gw-pdp-specs {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 1px solid var(--stone);
+    margin-bottom: 1.25rem;
+    font-family: 'Jost';
+    font-size: 0.92rem;
+}
+
+.gw-pdp-specs tr {
+    border-bottom: 1px solid var(--stone);
+}
+
+.gw-pdp-specs th {
+    font-weight: 300;
+    color: var(--mut);
+    text-align: left;
+    padding: 0.62rem 0;
+    width: 42%;
+}
+
+.gw-pdp-specs td {
+    font-weight: 300;
+    color: var(--ink);
+    text-align: right;
+    padding: 0.62rem 0;
+}
+
+.gw-pdp-qty-pin {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    font-family: 'Jost';
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--ink);
+}
+
+.gw-pdp-qty-pin input {
+    border: 1px solid var(--stone);
+    background: var(--sur);
+    color: var(--ink);
+    font-family: 'Jost';
+    font-size: 0.92rem;
+    font-weight: 300;
+    padding: 0.48rem 0.6rem;
+    border-radius: 0;
+    outline: none;
+}
+
+.gw-pdp-qty-pin input:focus {
+    border-color: var(--acc);
+}
+
+.gw-pdp-qty-input {
+    width: 68px;
+}
+
+.gw-pdp-pin-input {
+    width: 112px;
+}
+
+.gw-pdp-sub-btn {
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink) !important;
+    font-family: 'Jost';
+    font-size: 0.84rem;
+    font-weight: 400;
+    padding: 0.46rem 0.85rem;
+    border-radius: 0;
+    cursor: pointer;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.gw-pdp-sub-btn:hover {
+    background: var(--ink);
+    color: var(--bg) !important;
+}
+
+.gw-pdp-pin-msg {
+    font-family: 'Jost';
+    font-size: 0.84rem;
+    color: var(--mut);
+    margin: -0.4rem 0 0.9rem 0;
+}
+
+.gw-pdp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.25rem;
+}
+
+.gw-pdp-actions .gw-btn {
+    padding: 0.68rem 1.45rem;
+    font-size: 0.92rem;
+}
+
+.gw-pdp-desc {
+    font-family: 'Jost';
+    font-size: 0.94rem;
+    font-weight: 300;
+    color: var(--mut);
+    line-height: 1.65;
+    padding-top: 1rem;
+    border-top: 1px solid var(--stone);
+    margin: 0;
+}
+
+@media (max-width: 860px) {
+    .gw-pdp-grid {
+        grid-template-columns: 1fr;
+        gap: 1.75rem;
+    }
+}
+
+/* ==========================================================================
+   GODWIN EDITORIAL CART PAGE (Reference Match)
+   ========================================================================== */
+
+.gw-cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 1px solid var(--stone);
+    font-family: 'Jost';
+}
+
+.gw-cart-table tr {
+    border-bottom: 1px solid var(--stone);
+}
+
+.gw-cart-table td {
+    padding: 1.15rem 0.75rem;
+    vertical-align: middle;
+    color: var(--ink);
+}
+
+.gw-cart-table td:first-child {
+    padding-left: 0;
+}
+
+.gw-cart-table td:last-child {
+    padding-right: 0;
+    text-align: right;
+}
+
+.gw-cart-thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    display: block;
+    background: var(--ph1);
+    flex-shrink: 0;
+}
+
+.gw-cart-name {
+    font-family: 'Jost';
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ink) !important;
+    text-decoration: none !important;
+}
+
+.gw-cart-name:hover {
+    color: var(--acc) !important;
+}
+
+.gw-cart-meta {
+    font-size: 0.84rem;
+    font-weight: 300;
+    color: var(--mut);
+    margin-top: 0.15rem;
+}
+
+.gw-cart-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding-top: 1.5rem;
+}
+
+.gw-cart-totals {
+    font-family: 'Jost';
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--mut);
+}
+
+.gw-cart-totals strong {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.65rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-left: 0.35rem;
+}
+
+.gw-cart-totals .gw-cart-save {
+    color: var(--acc);
+    font-weight: 400;
+}
+
+@media (max-width: 720px) {
+    .gw-cart-table,
+    .gw-cart-table tbody,
+    .gw-cart-table tr,
+    .gw-cart-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .gw-cart-table tr {
+        padding: 1rem 0;
+    }
+
+    .gw-cart-table td {
+        padding: 0.35rem 0;
+        text-align: left !important;
+    }
 }

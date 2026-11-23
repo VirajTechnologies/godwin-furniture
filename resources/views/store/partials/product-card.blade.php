@@ -6,96 +6,66 @@
 
     $colourName = $firstVariant?->colour ?: 'Walnut';
     $colourHex = $firstVariant?->colour_hex ?: \App\Support\Catalog::colourHex($colourName);
-    $subtitle = $product->material ?: ($product->product_category ?: 'Factory direct');
+    $subtitle = $product->material ?: ($product->category?->name ?: 'Factory direct');
 
     $ratingsPool = ['4.6', '4.8', '4.5', '4.7', '4.9', '4.4'];
     $rating = $ratingsPool[($product->id ?? 0) % count($ratingsPool)];
 
     $images = $product->galleryFor($firstVariant);
-    if ($images->isEmpty()) {
-        $images = collect([(object) ['url' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=700']]);
-    }
-    $carouselId = 'productCarousel'.$product->id;
+    $imageUrl = $images->first()?->url
+        ?? 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=700';
+
     $productUrl = route('store.product', $product->slug);
     $showNewBadge = $product->is_featured || (($product->id ?? 1) % 2 === 1);
-    $colClass = $colClass ?? 'col-12 col-md-6 col-lg-4';
+    $colClass = $colClass ?? 'col-12 col-sm-6 col-xl-4';
 @endphp
 
 <div class="{{ $colClass }}">
-    <div class="bs-product-card h-100">
-        <div class="bs-card-media">
-            @if ($showNewBadge)
-                <span class="bs-badge-new">New</span>
-            @endif
+    <div class="gw-card h-100">
+        @if ($showNewBadge)
+            <span class="gw-tag">New</span>
+        @endif
 
-            <button type="button" class="bs-btn-wishlist" aria-label="Add {{ $product->name }} to wishlist" onclick="this.classList.toggle('is-liked')">
-                <i class="far fa-heart"></i>
-            </button>
+        <button type="button"
+                class="gw-hb"
+                aria-label="Add {{ $product->name }} to wishlist"
+                onclick="this.textContent = this.textContent.trim() === '♥' ? '♡' : '♥'">♡</button>
 
-            <div id="{{ $carouselId }}" class="carousel slide product-card-carousel h-100" data-bs-interval="false">
-                @if ($images->count() > 1)
-                    <div class="carousel-indicators mb-2" style="z-index: 12;">
-                        @foreach ($images as $index => $image)
-                            <button type="button" onclick="goToProductSlide('{{ $carouselId }}', {{ $index }}, event)" class="{{ $index === 0 ? 'active' : '' }}" aria-label="Slide {{ $index + 1 }}"></button>
-                        @endforeach
-                    </div>
-                @endif
-                <div class="carousel-inner h-100">
-                    @foreach ($images as $index => $image)
-                        <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
-                            <a href="{{ $productUrl }}" class="d-block w-100 h-100">
-                                <img src="{{ $image->url }}" class="bs-card-img" alt="{{ $product->name }}" loading="lazy">
-                            </a>
-                        </div>
-                    @endforeach
-                </div>
-                @if ($images->count() > 1)
-                    <button class="carousel-control-prev product-carousel-btn" type="button" onclick="slideProductCarousel('{{ $carouselId }}', 'prev', event)">
-                        <span class="carousel-control-prev-icon-custom"><i class="fas fa-chevron-left"></i></span>
-                    </button>
-                    <button class="carousel-control-next product-carousel-btn" type="button" onclick="slideProductCarousel('{{ $carouselId }}', 'next', event)">
-                        <span class="carousel-control-next-icon-custom"><i class="fas fa-chevron-right"></i></span>
-                    </button>
-                @endif
+        <a href="{{ $productUrl }}" class="gw-card-media">
+            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" loading="lazy">
+        </a>
+
+        <div class="gw-card-in">
+            <div class="gw-card-nm">
+                <a href="{{ $productUrl }}" title="{{ $product->name }}">{{ $product->name }}</a>
             </div>
-        </div>
 
-        <div class="bs-card-body">
-            <a href="{{ $productUrl }}" class="text-decoration-none">
-                <h5 class="bs-card-title" title="{{ $product->name }}">{{ $product->name }}</h5>
-            </a>
-
-            <div class="bs-price-row">
-                <span class="bs-price-current">₹{{ number_format($price, 0) }}</span>
+            <div class="gw-card-pr">
+                ₹{{ number_format($price, 0) }}
                 @if ($mrp && $mrp > $price)
-                    <span class="bs-price-mrp">₹{{ number_format($mrp, 0) }}</span>
+                    <s>₹{{ number_format($mrp, 0) }}</s>
                 @endif
                 @if ($discount)
-                    <span class="bs-price-off">{{ $discount }}% off</span>
+                    <span class="gw-off">{{ $discount }}% off</span>
                 @endif
             </div>
 
-            <div class="bs-meta-row">
-                <span class="bs-rating"><i class="fas fa-star me-1"></i>{{ $rating }}</span>
-                <span class="bs-meta-dot">·</span>
-                <span class="bs-swatch-dot" style="background-color: {{ $colourHex }};"></span>
-                <span class="bs-colour-name">{{ $colourName }}</span>
-                <span class="bs-meta-dot">·</span>
-                <span class="bs-meta-sub text-truncate">{{ $subtitle }}</span>
+            <div class="gw-card-meta">
+                ★ {{ $rating }} · <span class="gw-sw" style="background: {{ $colourHex }};"></span>{{ $colourName }} · {{ $subtitle }}
             </div>
 
-            <div class="bs-card-actions">
+            <div class="gw-card-actions">
                 @if ($firstVariant)
-                    <form method="POST" action="{{ route('store.cart.add') }}" class="flex-grow-1 m-0">
+                    <form method="POST" action="{{ route('store.cart.add') }}" class="d-inline m-0">
                         @csrf
                         <input type="hidden" name="product_variant_id" value="{{ $firstVariant->id }}">
                         <input type="hidden" name="quantity" value="1">
-                        <button type="submit" class="bs-btn-add w-100">Add to cart</button>
+                        <button type="submit" class="gw-btn gw-btn-sm">Add to cart</button>
                     </form>
                 @else
-                    <a href="{{ $productUrl }}" class="bs-btn-add flex-grow-1">Add to cart</a>
+                    <a href="{{ $productUrl }}" class="gw-btn gw-btn-sm">Add to cart</a>
                 @endif
-                <a href="{{ $productUrl }}" class="bs-btn-quick">Quick view</a>
+                <a class="gw-btn gw-btn-sm gw-btn-outline" href="{{ $productUrl }}">Quick view</a>
             </div>
         </div>
     </div>
