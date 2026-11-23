@@ -88,7 +88,6 @@
                 <a href="{{ $productUrl }}" class="bs-btn-add flex-grow-1">
                     <i class="fas fa-shopping-bag me-1"></i> Choose options
                 </a>
-                <a href="{{ $productUrl }}" class="bs-btn-quick">Quick view</a>
             </div>
         </div>
     </div>
