@@ -4,13 +4,18 @@ use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\BranchStockController;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\BusinessGroupController;
+use App\Http\Controllers\Admin\CatalogProductCategoryController;
+use App\Http\Controllers\Admin\CatalogRoomController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DesignTypeController;
 use App\Http\Controllers\Admin\DistrictController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductModelController;
+use App\Http\Controllers\Admin\ProjectCategoryController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StateController;
 use App\Http\Controllers\Admin\StockRequestController;
@@ -88,12 +93,47 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('agents/{agent}/edit', [AgentController::class, 'edit'])->name('agents.edit');
         Route::put('agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
 
-        Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
-        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
-        Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
-        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
-        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-        Route::post('categories/{category}/status', [CategoryController::class, 'updateStatus'])->name('categories.status');
+        Route::get('business-groups', [BusinessGroupController::class, 'index'])->name('business-groups.index');
+        Route::get('business-groups/create', [BusinessGroupController::class, 'create'])->name('business-groups.create');
+        Route::post('business-groups', [BusinessGroupController::class, 'store'])->name('business-groups.store');
+        Route::get('business-groups/{business_group}/edit', [BusinessGroupController::class, 'edit'])->name('business-groups.edit');
+        Route::put('business-groups/{business_group}', [BusinessGroupController::class, 'update'])->name('business-groups.update');
+        Route::post('business-groups/{business_group}/status', [BusinessGroupController::class, 'updateStatus'])->name('business-groups.status');
+
+        Route::get('project-categories', [ProjectCategoryController::class, 'index'])->name('project-categories.index');
+        Route::get('project-categories/create', [ProjectCategoryController::class, 'create'])->name('project-categories.create');
+        Route::post('project-categories', [ProjectCategoryController::class, 'store'])->name('project-categories.store');
+        Route::get('project-categories/{project_category}/edit', [ProjectCategoryController::class, 'edit'])->name('project-categories.edit');
+        Route::put('project-categories/{project_category}', [ProjectCategoryController::class, 'update'])->name('project-categories.update');
+        Route::post('project-categories/{project_category}/status', [ProjectCategoryController::class, 'updateStatus'])->name('project-categories.status');
+
+        Route::get('catalog-rooms', [CatalogRoomController::class, 'index'])->name('catalog-rooms.index');
+        Route::get('catalog-rooms/create', [CatalogRoomController::class, 'create'])->name('catalog-rooms.create');
+        Route::post('catalog-rooms', [CatalogRoomController::class, 'store'])->name('catalog-rooms.store');
+        Route::get('catalog-rooms/{catalog_room}/edit', [CatalogRoomController::class, 'edit'])->name('catalog-rooms.edit');
+        Route::put('catalog-rooms/{catalog_room}', [CatalogRoomController::class, 'update'])->name('catalog-rooms.update');
+        Route::post('catalog-rooms/{catalog_room}/status', [CatalogRoomController::class, 'updateStatus'])->name('catalog-rooms.status');
+
+        Route::get('catalog-product-categories', [CatalogProductCategoryController::class, 'index'])->name('catalog-product-categories.index');
+        Route::get('catalog-product-categories/create', [CatalogProductCategoryController::class, 'create'])->name('catalog-product-categories.create');
+        Route::post('catalog-product-categories', [CatalogProductCategoryController::class, 'store'])->name('catalog-product-categories.store');
+        Route::get('catalog-product-categories/{catalog_product_category}/edit', [CatalogProductCategoryController::class, 'edit'])->name('catalog-product-categories.edit');
+        Route::put('catalog-product-categories/{catalog_product_category}', [CatalogProductCategoryController::class, 'update'])->name('catalog-product-categories.update');
+        Route::post('catalog-product-categories/{catalog_product_category}/status', [CatalogProductCategoryController::class, 'updateStatus'])->name('catalog-product-categories.status');
+
+        Route::get('design-types', [DesignTypeController::class, 'index'])->name('design-types.index');
+        Route::get('design-types/create', [DesignTypeController::class, 'create'])->name('design-types.create');
+        Route::post('design-types', [DesignTypeController::class, 'store'])->name('design-types.store');
+        Route::get('design-types/{design_type}/edit', [DesignTypeController::class, 'edit'])->name('design-types.edit');
+        Route::put('design-types/{design_type}', [DesignTypeController::class, 'update'])->name('design-types.update');
+        Route::post('design-types/{design_type}/status', [DesignTypeController::class, 'updateStatus'])->name('design-types.status');
+
+        Route::get('product-models', [ProductModelController::class, 'index'])->name('product-models.index');
+        Route::get('product-models/create', [ProductModelController::class, 'create'])->name('product-models.create');
+        Route::post('product-models', [ProductModelController::class, 'store'])->name('product-models.store');
+        Route::get('product-models/{product_model}/edit', [ProductModelController::class, 'edit'])->name('product-models.edit');
+        Route::put('product-models/{product_model}', [ProductModelController::class, 'update'])->name('product-models.update');
+        Route::post('product-models/{product_model}/status', [ProductModelController::class, 'updateStatus'])->name('product-models.status');
 
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
         Route::get('products/create', [ProductController::class, 'create'])->name('products.create');

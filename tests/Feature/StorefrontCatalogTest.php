@@ -26,7 +26,7 @@ class StorefrontCatalogTest extends TestCase
             ->assertOk()
             ->assertSee('Living Room')
             ->assertSee('3 Seater Sofas')
-            ->assertSee('Sofas & Seating')
+            ->assertDontSee('Sofas & Seating')
             ->assertSee('Open Living Room menu', false)
             ->assertSee(route('store.catalog', ['category' => $room->slug], false))
             ->assertSee(route('store.catalog', ['category' => $category->slug], false));
@@ -34,8 +34,7 @@ class StorefrontCatalogTest extends TestCase
         $this->get(route('store.catalog'))
             ->assertOk()
             ->assertSee('Living Room')
-            ->assertSee('3 Seater Sofas')
-            ->assertSee('All Living Room');
+            ->assertSee('3 Seater Sofas');
 
         $this->get(route('store.catalog', ['category' => $category->slug]))
             ->assertOk()

@@ -702,6 +702,16 @@ class LoadSampleData extends Command
         $seq = 1;
 
         foreach (Catalog::tree()[$project] ?? [] as $room => $categories) {
+            $catalogRoom = \App\Models\CatalogRoom::query()
+                ->where('name', $room)
+                ->whereHas('projectCategory', fn ($q) => $q->where('name', $project))
+                ->first();
+
+            // Skip admin-only rooms (Kids / Study / Entryway) from ecommerce sample products.
+            if ($catalogRoom && ! $catalogRoom->show_on_store) {
+                continue;
+            }
+
             foreach ($categories as $categoryName) {
                 $leaf = Catalog::leafCategory($project, $room, $categoryName);
                 $have = $counts[$leaf->id] ?? 0;

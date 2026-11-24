@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasActiveStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,6 +71,20 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Online products whose room (category parent) is active on the storefront.
+     */
+    public function scopeVisibleOnStore(Builder $query): Builder
+    {
+        return $query
+            ->where('is_online', true)
+            ->where('status', self::STATUS_ACTIVE)
+            ->whereHas('category', function (Builder $category): void {
+                $category->where('status', Category::STATUS_ACTIVE)
+                    ->whereHas('parent', fn (Builder $room) => $room->where('status', Category::STATUS_ACTIVE));
+            });
     }
 
     public function variants(): HasMany

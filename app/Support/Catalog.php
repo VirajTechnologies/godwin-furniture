@@ -2,11 +2,16 @@
 
 namespace App\Support;
 
+use App\Models\CatalogProductCategory;
 use App\Models\Category;
+use App\Models\DesignType;
+use App\Models\ProductModel;
+use App\Models\ProjectCategory;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
- * Product Manager taxonomy helpers backed by config/catalog.php.
+ * Product Manager taxonomy helpers — prefers catalog master tables, falls back to config.
  */
 class Catalog
 {
@@ -15,7 +20,28 @@ class Catalog
      */
     public static function tree(): array
     {
-        return config('catalog.tree', []);
+        if (! self::mastersReady()) {
+            return config('catalog.tree', []);
+        }
+
+        $tree = [];
+
+        ProjectCategory::query()
+            ->where('status', ProjectCategory::STATUS_ACTIVE)
+            ->with(['rooms' => fn ($q) => $q
+                ->where('status', \App\Models\CatalogRoom::STATUS_ACTIVE)
+                ->with(['productCategories' => fn ($c) => $c->where('status', CatalogProductCategory::STATUS_ACTIVE)])])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->each(function (ProjectCategory $project) use (&$tree): void {
+                $tree[$project->name] = [];
+                foreach ($project->rooms as $room) {
+                    $tree[$project->name][$room->name] = $room->productCategories->pluck('name')->all();
+                }
+            });
+
+        return $tree !== [] ? $tree : config('catalog.tree', []);
     }
 
     /**
@@ -52,6 +78,35 @@ class Catalog
      */
     public static function typesFor(string $category): array
     {
+        if (self::mastersReady()) {
+            $leaf = CatalogProductCategory::query()
+                ->where('name', $category)
+                ->where('status', CatalogProductCategory::STATUS_ACTIVE)
+                ->first();
+
+            if ($leaf) {
+                $types = DesignType::query()
+                    ->where('catalog_product_category_id', $leaf->id)
+                    ->where('status', DesignType::STATUS_ACTIVE)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name')
+                    ->all();
+
+                if ($types !== []) {
+                    return $types;
+                }
+            }
+        }
+
+        return self::typesForFromConfig($category);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function typesForFromConfig(string $category): array
+    {
         foreach (config('catalog.types', []) as $row) {
             if (preg_match($row['pattern'], $category) === 1) {
                 return $row['types'];
@@ -62,11 +117,38 @@ class Catalog
     }
 
     /**
-     * Suggested model names for a product category (same scheme as the client demo).
-     *
      * @return list<string>
      */
     public static function modelsFor(string $category): array
+    {
+        if (self::mastersReady()) {
+            $leaf = CatalogProductCategory::query()
+                ->where('name', $category)
+                ->where('status', CatalogProductCategory::STATUS_ACTIVE)
+                ->first();
+
+            if ($leaf) {
+                $models = ProductModel::query()
+                    ->where('catalog_product_category_id', $leaf->id)
+                    ->where('status', ProductModel::STATUS_ACTIVE)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name')
+                    ->all();
+
+                if ($models !== []) {
+                    return $models;
+                }
+            }
+        }
+
+        return self::modelsForFromConfig($category);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function modelsForFromConfig(string $category): array
     {
         $names = config('catalog.model_names', []);
 
@@ -211,6 +293,16 @@ class Catalog
         return $candidate;
     }
 
+    private static function mastersReady(): bool
+    {
+        try {
+            return Schema::hasTable('project_categories')
+                && ProjectCategory::query()->exists();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /**
      * Payload consumed by the admin Add/Edit Product dropdown script.
      *
@@ -232,8 +324,16 @@ class Catalog
             }
         }
 
+        $businessGroup = config('catalog.business_group');
+        if (self::mastersReady()) {
+            $businessGroup = \App\Models\BusinessGroup::query()
+                ->where('status', \App\Models\BusinessGroup::STATUS_ACTIVE)
+                ->orderBy('sort_order')
+                ->value('name') ?: $businessGroup;
+        }
+
         return [
-            'businessGroup' => config('catalog.business_group'),
+            'businessGroup' => $businessGroup,
             'tree' => self::tree(),
             'types' => $types,
             'models' => $models,

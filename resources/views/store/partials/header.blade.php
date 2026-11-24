@@ -22,9 +22,6 @@
 
         @forelse ($storeMenu ?? [] as $room)
             @php
-                $groups = $room->children->groupBy(fn ($child) => $child->menu_group ?: 'Shop');
-                $groupCount = max(1, $groups->count());
-                $hasCustomGroups = $groupCount > 1 || ($groups->keys()->first() && $groups->keys()->first() !== 'Shop');
                 $roomActive = request('category') === $room->slug
                     || $room->children->contains(fn ($child) => $child->slug === request('category'));
                 $menuId = 'store-mega-'.$room->id;
@@ -47,16 +44,11 @@
 
                 @if ($room->children->isNotEmpty())
                     <div class="gw-dd" id="{{ $menuId }}" aria-labelledby="{{ $menuId }}-toggle">
-                        @foreach ($groups as $groupName => $children)
-                            @if ($hasCustomGroups)
-                                <div class="gw-dd-group">{{ $groupName }}</div>
-                            @endif
-                            @foreach ($children as $child)
-                                <a href="{{ route('store.catalog', ['category' => $child->slug]) }}"
-                                   class="{{ request('category') === $child->slug ? 'is-active' : '' }}">
-                                    {{ $child->name }}
-                                </a>
-                            @endforeach
+                        @foreach ($room->children as $child)
+                            <a href="{{ route('store.catalog', ['category' => $child->slug]) }}"
+                               class="{{ request('category') === $child->slug ? 'is-active' : '' }}">
+                                {{ $child->name }}
+                            </a>
                         @endforeach
                     </div>
                 @endif

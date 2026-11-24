@@ -42,8 +42,6 @@ class CategoryRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('categories', 'slug')->ignore($category),
             ],
-            'menu_group_choice' => ['nullable', 'string', 'max:100'],
-            'menu_group' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'image_url' => ['nullable', 'string', 'max:500'],
             'status' => ['required', Rule::in([Category::STATUS_ACTIVE, Category::STATUS_INACTIVE])],
@@ -59,23 +57,15 @@ class CategoryRequest extends FormRequest
             return parent::validated($key, $default);
         }
 
-        return collect(parent::validated())->except('menu_group_choice')->all();
+        return array_merge(parent::validated(), [
+            'menu_group' => null,
+        ]);
     }
 
     protected function prepareForValidation(): void
     {
         if (! $this->filled('parent_id')) {
-            $this->merge(['parent_id' => null, 'menu_group' => null, 'menu_group_choice' => null]);
-        } else {
-            $choice = $this->input('menu_group_choice');
-
-            if ($choice === '__new__') {
-                $this->merge(['menu_group' => $this->input('menu_group')]);
-            } elseif ($this->filled('menu_group_choice')) {
-                $this->merge(['menu_group' => $choice]);
-            } else {
-                $this->merge(['menu_group' => null]);
-            }
+            $this->merge(['parent_id' => null]);
         }
 
         if (! $this->filled('sort_order')) {
@@ -90,16 +80,6 @@ class CategoryRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
-            if ($this->filled('parent_id') && ! $this->filled('menu_group')) {
-                $message = $this->input('menu_group_choice') === '__new__'
-                    ? 'Enter a name for the new menu group.'
-                    : 'Menu Group is required for a subcategory.';
-                $validator->errors()->add(
-                    $this->input('menu_group_choice') === '__new__' ? 'menu_group' : 'menu_group_choice',
-                    $message
-                );
-            }
-
             $category = $this->route('category');
             if ($category instanceof Category && $category->children()->exists() && $this->filled('parent_id')) {
                 $validator->errors()->add('parent_id', 'A category with subcategories cannot become a subcategory.');

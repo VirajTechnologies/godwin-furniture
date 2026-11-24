@@ -37,7 +37,6 @@ class AppServiceProvider extends ServiceProvider
         return Category::query()
             ->with(['children' => fn ($query) => $query
                 ->where('status', Category::STATUS_ACTIVE)
-                ->orderBy('menu_group')
                 ->orderBy('sort_order')
                 ->orderBy('name')])
             ->whereNotNull('parent_id')

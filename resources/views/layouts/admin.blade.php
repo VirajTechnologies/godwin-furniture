@@ -130,7 +130,15 @@
                             </a>
                         </li>
                         @php
-                            $catalogOpen = request()->routeIs('admin.categories.*', 'admin.products.*');
+                            $catalogOpen = request()->routeIs(
+                                'admin.business-groups.*',
+                                'admin.project-categories.*',
+                                'admin.catalog-rooms.*',
+                                'admin.catalog-product-categories.*',
+                                'admin.design-types.*',
+                                'admin.product-models.*',
+                                'admin.products.*',
+                            );
                         @endphp
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ $catalogOpen ? 'active' : '' }}" href="#sidebarCatalog" data-bs-toggle="collapse" role="button" aria-expanded="{{ $catalogOpen ? 'true' : 'false' }}" aria-controls="sidebarCatalog">
@@ -139,7 +147,22 @@
                             <div class="collapse menu-dropdown {{ $catalogOpen ? 'show' : '' }}" id="sidebarCatalog">
                                 <ul class="nav nav-sm flex-column">
                                     <li class="nav-item">
-                                        <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categories</a>
+                                        <a href="{{ route('admin.business-groups.index') }}" class="nav-link {{ request()->routeIs('admin.business-groups.*') ? 'active' : '' }}">Business Groups</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.project-categories.index') }}" class="nav-link {{ request()->routeIs('admin.project-categories.*') ? 'active' : '' }}">Projects</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.catalog-rooms.index') }}" class="nav-link {{ request()->routeIs('admin.catalog-rooms.*') ? 'active' : '' }}">Rooms</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.catalog-product-categories.index') }}" class="nav-link {{ request()->routeIs('admin.catalog-product-categories.*') ? 'active' : '' }}">Product Categories</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.design-types.index') }}" class="nav-link {{ request()->routeIs('admin.design-types.*') ? 'active' : '' }}">Design Types</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.product-models.index') }}" class="nav-link {{ request()->routeIs('admin.product-models.*') ? 'active' : '' }}">Product Models</a>
                                     </li>
                                     <li class="nav-item">
                                         <a href="{{ route('admin.products.index') }}" class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
