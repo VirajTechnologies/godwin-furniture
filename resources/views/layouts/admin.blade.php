@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
-    <script src="{{ asset('assets/js/layout.js') }}"></script>
-    <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/required-fields.css') }}" rel="stylesheet" type="text/css">
+    <script src="{{ vasset('assets/js/layout.js') }}"></script>
+    <link href="{{ vasset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/required-fields.css') }}" rel="stylesheet" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
     @include('partials.datatables', ['part' => 'styles'])
@@ -271,7 +271,7 @@
             <footer class="footer">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-sm-6">{{ date('Y') }} Â© Godwin Furniture.</div>
+                        <div class="col-sm-6">{{ date('Y') }} © Godwin Furniture.</div>
                         <div class="col-sm-6">
                             <div class="text-sm-end d-none d-sm-block">Head office</div>
                         </div>
@@ -285,12 +285,12 @@
         <i class="ri-arrow-up-line"></i>
     </button>
 
-    <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/libs/simplebar/simplebar.min.js') }}"></script>
-    <script src="{{ asset('assets/libs/node-waves/waves.min.js') }}"></script>
-    <script src="{{ asset('assets/libs/feather-icons/feather.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins.js') }}"></script>
-    <script src="{{ asset('assets/js/app.js') }}"></script>
+    <script src="{{ vasset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ vasset('assets/libs/simplebar/simplebar.min.js') }}"></script>
+    <script src="{{ vasset('assets/libs/node-waves/waves.min.js') }}"></script>
+    <script src="{{ vasset('assets/libs/feather-icons/feather.min.js') }}"></script>
+    <script src="{{ vasset('assets/js/plugins.js') }}"></script>
+    <script src="{{ vasset('assets/js/app.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     @include('partials.datatables')
@@ -306,7 +306,7 @@
                 $(this).select2({
                     theme: 'bootstrap-5',
                     width: '100%',
-                    placeholder: $(this).data('placeholder') || 'Selectâ€¦',
+                    placeholder: $(this).data('placeholder') || 'Select…',
                     allowClear: true,
                 });
             });
