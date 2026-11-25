@@ -1,0 +1,21 @@
+@extends('layouts.admin')
+
+@section('title', 'Add Configuration Option')
+@section('page_title', 'Add Configuration Option')
+
+@section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{ route('admin.catalog-config-options.index') }}">Config Options</a></li>
+    <li class="breadcrumb-item active">Add</li>
+@endsection
+
+@section('content')
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    @include('admin.catalog-config-options._form')
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

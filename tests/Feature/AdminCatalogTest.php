@@ -151,6 +151,40 @@ class AdminCatalogTest extends TestCase
         $this->actingAs($admin)->get(route('admin.catalog-product-categories.index'))->assertOk()->assertSee('Sofa');
         $this->actingAs($admin)->get(route('admin.design-types.index'))->assertOk();
         $this->actingAs($admin)->get(route('admin.product-models.index'))->assertOk();
+
+        $this->seed(\Database\Seeders\CatalogConfigSeeder::class);
+        $this->actingAs($admin)->get(route('admin.catalog-config-options.index'))->assertOk()->assertSee('Configuration Options')->assertSee('Sheesham wood');
+        $this->actingAs($admin)->get(route('admin.product-colours.index'))->assertOk()->assertSee('Walnut');
+        $this->actingAs($admin)->get(route('admin.product-finishes.index'))->assertOk()->assertSee('Matte');
+        $this->actingAs($admin)->get(route('admin.product-upholsteries.index'))->assertOk()->assertSee('Velvet');
+    }
+
+    public function test_catalog_config_masters_drive_product_form_options(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        $this->seed(\Database\Seeders\CatalogMasterSeeder::class);
+        $this->seed(\Database\Seeders\CatalogConfigSeeder::class);
+
+        \App\Models\ProductColour::query()->create([
+            'name' => 'Copper blush',
+            'hex' => '#b87333',
+            'status' => \App\Models\ProductColour::STATUS_ACTIVE,
+            'sort_order' => 99,
+        ]);
+
+        \App\Models\CatalogConfigOption::query()->create([
+            'family_key' => 'seat',
+            'field_key' => 'frame-material',
+            'name' => 'Bamboo ply',
+            'status' => \App\Models\CatalogConfigOption::STATUS_ACTIVE,
+            'sort_order' => 99,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.products.create'))
+            ->assertOk()
+            ->assertSee('Copper blush')
+            ->assertSee('Bamboo ply');
     }
 
     public function test_product_rejects_an_invalid_catalog_path(): void

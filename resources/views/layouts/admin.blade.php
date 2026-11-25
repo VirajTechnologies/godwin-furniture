@@ -137,6 +137,10 @@
                                 'admin.catalog-product-categories.*',
                                 'admin.design-types.*',
                                 'admin.product-models.*',
+                                'admin.catalog-config-options.*',
+                                'admin.product-colours.*',
+                                'admin.product-finishes.*',
+                                'admin.product-upholsteries.*',
                                 'admin.products.*',
                             );
                         @endphp
@@ -163,6 +167,18 @@
                                     </li>
                                     <li class="nav-item">
                                         <a href="{{ route('admin.product-models.index') }}" class="nav-link {{ request()->routeIs('admin.product-models.*') ? 'active' : '' }}">Product Models</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.catalog-config-options.index') }}" class="nav-link {{ request()->routeIs('admin.catalog-config-options.*') ? 'active' : '' }}">Config Options</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.product-colours.index') }}" class="nav-link {{ request()->routeIs('admin.product-colours.*') ? 'active' : '' }}">Colours</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.product-finishes.index') }}" class="nav-link {{ request()->routeIs('admin.product-finishes.*') ? 'active' : '' }}">Finishes</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.product-upholsteries.index') }}" class="nav-link {{ request()->routeIs('admin.product-upholsteries.*') ? 'active' : '' }}">Upholstery</a>
                                     </li>
                                     <li class="nav-item">
                                         <a href="{{ route('admin.products.index') }}" class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
