@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Room')
-@section('page_title', 'Edit Room')
+@section('page_title', 'Masters')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.catalog-rooms.index') }}">Rooms</a></li>
@@ -9,6 +9,8 @@
 @endsection
 
 @section('content')
+    @include('admin.partials.masters-tabs')
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card">

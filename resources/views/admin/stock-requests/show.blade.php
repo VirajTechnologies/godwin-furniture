@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', $stockRequest->code)
-@section('page_title', $stockRequest->code)
+@section('page_title', 'Inventory')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.stock-requests.index') }}">Stock Requests</a></li>
@@ -9,6 +9,8 @@
 @endsection
 
 @section('content')
+    @include('admin.partials.inventory-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

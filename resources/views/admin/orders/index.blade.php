@@ -8,17 +8,20 @@
 @endsection
 
 @section('content')
+    @include('admin.partials.sales-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <h5 class="card-title mb-0">Sales</h5>
-                    <div class="btn-group btn-group-sm">
-                        <a href="{{ route('admin.orders.index') }}" class="btn {{ $channel === '' ? 'btn-primary' : 'btn-soft-primary' }}">All</a>
-                        <a href="{{ route('admin.orders.index', ['channel' => 'online']) }}" class="btn {{ $channel === 'online' ? 'btn-primary' : 'btn-soft-primary' }}">Online</a>
-                        <a href="{{ route('admin.orders.index', ['channel' => 'branch']) }}" class="btn {{ $channel === 'branch' ? 'btn-primary' : 'btn-soft-primary' }}">Branch</a>
-                        <a href="{{ route('admin.orders.index', ['channel' => 'agent']) }}" class="btn {{ $channel === 'agent' ? 'btn-primary' : 'btn-soft-primary' }}">Agent</a>
-                    </div>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        @switch($channel)
+                            @case('online') Online Sales @break
+                            @case('branch') Branch Sales @break
+                            @case('agent') Agent Sales @break
+                            @default Sales
+                        @endswitch
+                    </h5>
                 </div>
                 <div class="card-body">
                     @if ($orders->isEmpty())

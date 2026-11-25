@@ -1,13 +1,15 @@
 @extends('layouts.admin')
 
 @section('title', 'Rooms')
-@section('page_title', 'Rooms')
+@section('page_title', 'Masters')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Rooms</li>
 @endsection
 
 @section('content')
+    @include('admin.partials.masters-tabs')
+
     @php
         $hasFilters = $filters['q'] !== ''
             || $filters['status'] !== ''

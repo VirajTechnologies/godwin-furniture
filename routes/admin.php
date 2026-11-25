@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\CatalogConfigOptionController;
 use App\Http\Controllers\Admin\CatalogProductCategoryController;
 use App\Http\Controllers\Admin\CatalogRoomController;
 use App\Http\Controllers\Admin\CityController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DesignTypeController;
 use App\Http\Controllers\Admin\DistrictController;
@@ -96,6 +97,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('agents/{agent}/cashiers/{cashier}', [AgentController::class, 'updateCashier'])->name('agents.cashiers.update');
         Route::get('agents/{agent}/edit', [AgentController::class, 'edit'])->name('agents.edit');
         Route::put('agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
+
+        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 
         Route::get('business-groups', [BusinessGroupController::class, 'index'])->name('business-groups.index');
         Route::get('business-groups/create', [BusinessGroupController::class, 'create'])->name('business-groups.create');

@@ -28,6 +28,11 @@ class HomeController extends Controller
         ]);
     }
 
+    public function furnitureOnRent(): View
+    {
+        return view('store.furniture-on-rent');
+    }
+
     public function catalog(Request $request): View
     {
         $rooms = $this->navigationTree();

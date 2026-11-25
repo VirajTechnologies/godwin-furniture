@@ -1,13 +1,15 @@
 @extends('layouts.admin')
 
 @section('title', 'Cities')
-@section('page_title', 'Cities')
+@section('page_title', 'Masters')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Cities</li>
 @endsection
 
 @section('content')
+    @include('admin.partials.masters-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

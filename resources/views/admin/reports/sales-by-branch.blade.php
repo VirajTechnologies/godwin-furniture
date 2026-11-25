@@ -1,13 +1,15 @@
 @extends('layouts.admin')
 
 @section('title', 'Sales By Branch')
-@section('page_title', 'Sales By Branch')
+@section('page_title', 'Reports & Analytics')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Sales By Branch</li>
 @endsection
 
 @section('content')
+    @include('admin.partials.reports-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

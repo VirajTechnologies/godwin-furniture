@@ -1,13 +1,15 @@
 @extends('layouts.admin')
 
 @section('title', 'Warehouse Stock')
-@section('page_title', 'Warehouse Stock')
+@section('page_title', 'Inventory')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Warehouse Stock</li>
 @endsection
 
 @section('content')
+    @include('admin.partials.inventory-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

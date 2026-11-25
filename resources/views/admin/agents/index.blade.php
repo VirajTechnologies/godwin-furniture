@@ -1,13 +1,15 @@
 @extends('layouts.admin')
 
 @section('title', 'Agents')
-@section('page_title', 'Agents')
+@section('page_title', 'Registration')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Agents</li>
 @endsection
 
 @section('content')
+    @include('admin.partials.registration-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

@@ -93,44 +93,10 @@
                             </a>
                         </li>
                         @php
-                            $mastersOpen = request()->routeIs('admin.states.*', 'admin.districts.*', 'admin.cities.*', 'admin.warehouses.*', 'admin.branches.*');
-                        @endphp
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ $mastersOpen ? 'active' : '' }}" href="#sidebarMasters" data-bs-toggle="collapse" role="button" aria-expanded="{{ $mastersOpen ? 'true' : 'false' }}" aria-controls="sidebarMasters">
-                                <i class="ri-stack-line"></i> <span>Masters</span>
-                            </a>
-                            <div class="collapse menu-dropdown {{ $mastersOpen ? 'show' : '' }}" id="sidebarMasters">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.states.index') }}" class="nav-link {{ request()->routeIs('admin.states.*') ? 'active' : '' }}">States</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.districts.index') }}" class="nav-link {{ request()->routeIs('admin.districts.*') ? 'active' : '' }}">Districts</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.cities.index') }}" class="nav-link {{ request()->routeIs('admin.cities.*') ? 'active' : '' }}">Cities</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.warehouses.index') }}" class="nav-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">Warehouses</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.branches.index') }}" class="nav-link {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">Branches</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}" href="{{ route('admin.employees.index') }}">
-                                <i class="ri-team-line"></i> <span>Employees</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('admin.agents.*') ? 'active' : '' }}" href="{{ route('admin.agents.index') }}">
-                                <i class="ri-store-2-line"></i> <span>Agents</span>
-                            </a>
-                        </li>
-                        @php
-                            $catalogOpen = request()->routeIs(
+                            $mastersOpen = request()->routeIs(
+                                'admin.states.*',
+                                'admin.districts.*',
+                                'admin.cities.*',
                                 'admin.business-groups.*',
                                 'admin.project-categories.*',
                                 'admin.catalog-rooms.*',
@@ -141,74 +107,37 @@
                                 'admin.product-colours.*',
                                 'admin.product-finishes.*',
                                 'admin.product-upholsteries.*',
-                                'admin.products.*',
+                            );
+                            $registrationOpen = request()->routeIs(
+                                'admin.branches.*',
+                                'admin.warehouses.*',
+                                'admin.employees.*',
+                                'admin.agents.*',
+                                'admin.customers.*',
                             );
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $catalogOpen ? 'active' : '' }}" href="#sidebarCatalog" data-bs-toggle="collapse" role="button" aria-expanded="{{ $catalogOpen ? 'true' : 'false' }}" aria-controls="sidebarCatalog">
-                                <i class="ri-price-tag-3-line"></i> <span>Catalog</span>
+                            <a class="nav-link menu-link {{ $mastersOpen ? 'active' : '' }}" href="{{ route('admin.states.index') }}">
+                                <i class="ri-stack-line"></i> <span>Masters</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $catalogOpen ? 'show' : '' }}" id="sidebarCatalog">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.business-groups.index') }}" class="nav-link {{ request()->routeIs('admin.business-groups.*') ? 'active' : '' }}">Business Groups</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.project-categories.index') }}" class="nav-link {{ request()->routeIs('admin.project-categories.*') ? 'active' : '' }}">Projects</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.catalog-rooms.index') }}" class="nav-link {{ request()->routeIs('admin.catalog-rooms.*') ? 'active' : '' }}">Rooms</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.catalog-product-categories.index') }}" class="nav-link {{ request()->routeIs('admin.catalog-product-categories.*') ? 'active' : '' }}">Product Categories</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.design-types.index') }}" class="nav-link {{ request()->routeIs('admin.design-types.*') ? 'active' : '' }}">Design Types</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.product-models.index') }}" class="nav-link {{ request()->routeIs('admin.product-models.*') ? 'active' : '' }}">Product Models</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.catalog-config-options.index') }}" class="nav-link {{ request()->routeIs('admin.catalog-config-options.*') ? 'active' : '' }}">Config Options</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.product-colours.index') }}" class="nav-link {{ request()->routeIs('admin.product-colours.*') ? 'active' : '' }}">Colours</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.product-finishes.index') }}" class="nav-link {{ request()->routeIs('admin.product-finishes.*') ? 'active' : '' }}">Finishes</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.product-upholsteries.index') }}" class="nav-link {{ request()->routeIs('admin.product-upholsteries.*') ? 'active' : '' }}">Upholstery</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.products.index') }}" class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
-                                    </li>
-                                </ul>
-                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ $registrationOpen ? 'active' : '' }}" href="{{ route('admin.branches.index') }}">
+                                <i class="ri-user-add-line"></i> <span>Registration</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
+                                <i class="ri-price-tag-3-line"></i> <span>Products</span>
+                            </a>
                         </li>
                         @php
-                            $stockOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*', 'admin.stock-requests.*');
+                            $inventoryOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*', 'admin.stock-requests.*');
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $stockOpen ? 'active' : '' }}" href="#sidebarStock" data-bs-toggle="collapse" role="button" aria-expanded="{{ $stockOpen ? 'true' : 'false' }}" aria-controls="sidebarStock">
-                                <i class="ri-archive-line"></i> <span>Stock</span>
+                            <a class="nav-link menu-link {{ $inventoryOpen ? 'active' : '' }}" href="{{ route('admin.stocks.index') }}">
+                                <i class="ri-archive-line"></i> <span>Inventory</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $stockOpen ? 'show' : '' }}" id="sidebarStock">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.stocks.index') }}" class="nav-link {{ request()->routeIs('admin.stocks.*') ? 'active' : '' }}">Warehouse Stock</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.branch-stocks.index') }}" class="nav-link {{ request()->routeIs('admin.branch-stocks.*') ? 'active' : '' }}">Branch Stock</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.transfers.index') }}" class="nav-link {{ request()->routeIs('admin.transfers.*') ? 'active' : '' }}">Transfers</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.stock-requests.index') }}" class="nav-link {{ request()->routeIs('admin.stock-requests.*') ? 'active' : '' }}">Stock Requests</a>
-                                    </li>
-                                </ul>
-                            </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
@@ -219,28 +148,9 @@
                             $reportsOpen = request()->routeIs('admin.reports.*');
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}" aria-controls="sidebarReports">
-                                <i class="ri-bar-chart-2-line"></i> <span>Reports</span>
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="{{ route('admin.reports.sales-by-branch') }}">
+                                <i class="ri-bar-chart-2-line"></i> <span>Reports &amp; Analytics</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $reportsOpen ? 'show' : '' }}" id="sidebarReports">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.sales-by-branch') }}" class="nav-link {{ request()->routeIs('admin.reports.sales-by-branch') ? 'active' : '' }}">Sales By Branch</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.sales-by-product') }}" class="nav-link {{ request()->routeIs('admin.reports.sales-by-product') ? 'active' : '' }}">Sales By Product</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.stock') }}" class="nav-link {{ request()->routeIs('admin.reports.stock') ? 'active' : '' }}">Stock On Hand</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.transfers') }}" class="nav-link {{ request()->routeIs('admin.reports.transfers') ? 'active' : '' }}">Transfers</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('admin.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
-                                    </li>
-                                </ul>
-                            </div>
                         </li>
                     </ul>
                 </div>
