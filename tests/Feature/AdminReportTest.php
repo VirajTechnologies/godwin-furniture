@@ -56,6 +56,52 @@ class AdminReportTest extends TestCase
             ->assertSee('R00004');
     }
 
+    public function test_overview_shows_reference_style_sections(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$branch, $product, $warehouse] = $this->showroom();
+
+        $this->sale($branch, $product, 45000, now());
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.overview', [
+                'from' => now()->toDateString(),
+                'to' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Branch-wise')
+            ->assertSee('Warehouse-wise')
+            ->assertSee('Product-wise')
+            ->assertSee('Vijayawada Showroom')
+            ->assertSee('Main Warehouse')
+            ->assertSee('Three Seater Sofa')
+            ->assertSee('45,000.00')
+            ->assertSee('Download CSV');
+    }
+
+    public function test_overview_csv_download_is_available(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$branch, $product] = $this->showroom();
+        $this->sale($branch, $product, 45000, now());
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.reports.export', [
+                'from' => now()->toDateString(),
+                'to' => now()->toDateString(),
+            ]));
+
+        $response->assertOk()
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+        $csv = $response->streamedContent();
+        $this->assertStringContainsString('Branch-wise', $csv);
+        $this->assertStringContainsString('Warehouse-wise', $csv);
+        $this->assertStringContainsString('Product-wise', $csv);
+        $this->assertStringContainsString('Vijayawada Showroom', $csv);
+        $this->assertStringContainsString('Three Seater Sofa', $csv);
+    }
+
     public function test_sales_by_branch_uses_the_selected_dates(): void
     {
         $admin = User::factory()->superAdmin()->create();

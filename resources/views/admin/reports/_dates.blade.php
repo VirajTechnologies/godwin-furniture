@@ -1,4 +1,4 @@
-<form method="GET" class="row g-3 align-items-end mb-4">
+<form method="GET" action="{{ url()->current() }}" class="row g-3 align-items-end mb-4">
     <div class="col-md-3">
         <label for="from" class="form-label">From</label>
         <input type="date" class="form-control" id="from" name="from" value="{{ $from }}">

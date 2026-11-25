@@ -1,6 +1,11 @@
 @php
     $reportsTabs = [
         [
+            'label' => 'Overview',
+            'url' => route('admin.reports.overview', request()->only(['from', 'to'])),
+            'active' => request()->routeIs('admin.reports.overview', 'admin.reports.export'),
+        ],
+        [
             'label' => 'Sales By Branch',
             'url' => route('admin.reports.sales-by-branch'),
             'active' => request()->routeIs('admin.reports.sales-by-branch'),

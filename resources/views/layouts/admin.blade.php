@@ -148,7 +148,7 @@
                             $reportsOpen = request()->routeIs('admin.reports.*');
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="{{ route('admin.reports.sales-by-branch') }}">
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="{{ route('admin.reports.overview') }}">
                                 <i class="ri-bar-chart-2-line"></i> <span>Reports &amp; Analytics</span>
                             </a>
                         </li>

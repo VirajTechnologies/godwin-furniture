@@ -39,6 +39,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::get('reports', [ReportController::class, 'overview'])->name('reports.overview');
+        Route::get('reports/export', [ReportController::class, 'exportOverview'])->name('reports.export');
         Route::get('reports/sales-by-branch', [ReportController::class, 'salesByBranch'])->name('reports.sales-by-branch');
         Route::get('reports/sales-by-product', [ReportController::class, 'salesByProduct'])->name('reports.sales-by-product');
         Route::get('reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
