@@ -45,9 +45,9 @@
         <div class="col-md-8">
             <div class="form-check mt-4">
                 <input type="checkbox" class="form-check-input" id="show_on_store" name="show_on_store" value="1" @checked(old('show_on_store', $catalogRoom->show_on_store ?? true))>
-                <label class="form-check-label" for="show_on_store">Show on ecommerce store</label>
+                <label class="form-check-label" for="show_on_store">Show on ecommerce storefront</label>
             </div>
-            <div class="form-text">Uncheck for admin-only rooms (e.g. Kids Room) that should not appear in the store menu.</div>
+            <div class="form-text">Turn off for items available only in admin, branch, and agent (e.g. Kids Room).</div>
         </div>
         @include('admin.partials.record-status', ['statusId' => 'catalog_room_record_status', 'record' => $catalogRoom])
     </div>

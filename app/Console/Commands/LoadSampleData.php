@@ -707,7 +707,7 @@ class LoadSampleData extends Command
                 ->whereHas('projectCategory', fn ($q) => $q->where('name', $project))
                 ->first();
 
-            // Skip admin-only rooms (Kids / Study / Entryway) from ecommerce sample products.
+            // Skip internal-only rooms (Kids / Study / Entryway) from ecommerce sample products.
             if ($catalogRoom && ! $catalogRoom->show_on_store) {
                 continue;
             }

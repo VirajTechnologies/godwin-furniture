@@ -146,8 +146,8 @@ class AdminCatalogTest extends TestCase
             ->assertOk()
             ->assertSee('Furniture')
             ->assertSee('Interiors')
-            ->assertSee('Admin only');
-        $this->actingAs($admin)->get(route('admin.catalog-rooms.index'))->assertOk()->assertSee('Living Room')->assertSee('Kids Room')->assertSee('Admin only');
+            ->assertSee('Internal');
+        $this->actingAs($admin)->get(route('admin.catalog-rooms.index'))->assertOk()->assertSee('Living Room')->assertSee('Kids Room')->assertSee('Internal');
         $this->actingAs($admin)->get(route('admin.catalog-product-categories.index'))->assertOk()->assertSee('Sofa');
         $this->actingAs($admin)->get(route('admin.design-types.index'))->assertOk();
         $this->actingAs($admin)->get(route('admin.product-models.index'))->assertOk();

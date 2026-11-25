@@ -26,12 +26,12 @@
                 <div class="card-body">
                     <form method="GET" action="{{ route('admin.product-models.index') }}" class="row g-2 mb-4">
                         <div class="col-md-4">
-                            <label for="q" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="q" name="q" value="{{ $filters['q'] }}" placeholder="Name">
+                            <label for="product_model_filter_q" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="product_model_filter_q" name="q" value="{{ $filters['q'] }}" placeholder="Name">
                         </div>
                         <div class="col-md-3">
-                            <label for="catalog_product_category_id" class="form-label">Product Category</label>
-                            <select class="form-select" id="catalog_product_category_id" name="catalog_product_category_id">
+                            <label for="product_model_filter_product_category" class="form-label">Product Category</label>
+                            <select class="form-select" id="product_model_filter_product_category" name="catalog_product_category_id">
                                 <option value="" @selected($filters['catalog_product_category_id'] === '')>All</option>
                                 @foreach ($filterProductCategories as $category)
                                     <option value="{{ $category->id }}" @selected((string) $filters['catalog_product_category_id'] === (string) $category->id)>
@@ -41,8 +41,8 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
+                            <label for="product_model_filter_status" class="form-label">Status</label>
+                            <select class="form-select" id="product_model_filter_status" name="status">
                                 <option value="" @selected($filters['status'] === '')>All</option>
                                 <option value="active" @selected($filters['status'] === 'active')>Active</option>
                                 <option value="inactive" @selected($filters['status'] === 'inactive')>Inactive</option>

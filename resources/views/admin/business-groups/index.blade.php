@@ -24,12 +24,12 @@
                 <div class="card-body">
                     <form method="GET" action="{{ route('admin.business-groups.index') }}" class="row g-2 mb-4">
                         <div class="col-md-4">
-                            <label for="q" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="q" name="q" value="{{ $filters['q'] }}" placeholder="Name">
+                            <label for="business_group_filter_q" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="business_group_filter_q" name="q" value="{{ $filters['q'] }}" placeholder="Name">
                         </div>
                         <div class="col-md-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
+                            <label for="business_group_filter_status" class="form-label">Status</label>
+                            <select class="form-select" id="business_group_filter_status" name="status">
                                 <option value="" @selected($filters['status'] === '')>All</option>
                                 <option value="active" @selected($filters['status'] === 'active')>Active</option>
                                 <option value="inactive" @selected($filters['status'] === 'inactive')>Inactive</option>

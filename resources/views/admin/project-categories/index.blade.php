@@ -27,12 +27,12 @@
                 <div class="card-body">
                     <form method="GET" action="{{ route('admin.project-categories.index') }}" class="row g-2 mb-4">
                         <div class="col-md-3">
-                            <label for="q" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="q" name="q" value="{{ $filters['q'] }}" placeholder="Name">
+                            <label for="project_category_filter_q" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="project_category_filter_q" name="q" value="{{ $filters['q'] }}" placeholder="Name">
                         </div>
                         <div class="col-md-3">
-                            <label for="business_group_id" class="form-label">Business Group</label>
-                            <select class="form-select" id="business_group_id" name="business_group_id">
+                            <label for="project_category_filter_business_group" class="form-label">Business Group</label>
+                            <select class="form-select" id="project_category_filter_business_group" name="business_group_id">
                                 <option value="" @selected($filters['business_group_id'] === '')>All</option>
                                 @foreach ($filterBusinessGroups as $group)
                                     <option value="{{ $group->id }}" @selected((string) $filters['business_group_id'] === (string) $group->id)>{{ $group->name }}</option>
@@ -40,16 +40,16 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="show_on_store" class="form-label">Store</label>
-                            <select class="form-select" id="show_on_store" name="show_on_store">
+                            <label for="project_category_filter_store" class="form-label">Store</label>
+                            <select class="form-select" id="project_category_filter_store" name="show_on_store">
                                 <option value="" @selected($filters['show_on_store'] === '')>All</option>
-                                <option value="1" @selected($filters['show_on_store'] === '1')>Ecommerce</option>
-                                <option value="0" @selected($filters['show_on_store'] === '0')>Admin only</option>
+                                <option value="1" @selected($filters['show_on_store'] === '1')>Online</option>
+                                <option value="0" @selected($filters['show_on_store'] === '0')>Internal</option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
+                            <label for="project_category_filter_status" class="form-label">Status</label>
+                            <select class="form-select" id="project_category_filter_status" name="status">
                                 <option value="" @selected($filters['status'] === '')>All</option>
                                 <option value="active" @selected($filters['status'] === 'active')>Active</option>
                                 <option value="inactive" @selected($filters['status'] === 'inactive')>Inactive</option>
@@ -96,9 +96,9 @@
                                             <td class="fw-medium">{{ $projectCategory->name }}</td>
                                             <td>
                                                 @if ($projectCategory->show_on_store)
-                                                    <span class="badge bg-success-subtle text-success">Ecommerce</span>
+                                                    <span class="badge bg-success-subtle text-success">Online</span>
                                                 @else
-                                                    <span class="badge bg-secondary-subtle text-secondary">Admin only</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary">Internal</span>
                                                 @endif
                                             </td>
                                             <td class="text-end">{{ $projectCategory->sort_order }}</td>

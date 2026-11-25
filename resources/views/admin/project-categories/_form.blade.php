@@ -38,9 +38,9 @@
         <div class="col-md-8">
             <div class="form-check mt-4">
                 <input type="checkbox" class="form-check-input" id="show_on_store" name="show_on_store" value="1" @checked(old('show_on_store', $projectCategory->show_on_store ?? true))>
-                <label class="form-check-label" for="show_on_store">Show on ecommerce store</label>
+                <label class="form-check-label" for="show_on_store">Show on ecommerce storefront</label>
             </div>
-            <div class="form-text">Uncheck for admin-only projects (e.g. Interiors).</div>
+            <div class="form-text">Turn off for items available only in admin, branch, and agent (e.g. Interiors).</div>
         </div>
         @include('admin.partials.record-status', ['statusId' => 'project_category_record_status', 'record' => $projectCategory])
     </div>

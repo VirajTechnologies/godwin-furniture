@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 
 class CatalogMasterSeeder extends Seeder
 {
-    /** Admin-only rooms: seeded for Add Product, hidden on the storefront. */
+    /** Internal-only Furniture rooms: seeded for Add Product / branch / agent, hidden on the storefront. */
     private array $adminOnlyRooms = ['Kids Room', 'Study Room', 'Entryway'];
 
     public function run(): void
@@ -33,7 +33,7 @@ class CatalogMasterSeeder extends Seeder
                 ['business_group_id' => $group->id, 'name' => $projectName],
                 [
                     'status' => ProjectCategory::STATUS_ACTIVE,
-                    // Interiors is admin/Add Product only for now — not on the ecommerce store.
+                    // Interiors is internal-only for now — not on the ecommerce storefront.
                     'show_on_store' => $projectName !== 'Interiors',
                     'sort_order' => $projectSort++,
                 ],
@@ -47,7 +47,7 @@ class CatalogMasterSeeder extends Seeder
                     [
                         'slug' => Str::slug($roomName),
                         'status' => CatalogRoom::STATUS_ACTIVE,
-                        // Entire Interiors tree is admin-only; Furniture hides Kids/Study/Entryway.
+                        // Entire Interiors tree is internal-only; Furniture hides Kids/Study/Entryway.
                         'show_on_store' => $projectName !== 'Interiors'
                             && ! in_array($roomName, $this->adminOnlyRooms, true),
                         'sort_order' => $roomSort++,
