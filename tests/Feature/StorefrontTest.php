@@ -18,11 +18,16 @@ class StorefrontTest extends TestCase
 
         $this->get(route('store.catalog'))
             ->assertOk()
-            ->assertSee('Furniture Catalog');
+            ->assertSee('All Products');
+
+        $this->get(route('store.furniture-on-rent'))
+            ->assertOk()
+            ->assertSee('Coming Soon')
+            ->assertSee('Furniture on Rent');
 
         $this->get(route('store.cart'))
             ->assertOk()
-            ->assertSee('Your Shopping Bag');
+            ->assertSee('Your cart is empty');
 
         $this->get(route('store.login'))
             ->assertOk()

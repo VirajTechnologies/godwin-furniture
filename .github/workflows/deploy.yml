@@ -69,6 +69,7 @@ jobs:
           $SSH_CMD "$SSH_USER@$SSH_HOST" "chmod -R ug+rwx '$DEPLOY_PATH/storage' '$DEPLOY_PATH/bootstrap/cache'"
           $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan migrate --force"
           $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan db:seed --force"
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan optimize:clear"
           $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan config:cache"
           $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan route:cache"
           $SSH_CMD "$SSH_USER@$SSH_HOST" "cd '$DEPLOY_PATH' && php artisan view:cache"

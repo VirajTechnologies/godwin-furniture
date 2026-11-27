@@ -72,53 +72,27 @@ class AdminCatalogTest extends TestCase
         $this->assertSame(2, ProductVariant::query()->where('product_id', Product::query()->where('code', 'SF001')->value('id'))->count());
     }
 
-    public function test_admin_can_create_a_subcategory_with_an_existing_menu_group(): void
+    public function test_admin_can_create_a_catalog_product_category(): void
     {
         $admin = User::factory()->superAdmin()->create();
-        $existing = $this->subcategory();
+        $this->seed(\Database\Seeders\CatalogMasterSeeder::class);
 
-        $this->actingAs($admin)->post(route('admin.categories.store'), [
-            'parent_id' => $existing->parent_id,
+        $room = \App\Models\CatalogRoom::query()->where('name', 'Living Room')->firstOrFail();
+
+        $this->actingAs($admin)->post(route('admin.catalog-product-categories.store'), [
+            'catalog_room_id' => $room->id,
             'name' => 'L-Shaped Sofas',
-            'menu_group_choice' => 'Sofas & Seating',
             'sort_order' => 2,
             'status' => 'active',
-        ])->assertRedirect(route('admin.categories.index'));
+        ])->assertRedirect(route('admin.catalog-product-categories.index'));
 
-        $this->assertDatabaseHas('categories', [
-            'parent_id' => $existing->parent_id,
+        $this->assertDatabaseHas('catalog_product_categories', [
+            'catalog_room_id' => $room->id,
             'name' => 'L-Shaped Sofas',
-            'menu_group' => 'Sofas & Seating',
         ]);
     }
 
-    public function test_admin_can_create_a_subcategory_with_a_new_menu_group(): void
-    {
-        $admin = User::factory()->superAdmin()->create();
-        $room = Category::query()->create([
-            'name' => 'Living Room',
-            'slug' => 'living-room-'.uniqid(),
-            'status' => 'active',
-            'sort_order' => 1,
-        ]);
-
-        $this->actingAs($admin)->post(route('admin.categories.store'), [
-            'parent_id' => $room->id,
-            'name' => 'Coffee Tables',
-            'menu_group_choice' => '__new__',
-            'menu_group' => 'Tables & Storage',
-            'sort_order' => 1,
-            'status' => 'active',
-        ])->assertRedirect(route('admin.categories.index'));
-
-        $this->assertDatabaseHas('categories', [
-            'parent_id' => $room->id,
-            'name' => 'Coffee Tables',
-            'menu_group' => 'Tables & Storage',
-        ]);
-    }
-
-    public function test_menu_groups_appear_alphabetically_with_subcategories_by_sort_order(): void
+    public function test_store_menu_lists_subcategories_by_sort_order(): void
     {
         $project = Category::query()->create([
             'name' => 'Furniture',
@@ -138,7 +112,6 @@ class AdminCatalogTest extends TestCase
             'parent_id' => $room->id,
             'name' => 'Zebra Tables',
             'slug' => 'zebra-tables-'.uniqid(),
-            'menu_group' => 'Tables & Storage',
             'status' => 'active',
             'sort_order' => 2,
         ]);
@@ -147,89 +120,71 @@ class AdminCatalogTest extends TestCase
             'parent_id' => $room->id,
             'name' => 'Alpha Tables',
             'slug' => 'alpha-tables-'.uniqid(),
-            'menu_group' => 'Tables & Storage',
-            'status' => 'active',
-            'sort_order' => 1,
-        ]);
-
-        Category::query()->create([
-            'parent_id' => $room->id,
-            'name' => '3 Seater Sofas',
-            'slug' => '3-seater-sofas-'.uniqid(),
-            'menu_group' => 'Sofas & Seating',
             'status' => 'active',
             'sort_order' => 1,
         ]);
 
         $html = $this->get(route('store.home'))->assertOk()->getContent();
-        $sofasPos = strpos($html, 'Sofas &amp; Seating');
-        $tablesPos = strpos($html, 'Tables &amp; Storage');
         $alphaPos = strpos($html, 'Alpha Tables');
         $zebraPos = strpos($html, 'Zebra Tables');
 
-        $this->assertNotFalse($sofasPos);
-        $this->assertNotFalse($tablesPos);
-        $this->assertLessThan($tablesPos, $sofasPos);
         $this->assertNotFalse($alphaPos);
         $this->assertNotFalse($zebraPos);
         $this->assertLessThan($zebraPos, $alphaPos);
+        $this->assertStringNotContainsString('Sofas &amp; Seating', $html);
+        $this->assertStringNotContainsString('Tables &amp; Storage', $html);
     }
 
-    public function test_a_room_does_not_keep_a_menu_group(): void
+    public function test_catalog_master_indexes_are_reachable(): void
     {
         $admin = User::factory()->superAdmin()->create();
+        $this->seed(\Database\Seeders\CatalogMasterSeeder::class);
 
-        $this->actingAs($admin)->post(route('admin.categories.store'), [
-            'parent_id' => '',
-            'name' => 'Dining Room',
-            'menu_group_choice' => '__new__',
-            'menu_group' => 'Should Be Cleared',
-            'status' => 'active',
-        ])->assertRedirect(route('admin.categories.index'));
+        $this->actingAs($admin)->get(route('admin.business-groups.index'))->assertOk()->assertSee('Business Groups');
+        $this->actingAs($admin)
+            ->get(route('admin.project-categories.index'))
+            ->assertOk()
+            ->assertSee('Furniture')
+            ->assertSee('Interiors')
+            ->assertSee('Internal');
+        $this->actingAs($admin)->get(route('admin.catalog-rooms.index'))->assertOk()->assertSee('Living Room')->assertSee('Kids Room')->assertSee('Internal');
+        $this->actingAs($admin)->get(route('admin.catalog-product-categories.index'))->assertOk()->assertSee('Sofa');
+        $this->actingAs($admin)->get(route('admin.design-types.index'))->assertOk();
+        $this->actingAs($admin)->get(route('admin.product-models.index'))->assertOk();
 
-        $this->assertDatabaseHas('categories', [
-            'name' => 'Dining Room',
-            'parent_id' => null,
-            'menu_group' => null,
-        ]);
+        $this->seed(\Database\Seeders\CatalogConfigSeeder::class);
+        $this->actingAs($admin)->get(route('admin.catalog-config-options.index'))->assertOk()->assertSee('Configuration Options')->assertSee('Sheesham wood');
+        $this->actingAs($admin)->get(route('admin.product-colours.index'))->assertOk()->assertSee('Walnut');
+        $this->actingAs($admin)->get(route('admin.product-finishes.index'))->assertOk()->assertSee('Matte');
+        $this->actingAs($admin)->get(route('admin.product-upholsteries.index'))->assertOk()->assertSee('Velvet');
     }
 
-    public function test_categories_index_shows_a_room_tree_with_filters(): void
+    public function test_catalog_config_masters_drive_product_form_options(): void
     {
         $admin = User::factory()->superAdmin()->create();
-        $sofas = $this->subcategory();
-        $room = $sofas->parent;
+        $this->seed(\Database\Seeders\CatalogMasterSeeder::class);
+        $this->seed(\Database\Seeders\CatalogConfigSeeder::class);
 
-        Category::query()->create([
-            'parent_id' => $room->id,
-            'name' => 'Coffee Tables',
-            'slug' => 'coffee-tables-'.uniqid(),
-            'menu_group' => 'Tables & Storage',
-            'status' => 'active',
-            'sort_order' => 2,
+        \App\Models\ProductColour::query()->create([
+            'name' => 'Copper blush',
+            'hex' => '#b87333',
+            'status' => \App\Models\ProductColour::STATUS_ACTIVE,
+            'sort_order' => 99,
+        ]);
+
+        \App\Models\CatalogConfigOption::query()->create([
+            'family_key' => 'seat',
+            'field_key' => 'frame-material',
+            'name' => 'Bamboo ply',
+            'status' => \App\Models\CatalogConfigOption::STATUS_ACTIVE,
+            'sort_order' => 99,
         ]);
 
         $this->actingAs($admin)
-            ->get(route('admin.categories.index'))
+            ->get(route('admin.products.create'))
             ->assertOk()
-            ->assertSee('Living Room')
-            ->assertSee('3 Seater Sofas')
-            ->assertSee('Sofas & Seating')
-            ->assertSee('Coffee Tables')
-            ->assertSee('Category')
-            ->assertSee('Add Subcategory');
-
-        $this->actingAs($admin)
-            ->get(route('admin.categories.index', ['q' => 'Coffee']))
-            ->assertOk()
-            ->assertSee('Coffee Tables')
-            ->assertDontSee('3 Seater Sofas');
-
-        $this->actingAs($admin)
-            ->get(route('admin.categories.index', ['type' => 'room']))
-            ->assertOk()
-            ->assertSee('Living Room')
-            ->assertDontSee('Coffee Tables');
+            ->assertSee('Copper blush')
+            ->assertSee('Bamboo ply');
     }
 
     public function test_product_rejects_an_invalid_catalog_path(): void
@@ -439,21 +394,16 @@ class AdminCatalogTest extends TestCase
             ->assertDontSee($bed->name);
     }
 
-    public function test_add_subcategory_link_preselects_the_room(): void
+    public function test_catalog_room_create_form_lists_projects(): void
     {
         $admin = User::factory()->superAdmin()->create();
-        $room = Category::query()->create([
-            'name' => 'Bedroom',
-            'slug' => 'bedroom-'.uniqid(),
-            'status' => 'active',
-            'sort_order' => 1,
-        ]);
+        $this->seed(\Database\Seeders\CatalogMasterSeeder::class);
 
         $this->actingAs($admin)
-            ->get(route('admin.categories.create', ['parent_id' => $room->id]))
+            ->get(route('admin.catalog-rooms.create'))
             ->assertOk()
-            ->assertSee('selected', false)
-            ->assertSee((string) $room->id);
+            ->assertSee('Project')
+            ->assertSee('Furniture');
     }
 
     private function product(): Product

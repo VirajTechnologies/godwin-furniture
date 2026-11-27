@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', $order->code)
-@section('page_title', $order->code)
+@section('page_title', 'Sales')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.orders.index') }}">Sales</a></li>
@@ -9,6 +9,8 @@
 @endsection
 
 @section('content')
+    @include('admin.partials.sales-tabs')
+
     @include('admin.orders._timeline')
     @include('branch.sales._receipt')
 

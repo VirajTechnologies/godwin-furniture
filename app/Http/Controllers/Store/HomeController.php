@@ -19,14 +19,18 @@ class HomeController extends Controller
     {
         $online = Product::query()
             ->with(['images', 'category.parent', 'activeVariants.images'])
-            ->where('is_online', true)
-            ->where('status', Product::STATUS_ACTIVE);
+            ->visibleOnStore();
 
         return view('store.home', [
             'featuredProducts' => (clone $online)->where('is_featured', true)->orderBy('name')->limit(8)->get(),
             'newProducts' => (clone $online)->orderByDesc('id')->limit(8)->get(),
             'rooms' => $this->navigationTree(),
         ]);
+    }
+
+    public function furnitureOnRent(): View
+    {
+        return view('store.furniture-on-rent');
     }
 
     public function catalog(Request $request): View
@@ -53,8 +57,7 @@ class HomeController extends Controller
             ->with(['images', 'category.parent', 'activeVariants.images'])
             ->select('products.*')
             ->selectSub($this->lowestVariantPrice(), 'from_price')
-            ->where('is_online', true)
-            ->where('status', Product::STATUS_ACTIVE);
+            ->visibleOnStore();
 
         if ($request->filled('q')) {
             $term = '%'.$request->string('q')->toString().'%';
@@ -141,14 +144,12 @@ class HomeController extends Controller
         $product = Product::query()
             ->with(['images', 'category.parent', 'activeVariants.images'])
             ->where('slug', $slug)
-            ->where('is_online', true)
-            ->where('status', Product::STATUS_ACTIVE)
+            ->visibleOnStore()
             ->firstOrFail();
 
         $related = Product::query()
             ->with(['images', 'activeVariants.images'])
-            ->where('is_online', true)
-            ->where('status', Product::STATUS_ACTIVE)
+            ->visibleOnStore()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->orderByDesc('is_featured')
@@ -241,9 +242,7 @@ class HomeController extends Controller
     {
         $onlineVariants = ProductVariant::query()
             ->where('status', ProductVariant::STATUS_ACTIVE)
-            ->whereHas('product', fn ($products) => $products
-                ->where('is_online', true)
-                ->where('status', Product::STATUS_ACTIVE));
+            ->whereHas('product', fn ($products) => $products->visibleOnStore());
 
         return [
             'colours' => (clone $onlineVariants)
@@ -262,8 +261,7 @@ class HomeController extends Controller
                 ->orderBy('upholstery')
                 ->pluck('upholstery'),
             'materials' => Product::query()
-                ->where('is_online', true)
-                ->where('status', Product::STATUS_ACTIVE)
+                ->visibleOnStore()
                 ->whereNotNull('material')
                 ->where('material', '!=', '')
                 ->distinct()
@@ -299,7 +297,6 @@ class HomeController extends Controller
         return Category::query()
             ->with(['children' => fn ($query) => $query
                 ->where('status', Category::STATUS_ACTIVE)
-                ->orderBy('menu_group')
                 ->orderBy('sort_order')
                 ->orderBy('name')])
             ->whereNotNull('parent_id')

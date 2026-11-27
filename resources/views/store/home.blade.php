@@ -489,7 +489,7 @@
             <div class="gw-banner-tx">
                 <h2>Furniture that fits your space. And your stay.</h2>
                 <p>Flexible furniture rental solutions for homes, offices, events and commercial spaces.</p>
-                <a class="gw-btn" href="{{ route('store.catalog') }}">Explore furniture on rent</a>
+                <a class="gw-btn" href="{{ route('store.furniture-on-rent') }}">Coming Soon</a>
             </div>
             <div class="gw-banner-media">
                 <img src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&q=80&w=1200" alt="Furniture on rent" loading="lazy">

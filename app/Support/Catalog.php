@@ -2,11 +2,20 @@
 
 namespace App\Support;
 
+use App\Models\CatalogConfigOption;
+use App\Models\CatalogProductCategory;
 use App\Models\Category;
+use App\Models\DesignType;
+use App\Models\ProductColour;
+use App\Models\ProductFinish;
+use App\Models\ProductModel;
+use App\Models\ProductUpholstery;
+use App\Models\ProjectCategory;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
- * Product Manager taxonomy helpers backed by config/catalog.php.
+ * Product Manager taxonomy helpers — prefers catalog master tables, falls back to config.
  */
 class Catalog
 {
@@ -15,7 +24,28 @@ class Catalog
      */
     public static function tree(): array
     {
-        return config('catalog.tree', []);
+        if (! self::mastersReady()) {
+            return config('catalog.tree', []);
+        }
+
+        $tree = [];
+
+        ProjectCategory::query()
+            ->where('status', ProjectCategory::STATUS_ACTIVE)
+            ->with(['rooms' => fn ($q) => $q
+                ->where('status', \App\Models\CatalogRoom::STATUS_ACTIVE)
+                ->with(['productCategories' => fn ($c) => $c->where('status', CatalogProductCategory::STATUS_ACTIVE)])])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->each(function (ProjectCategory $project) use (&$tree): void {
+                $tree[$project->name] = [];
+                foreach ($project->rooms as $room) {
+                    $tree[$project->name][$room->name] = $room->productCategories->pluck('name')->all();
+                }
+            });
+
+        return $tree !== [] ? $tree : config('catalog.tree', []);
     }
 
     /**
@@ -52,6 +82,35 @@ class Catalog
      */
     public static function typesFor(string $category): array
     {
+        if (self::mastersReady()) {
+            $leaf = CatalogProductCategory::query()
+                ->where('name', $category)
+                ->where('status', CatalogProductCategory::STATUS_ACTIVE)
+                ->first();
+
+            if ($leaf) {
+                $types = DesignType::query()
+                    ->where('catalog_product_category_id', $leaf->id)
+                    ->where('status', DesignType::STATUS_ACTIVE)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name')
+                    ->all();
+
+                if ($types !== []) {
+                    return $types;
+                }
+            }
+        }
+
+        return self::typesForFromConfig($category);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function typesForFromConfig(string $category): array
+    {
         foreach (config('catalog.types', []) as $row) {
             if (preg_match($row['pattern'], $category) === 1) {
                 return $row['types'];
@@ -62,11 +121,38 @@ class Catalog
     }
 
     /**
-     * Suggested model names for a product category (same scheme as the client demo).
-     *
      * @return list<string>
      */
     public static function modelsFor(string $category): array
+    {
+        if (self::mastersReady()) {
+            $leaf = CatalogProductCategory::query()
+                ->where('name', $category)
+                ->where('status', CatalogProductCategory::STATUS_ACTIVE)
+                ->first();
+
+            if ($leaf) {
+                $models = ProductModel::query()
+                    ->where('catalog_product_category_id', $leaf->id)
+                    ->where('status', ProductModel::STATUS_ACTIVE)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name')
+                    ->all();
+
+                if ($models !== []) {
+                    return $models;
+                }
+            }
+        }
+
+        return self::modelsForFromConfig($category);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function modelsForFromConfig(string $category): array
     {
         $names = config('catalog.model_names', []);
 
@@ -105,7 +191,73 @@ class Catalog
      */
     public static function familyConfig(string $family): array
     {
-        return config('catalog.families.'.$family) ?? config('catalog.families.'.config('catalog.default_family', 'store'));
+        $config = config('catalog.families.'.$family) ?? config('catalog.families.'.config('catalog.default_family', 'store'));
+        $config = is_array($config) ? $config : ['label' => $family, 'fields' => []];
+
+        if (! self::configMastersReady()) {
+            return $config;
+        }
+
+        $fields = [];
+        foreach ($config['fields'] ?? [] as $field) {
+            if (($field['type'] ?? 'n') === 's') {
+                $fieldKey = self::fieldKeyFromLabel((string) ($field['label'] ?? ''));
+                $options = CatalogConfigOption::query()
+                    ->where('family_key', $family)
+                    ->where('field_key', $fieldKey)
+                    ->where('status', CatalogConfigOption::STATUS_ACTIVE)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name')
+                    ->all();
+
+                if ($options !== []) {
+                    $field['options'] = $options;
+                }
+            }
+            $fields[] = $field;
+        }
+
+        $config['fields'] = $fields;
+
+        return $config;
+    }
+
+    public static function fieldKeyFromLabel(string $label): string
+    {
+        return Str::slug($label);
+    }
+
+    /**
+     * Select fields for one family: field_key => label.
+     *
+     * @return array<string, string>
+     */
+    public static function selectFieldsForFamily(string $family): array
+    {
+        $fields = [];
+        foreach (config('catalog.families.'.$family.'.fields', []) as $field) {
+            if (($field['type'] ?? 'n') !== 's') {
+                continue;
+            }
+            $label = (string) ($field['label'] ?? '');
+            $fields[self::fieldKeyFromLabel($label)] = $label;
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    public static function selectFieldsByFamily(): array
+    {
+        $map = [];
+        foreach (array_keys(config('catalog.families', [])) as $family) {
+            $map[$family] = self::selectFieldsForFamily($family);
+        }
+
+        return $map;
     }
 
     public static function usesUpholstery(?string $family): bool
@@ -118,6 +270,19 @@ class Catalog
      */
     public static function colours(): array
     {
+        if (self::configMastersReady()) {
+            $rows = ProductColour::query()
+                ->where('status', ProductColour::STATUS_ACTIVE)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->pluck('hex', 'name')
+                ->all();
+
+            if ($rows !== []) {
+                return $rows;
+            }
+        }
+
         return config('catalog.colours', []);
     }
 
@@ -131,6 +296,19 @@ class Catalog
      */
     public static function finishes(): array
     {
+        if (self::configMastersReady()) {
+            $rows = ProductFinish::query()
+                ->where('status', ProductFinish::STATUS_ACTIVE)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->pluck('name')
+                ->all();
+
+            if ($rows !== []) {
+                return $rows;
+            }
+        }
+
         return config('catalog.finishes', []);
     }
 
@@ -139,6 +317,19 @@ class Catalog
      */
     public static function upholsteries(): array
     {
+        if (self::configMastersReady()) {
+            $rows = ProductUpholstery::query()
+                ->where('status', ProductUpholstery::STATUS_ACTIVE)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->pluck('name')
+                ->all();
+
+            if ($rows !== []) {
+                return $rows;
+            }
+        }
+
         return config('catalog.upholstery', []);
     }
 
@@ -211,6 +402,16 @@ class Catalog
         return $candidate;
     }
 
+    private static function mastersReady(): bool
+    {
+        try {
+            return Schema::hasTable('project_categories')
+                && ProjectCategory::query()->exists();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /**
      * Payload consumed by the admin Add/Edit Product dropdown script.
      *
@@ -232,16 +433,28 @@ class Catalog
             }
         }
 
+        $businessGroup = config('catalog.business_group');
+        if (self::mastersReady()) {
+            $businessGroup = \App\Models\BusinessGroup::query()
+                ->where('status', \App\Models\BusinessGroup::STATUS_ACTIVE)
+                ->orderBy('sort_order')
+                ->value('name') ?: $businessGroup;
+        }
+
         return [
-            'businessGroup' => config('catalog.business_group'),
+            'businessGroup' => $businessGroup,
             'tree' => self::tree(),
             'types' => $types,
             'models' => $models,
             'families' => $families,
-            'familyFields' => collect(config('catalog.families'))->map(fn ($family) => [
-                'label' => $family['label'],
-                'fields' => $family['fields'],
-            ])->all(),
+            'familyFields' => collect(config('catalog.families'))->map(function ($family, $key) {
+                $resolved = self::familyConfig((string) $key);
+
+                return [
+                    'label' => $resolved['label'],
+                    'fields' => $resolved['fields'],
+                ];
+            })->all(),
             'upholsteryFamilies' => config('catalog.upholstery_families'),
             'colours' => self::colours(),
             'finishes' => self::finishes(),
@@ -249,5 +462,17 @@ class Catalog
             'dimensionDefaults' => config('catalog.dimension_defaults'),
             'defaultBasePrice' => config('catalog.default_base_price'),
         ];
+    }
+
+    private static function configMastersReady(): bool
+    {
+        try {
+            return Schema::hasTable('product_colours')
+                && Schema::hasTable('product_finishes')
+                && Schema::hasTable('product_upholsteries')
+                && Schema::hasTable('catalog_config_options');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

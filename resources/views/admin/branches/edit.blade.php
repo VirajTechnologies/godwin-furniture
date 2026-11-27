@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Branch')
-@section('page_title', 'Edit '.$branch->name)
+@section('page_title', 'Registration')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.branches.index') }}">Branches</a></li>
@@ -9,6 +9,8 @@
 @endsection
 
 @section('content')
+    @include('admin.partials.registration-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

@@ -47,7 +47,6 @@ class CategoryController extends Controller
 
         $roomsQuery->with(['children' => function ($query) use ($filters): void {
             $query->withCount('products')
-                ->orderBy('menu_group')
                 ->orderBy('sort_order')
                 ->orderBy('name');
 
@@ -73,7 +72,6 @@ class CategoryController extends Controller
                         $room->children()
                             ->withCount('products')
                             ->when($filters['status'] !== '', fn ($query) => $query->where('status', $filters['status']))
-                            ->orderBy('menu_group')
                             ->orderBy('sort_order')
                             ->orderBy('name')
                             ->get()
@@ -106,7 +104,6 @@ class CategoryController extends Controller
                 'parent_id' => $parentId,
             ]),
             'rooms' => $this->rooms(),
-            'menuGroupsByRoom' => $this->menuGroupsByRoom(),
         ]);
     }
 
@@ -122,7 +119,6 @@ class CategoryController extends Controller
         return view('admin.categories.edit', [
             'category' => $category,
             'rooms' => $this->rooms($category),
-            'menuGroupsByRoom' => $this->menuGroupsByRoom(),
         ]);
     }
 
@@ -197,33 +193,4 @@ class CategoryController extends Controller
             ->get();
     }
 
-    /**
-     * @return array<string, list<string>>
-     */
-    private function menuGroupsByRoom(): array
-    {
-        $groups = [];
-
-        Category::query()
-            ->whereNotNull('parent_id')
-            ->whereNotNull('menu_group')
-            ->where('menu_group', '!=', '')
-            ->orderBy('menu_group')
-            ->get(['parent_id', 'menu_group'])
-            ->each(function (Category $category) use (&$groups): void {
-                $roomId = (string) $category->parent_id;
-                $groups[$roomId] ??= [];
-
-                if (! in_array($category->menu_group, $groups[$roomId], true)) {
-                    $groups[$roomId][] = $category->menu_group;
-                }
-            });
-
-        foreach ($groups as $roomId => $names) {
-            sort($names, SORT_NATURAL | SORT_FLAG_CASE);
-            $groups[$roomId] = array_values($names);
-        }
-
-        return $groups;
-    }
 }

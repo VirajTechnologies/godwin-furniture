@@ -82,7 +82,6 @@
                                     <tr>
                                         <th>Name</th>
                                         <th>Type</th>
-                                        <th>Menu Group</th>
                                         <th class="text-end">Sort Order</th>
                                         <th class="text-end">Products</th>
                                         <th>Status</th>
@@ -94,7 +93,6 @@
                                         <tr class="table-light">
                                             <td class="fw-semibold">{{ $category->name }}</td>
                                             <td><span class="badge bg-primary-subtle text-primary">Category</span></td>
-                                            <td class="text-muted">—</td>
                                             <td class="text-end">{{ $category->sort_order }}</td>
                                             <td class="text-end text-muted">—</td>
                                             <td>
@@ -124,7 +122,6 @@
                                                     <span class="text-muted me-2">└</span>{{ $child->name }}
                                                 </td>
                                                 <td><span class="badge bg-secondary-subtle text-secondary">Subcategory</span></td>
-                                                <td>{{ $child->menu_group ?: '—' }}</td>
                                                 <td class="text-end">{{ $child->sort_order }}</td>
                                                 <td class="text-end">{{ $child->products_count }}</td>
                                                 <td>

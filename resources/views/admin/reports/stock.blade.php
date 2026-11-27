@@ -1,13 +1,15 @@
 @extends('layouts.admin')
 
 @section('title', 'Stock On Hand')
-@section('page_title', 'Stock On Hand')
+@section('page_title', 'Reports & Analytics')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Stock On Hand</li>
 @endsection
 
 @section('content')
+    @include('admin.partials.reports-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

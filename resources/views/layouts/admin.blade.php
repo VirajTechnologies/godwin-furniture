@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
-    <script src="{{ asset('assets/js/layout.js') }}"></script>
-    <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/required-fields.css') }}" rel="stylesheet" type="text/css">
+    <script src="{{ vasset('assets/js/layout.js') }}"></script>
+    <link href="{{ vasset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ vasset('assets/css/required-fields.css') }}" rel="stylesheet" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
     @include('partials.datatables', ['part' => 'styles'])
@@ -93,83 +93,51 @@
                             </a>
                         </li>
                         @php
-                            $mastersOpen = request()->routeIs('admin.states.*', 'admin.districts.*', 'admin.cities.*', 'admin.warehouses.*', 'admin.branches.*');
+                            $mastersOpen = request()->routeIs(
+                                'admin.states.*',
+                                'admin.districts.*',
+                                'admin.cities.*',
+                                'admin.business-groups.*',
+                                'admin.project-categories.*',
+                                'admin.catalog-rooms.*',
+                                'admin.catalog-product-categories.*',
+                                'admin.design-types.*',
+                                'admin.product-models.*',
+                                'admin.catalog-config-options.*',
+                                'admin.product-colours.*',
+                                'admin.product-finishes.*',
+                                'admin.product-upholsteries.*',
+                            );
+                            $registrationOpen = request()->routeIs(
+                                'admin.branches.*',
+                                'admin.warehouses.*',
+                                'admin.employees.*',
+                                'admin.agents.*',
+                                'admin.customers.*',
+                            );
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $mastersOpen ? 'active' : '' }}" href="#sidebarMasters" data-bs-toggle="collapse" role="button" aria-expanded="{{ $mastersOpen ? 'true' : 'false' }}" aria-controls="sidebarMasters">
+                            <a class="nav-link menu-link {{ $mastersOpen ? 'active' : '' }}" href="{{ route('admin.states.index') }}">
                                 <i class="ri-stack-line"></i> <span>Masters</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $mastersOpen ? 'show' : '' }}" id="sidebarMasters">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.states.index') }}" class="nav-link {{ request()->routeIs('admin.states.*') ? 'active' : '' }}">States</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.districts.index') }}" class="nav-link {{ request()->routeIs('admin.districts.*') ? 'active' : '' }}">Districts</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.cities.index') }}" class="nav-link {{ request()->routeIs('admin.cities.*') ? 'active' : '' }}">Cities</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.warehouses.index') }}" class="nav-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">Warehouses</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.branches.index') }}" class="nav-link {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">Branches</a>
-                                    </li>
-                                </ul>
-                            </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}" href="{{ route('admin.employees.index') }}">
-                                <i class="ri-team-line"></i> <span>Employees</span>
+                            <a class="nav-link menu-link {{ $registrationOpen ? 'active' : '' }}" href="{{ route('admin.branches.index') }}">
+                                <i class="ri-user-add-line"></i> <span>Registration</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('admin.agents.*') ? 'active' : '' }}" href="{{ route('admin.agents.index') }}">
-                                <i class="ri-store-2-line"></i> <span>Agents</span>
+                            <a class="nav-link menu-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
+                                <i class="ri-price-tag-3-line"></i> <span>Products</span>
                             </a>
                         </li>
                         @php
-                            $catalogOpen = request()->routeIs('admin.categories.*', 'admin.products.*');
+                            $inventoryOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*', 'admin.stock-requests.*');
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $catalogOpen ? 'active' : '' }}" href="#sidebarCatalog" data-bs-toggle="collapse" role="button" aria-expanded="{{ $catalogOpen ? 'true' : 'false' }}" aria-controls="sidebarCatalog">
-                                <i class="ri-price-tag-3-line"></i> <span>Catalog</span>
+                            <a class="nav-link menu-link {{ $inventoryOpen ? 'active' : '' }}" href="{{ route('admin.stocks.index') }}">
+                                <i class="ri-archive-line"></i> <span>Inventory</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $catalogOpen ? 'show' : '' }}" id="sidebarCatalog">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categories</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.products.index') }}" class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                        @php
-                            $stockOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*', 'admin.stock-requests.*');
-                        @endphp
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ $stockOpen ? 'active' : '' }}" href="#sidebarStock" data-bs-toggle="collapse" role="button" aria-expanded="{{ $stockOpen ? 'true' : 'false' }}" aria-controls="sidebarStock">
-                                <i class="ri-archive-line"></i> <span>Stock</span>
-                            </a>
-                            <div class="collapse menu-dropdown {{ $stockOpen ? 'show' : '' }}" id="sidebarStock">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.stocks.index') }}" class="nav-link {{ request()->routeIs('admin.stocks.*') ? 'active' : '' }}">Warehouse Stock</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.branch-stocks.index') }}" class="nav-link {{ request()->routeIs('admin.branch-stocks.*') ? 'active' : '' }}">Branch Stock</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.transfers.index') }}" class="nav-link {{ request()->routeIs('admin.transfers.*') ? 'active' : '' }}">Transfers</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.stock-requests.index') }}" class="nav-link {{ request()->routeIs('admin.stock-requests.*') ? 'active' : '' }}">Stock Requests</a>
-                                    </li>
-                                </ul>
-                            </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
@@ -180,28 +148,9 @@
                             $reportsOpen = request()->routeIs('admin.reports.*');
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}" aria-controls="sidebarReports">
-                                <i class="ri-bar-chart-2-line"></i> <span>Reports</span>
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="{{ route('admin.reports.sales-by-branch') }}">
+                                <i class="ri-bar-chart-2-line"></i> <span>Reports &amp; Analytics</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $reportsOpen ? 'show' : '' }}" id="sidebarReports">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.sales-by-branch') }}" class="nav-link {{ request()->routeIs('admin.reports.sales-by-branch') ? 'active' : '' }}">Sales By Branch</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.sales-by-product') }}" class="nav-link {{ request()->routeIs('admin.reports.sales-by-product') ? 'active' : '' }}">Sales By Product</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.stock') }}" class="nav-link {{ request()->routeIs('admin.reports.stock') ? 'active' : '' }}">Stock On Hand</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.transfers') }}" class="nav-link {{ request()->routeIs('admin.reports.transfers') ? 'active' : '' }}">Transfers</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('admin.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('admin.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
-                                    </li>
-                                </ul>
-                            </div>
                         </li>
                     </ul>
                 </div>
@@ -248,7 +197,7 @@
             <footer class="footer">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-sm-6">{{ date('Y') }} Â© Godwin Furniture.</div>
+                        <div class="col-sm-6">{{ date('Y') }} © Godwin Furniture.</div>
                         <div class="col-sm-6">
                             <div class="text-sm-end d-none d-sm-block">Head office</div>
                         </div>
@@ -262,12 +211,12 @@
         <i class="ri-arrow-up-line"></i>
     </button>
 
-    <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/libs/simplebar/simplebar.min.js') }}"></script>
-    <script src="{{ asset('assets/libs/node-waves/waves.min.js') }}"></script>
-    <script src="{{ asset('assets/libs/feather-icons/feather.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins.js') }}"></script>
-    <script src="{{ asset('assets/js/app.js') }}"></script>
+    <script src="{{ vasset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ vasset('assets/libs/simplebar/simplebar.min.js') }}"></script>
+    <script src="{{ vasset('assets/libs/node-waves/waves.min.js') }}"></script>
+    <script src="{{ vasset('assets/libs/feather-icons/feather.min.js') }}"></script>
+    <script src="{{ vasset('assets/js/plugins.js') }}"></script>
+    <script src="{{ vasset('assets/js/app.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     @include('partials.datatables')
@@ -283,7 +232,7 @@
                 $(this).select2({
                     theme: 'bootstrap-5',
                     width: '100%',
-                    placeholder: $(this).data('placeholder') || 'Selectâ€¦',
+                    placeholder: $(this).data('placeholder') || 'Select…',
                     allowClear: true,
                 });
             });

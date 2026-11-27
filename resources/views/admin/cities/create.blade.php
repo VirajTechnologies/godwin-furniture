@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Add city')
-@section('page_title', 'Add city')
+@section('page_title', 'Masters')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.cities.index') }}">Cities</a></li>
@@ -9,6 +9,8 @@
 @endsection
 
 @section('content')
+    @include('admin.partials.masters-tabs')
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

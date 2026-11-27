@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             DistrictSeeder::class,
             CitySeeder::class,
             WarehouseSeeder::class,
+            CatalogMasterSeeder::class,
+            CatalogConfigSeeder::class,
         ]);
     }
 }
