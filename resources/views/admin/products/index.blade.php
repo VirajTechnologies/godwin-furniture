@@ -27,58 +27,67 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    <form method="GET" action="{{ route('admin.products.index') }}" class="row g-2 mb-4">
-                        <div class="col-md-3">
-                            <label for="product_filter_q" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="product_filter_q" name="q" value="{{ $filters['q'] }}" placeholder="Code or model name">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="product_filter_project" class="form-label">Project</label>
-                            <select class="form-select" id="product_filter_project" name="project_category" onchange="this.form.submit()">
-                                <option value="" @selected($filters['project_category'] === '')>All</option>
-                                @foreach ($filterProjects as $project)
-                                    <option value="{{ $project }}" @selected($filters['project_category'] === $project)>{{ $project }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="product_filter_room" class="form-label">Room</label>
-                            <select class="form-select" id="product_filter_room" name="room">
-                                <option value="" @selected($filters['room'] === '')>All</option>
-                                @foreach ($filterRooms as $room)
-                                    <option value="{{ $room }}" @selected($filters['room'] === $room)>{{ $room }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-                            <label for="product_filter_status" class="form-label">Status</label>
-                            <select class="form-select" id="product_filter_status" name="status">
-                                <option value="" @selected($filters['status'] === '')>All</option>
-                                <option value="active" @selected($filters['status'] === 'active')>Active</option>
-                                <option value="inactive" @selected($filters['status'] === 'inactive')>Inactive</option>
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-                            <label for="product_filter_online" class="form-label">Online</label>
-                            <select class="form-select" id="product_filter_online" name="online">
-                                <option value="" @selected($filters['online'] === '')>All</option>
-                                <option value="1" @selected($filters['online'] === '1')>Yes</option>
-                                <option value="0" @selected($filters['online'] === '0')>No</option>
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-                            <label for="product_filter_featured" class="form-label">Featured</label>
-                            <select class="form-select" id="product_filter_featured" name="featured">
-                                <option value="" @selected($filters['featured'] === '')>All</option>
-                                <option value="1" @selected($filters['featured'] === '1')>Yes</option>
-                                <option value="0" @selected($filters['featured'] === '0')>No</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end gap-2">
-                            <button type="submit" class="btn btn-primary">Filter</button>
-                            @if ($hasFilters)
-                                <a href="{{ route('admin.products.index') }}" class="btn btn-light">Clear</a>
-                            @endif
+                    <form method="GET" action="{{ route('admin.products.index') }}" class="admin-filter-box">
+                        <div class="admin-filter-grid">
+                            <div class="admin-filter-field">
+                                <label for="product_filter_q">Search</label>
+                                <div class="admin-filter-search">
+                                    <i class="ri-search-line"></i>
+                                    <input type="text" class="form-control" id="product_filter_q" name="q" value="{{ $filters['q'] }}" placeholder="Code or model name">
+                                </div>
+                            </div>
+                            <div class="admin-filter-field">
+                                <label for="product_filter_project">Project</label>
+                                <select class="form-select" id="product_filter_project" name="project_category" onchange="this.form.submit()">
+                                    <option value="" @selected($filters['project_category'] === '')>All Projects</option>
+                                    @foreach ($filterProjects as $project)
+                                        <option value="{{ $project }}" @selected($filters['project_category'] === $project)>{{ $project }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="admin-filter-field">
+                                <label for="product_filter_room">Room</label>
+                                <select class="form-select" id="product_filter_room" name="room">
+                                    <option value="" @selected($filters['room'] === '')>All Rooms</option>
+                                    @foreach ($filterRooms as $room)
+                                        <option value="{{ $room }}" @selected($filters['room'] === $room)>{{ $room }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="admin-filter-field">
+                                <label for="product_filter_status">Status</label>
+                                <select class="form-select" id="product_filter_status" name="status">
+                                    <option value="" @selected($filters['status'] === '')>All</option>
+                                    <option value="active" @selected($filters['status'] === 'active')>Active</option>
+                                    <option value="inactive" @selected($filters['status'] === 'inactive')>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="admin-filter-field">
+                                <label for="product_filter_online">Online</label>
+                                <select class="form-select" id="product_filter_online" name="online">
+                                    <option value="" @selected($filters['online'] === '')>All</option>
+                                    <option value="1" @selected($filters['online'] === '1')>Yes</option>
+                                    <option value="0" @selected($filters['online'] === '0')>No</option>
+                                </select>
+                            </div>
+                            <div class="admin-filter-field">
+                                <label for="product_filter_featured">Featured</label>
+                                <select class="form-select" id="product_filter_featured" name="featured">
+                                    <option value="" @selected($filters['featured'] === '')>All</option>
+                                    <option value="1" @selected($filters['featured'] === '1')>Yes</option>
+                                    <option value="0" @selected($filters['featured'] === '0')>No</option>
+                                </select>
+                            </div>
+                            <div class="admin-filter-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-filter-3-line"></i> Filter
+                                </button>
+                                @if ($hasFilters)
+                                    <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary" title="Clear filters">
+                                        <i class="ri-close-line"></i> Clear
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </form>
 
