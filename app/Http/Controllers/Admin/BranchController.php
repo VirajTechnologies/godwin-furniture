@@ -18,6 +18,7 @@ class BranchController extends Controller
     {
         $branches = Branch::query()
             ->with(['warehouse', 'state', 'district', 'city'])
+            ->orderByDesc('is_primary')
             ->orderBy('name')
             ->paginate(15);
 
@@ -28,7 +29,10 @@ class BranchController extends Controller
 
     public function create(): View
     {
-        $branch = new Branch(['status' => Branch::STATUS_ACTIVE]);
+        $branch = new Branch([
+            'status' => Branch::STATUS_ACTIVE,
+            'is_primary' => Branch::query()->doesntExist(),
+        ]);
 
         return view('admin.branches.create', [
             'branch' => $branch,
@@ -39,7 +43,13 @@ class BranchController extends Controller
 
     public function store(BranchRequest $request): RedirectResponse
     {
-        Branch::query()->create($request->validated());
+        $makePrimary = $request->boolean('is_primary') || Branch::query()->doesntExist();
+
+        $branch = Branch::query()->create($request->safe()->except('is_primary'));
+
+        if ($makePrimary) {
+            $branch->markAsPrimary();
+        }
 
         return redirect()
             ->route('admin.branches.index')
@@ -57,11 +67,26 @@ class BranchController extends Controller
 
     public function update(BranchRequest $request, Branch $branch): RedirectResponse
     {
-        $branch->update($request->safe()->except('code'));
+        $branch->update($request->safe()->except(['is_primary', 'code']));
+
+        if ($request->boolean('is_primary')) {
+            $branch->markAsPrimary();
+        }
 
         return redirect()
             ->route('admin.branches.index')
             ->with('success', 'Branch updated.');
+    }
+
+    public function makePrimary(Branch $branch): RedirectResponse
+    {
+        if (! $branch->isActive()) {
+            return back()->with('error', 'Activate this branch before marking it as primary.');
+        }
+
+        $branch->markAsPrimary();
+
+        return back()->with('success', $branch->name.' is now the primary branch for agent custom requests.');
     }
 
     public function updateStatus(Request $request, Branch $branch): RedirectResponse
@@ -69,6 +94,10 @@ class BranchController extends Controller
         $status = $request->validate([
             'status' => ['required', Rule::in([Branch::STATUS_ACTIVE, Branch::STATUS_INACTIVE])],
         ])['status'];
+
+        if ($status === Branch::STATUS_INACTIVE && $branch->is_primary) {
+            return back()->with('error', 'Set another branch as primary before deactivating this one.');
+        }
 
         $branch->update(['status' => $status]);
 

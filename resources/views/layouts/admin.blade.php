@@ -132,7 +132,7 @@
                             </a>
                         </li>
                         @php
-                            $inventoryOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*', 'admin.stock-requests.*');
+                            $inventoryOpen = request()->routeIs('admin.stocks.*', 'admin.branch-stocks.*', 'admin.transfers.*', 'admin.stock-requests.*', 'admin.custom-requests.*');
                         @endphp
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ $inventoryOpen ? 'active' : '' }}" href="{{ route('admin.stocks.index') }}">

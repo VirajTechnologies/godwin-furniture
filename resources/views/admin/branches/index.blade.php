@@ -39,6 +39,7 @@
                                         <th>District</th>
                                         <th>City</th>
                                         <th>Phone</th>
+                                        <th>Primary</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -55,6 +56,13 @@
                                             <td>{{ $branch->city?->city_name ?? '—' }}</td>
                                             <td>{{ $branch->phone ?: '—' }}</td>
                                             <td>
+                                                @if ($branch->is_primary)
+                                                    <span class="badge bg-success-subtle text-success">Custom requests</span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                            </td>
+                                            <td>
                                                 @if ($branch->isActive())
                                                     <span class="badge bg-success">Active</span>
                                                 @else
@@ -64,10 +72,24 @@
                                             <td>
                                                 <div class="d-flex flex-wrap gap-2 align-items-center">
                                                     @include('admin.partials.edit-icon', ['url' => route('admin.branches.edit', $branch)])
-                                                    @include('admin.partials.status-actions', [
-                                                        'record' => $branch,
-                                                        'activateUrl' => route('admin.branches.status', $branch),
-                                                    ])
+                                                    @if (! $branch->is_primary && $branch->isActive())
+                                                        <form method="POST" action="{{ route('admin.branches.primary', $branch) }}">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-soft-primary">Set Primary</button>
+                                                        </form>
+                                                    @endif
+                                                    @if (! $branch->isActive())
+                                                        <form method="POST" action="{{ route('admin.branches.status', $branch) }}">
+                                                            @csrf
+                                                            <input type="hidden" name="status" value="active">
+                                                            <button type="submit" class="btn btn-sm btn-soft-success">Activate</button>
+                                                        </form>
+                                                    @elseif (! $branch->is_primary)
+                                                        @include('admin.partials.status-actions', [
+                                                            'record' => $branch,
+                                                            'activateUrl' => route('admin.branches.status', $branch),
+                                                        ])
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>

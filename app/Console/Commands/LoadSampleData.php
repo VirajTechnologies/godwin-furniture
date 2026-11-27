@@ -9,6 +9,7 @@ use App\Models\BranchProductPrice;
 use App\Models\City;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
+use App\Models\CustomRequest;
 use App\Models\District;
 use App\Models\Employee;
 use App\Models\Order;
@@ -213,6 +214,52 @@ class LoadSampleData extends Command
                     'DN001' => 1, 'CH002' => 2,
                 ], $products);
             });
+
+            $this->at(now()->subDay()->setTime(14, 30), function () use ($agents, $branches, $products): void {
+                $this->customRequest(
+                    'CR00001',
+                    $agents['AG001'],
+                    $branches['BR001'],
+                    $products['SF001'],
+                    'Meena Rao',
+                    '9848012001',
+                    'Customer wants walnut finish, deeper seat, and brass legs instead of chrome.',
+                    CustomRequest::STATUS_REQUESTED,
+                );
+            });
+
+            $this->at(now()->subDays(2)->setTime(11, 15), function () use ($agents, $branches, $products, $staff): void {
+                $this->customRequest(
+                    'CR00002',
+                    $agents['AG002'],
+                    $branches['BR001'],
+                    $products['BD001'],
+                    'Sai Krishna',
+                    '9848012002',
+                    'Need king size with under-bed drawers and fabric headboard in beige.',
+                    CustomRequest::STATUS_ACCEPTED,
+                    $staff['managers']['BR001']->id,
+                );
+            });
+
+            $this->at(now()->subDays(3)->setTime(16, 0), function () use ($agents, $branches, $admin): void {
+                $this->customRequest(
+                    'CR00003',
+                    $agents['AG003'],
+                    $branches['BR001'],
+                    null,
+                    'Harika Devi',
+                    '9848012003',
+                    'Round dining table for 6 with marble top — customer rejected quote.',
+                    CustomRequest::STATUS_REJECTED,
+                    $admin->id,
+                    'Marble top not available in this size for the quoted lead time.',
+                    CustomRequest::MODE_UNMATCHED,
+                    [
+                        'model_name' => 'Custom Marble Dining Round',
+                    ],
+                );
+            });
         });
 
         $this->components->info('Sample data loaded.');
@@ -300,8 +347,12 @@ class LoadSampleData extends Command
                 'district_id' => $location['district']->id,
                 'city_id' => $location['city']->id,
                 'pincode' => $pincode,
+                'is_primary' => false,
             ]);
         }
+
+        // Vijayawada is the primary branch for agent custom-product requests.
+        $branches['BR001']->markAsPrimary();
 
         return $branches;
     }
@@ -1140,6 +1191,69 @@ class LoadSampleData extends Command
         }
 
         return $request;
+    }
+
+    /**
+     * @param  array<string, mixed>  $extra
+     */
+    private function customRequest(
+        string $code,
+        Agent $agent,
+        Branch $branch,
+        ?Product $product,
+        string $customerName,
+        string $customerPhone,
+        string $notes,
+        string $status = CustomRequest::STATUS_REQUESTED,
+        ?int $handledBy = null,
+        ?string $rejectionReason = null,
+        string $matchMode = CustomRequest::MODE_MATCHED,
+        array $extra = [],
+    ): CustomRequest {
+        $matched = $matchMode === CustomRequest::MODE_MATCHED && $product;
+
+        if ($matched) {
+            $product->loadMissing('variants');
+        }
+
+        $payload = [
+            'code' => $code,
+            'agent_id' => $agent->id,
+            'branch_id' => $branch->id,
+            'match_mode' => $matchMode,
+            'product_id' => $matched ? $product->id : null,
+            'project_category' => $matched ? $product->project_category : ($extra['project_category'] ?? null),
+            'room' => $matched ? $product->room : ($extra['room'] ?? null),
+            'product_category' => $matched ? $product->product_category : ($extra['product_category'] ?? null),
+            'design_type' => $matched ? $product->design_type : ($extra['design_type'] ?? null),
+            'model_name' => $matched ? $product->name : (string) ($extra['model_name'] ?? 'Custom model'),
+            'description' => $matched
+                ? ($product->description ?: ($extra['description'] ?? null))
+                : ($extra['description'] ?? null),
+            'width_cm' => $matched ? $product->width_cm : null,
+            'depth_cm' => $matched ? $product->depth_cm : null,
+            'height_cm' => $matched ? $product->height_cm : null,
+            'weight_kg' => $matched ? $product->weight_kg : null,
+            'material' => $matched ? $product->material : null,
+            'base_price' => null,
+            'specs' => $matched ? ($product->specs ?? []) : [],
+            'variants' => $matched
+                ? $product->variants->map(fn ($variant) => [
+                    'colour' => $variant->colour,
+                    'finish' => $variant->finish,
+                    'upholstery' => $variant->upholstery,
+                ])->values()->all()
+                : [],
+            'customer_name' => $customerName,
+            'customer_phone' => $customerPhone,
+            'notes' => $notes,
+            'status' => $status,
+            'rejection_reason' => $rejectionReason,
+            'requested_by' => $agent->user_id,
+            'handled_by' => $handledBy,
+        ];
+
+        return CustomRequest::query()->create($payload);
     }
 
     /**

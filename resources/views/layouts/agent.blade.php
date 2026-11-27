@@ -126,6 +126,11 @@
                                     <i class="ri-inbox-archive-line"></i> <span>Request</span>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link menu-link {{ request()->routeIs('agent.custom-requests.*') ? 'active' : '' }}" href="{{ route('agent.custom-requests.index') }}">
+                                    <i class="ri-tools-line"></i> <span>Custom Request</span>
+                                </a>
+                            </li>
                         @endif
                     </ul>
                 </div>

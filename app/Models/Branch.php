@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Branch extends Model
 {
@@ -27,13 +28,47 @@ class Branch extends Model
         'district_id',
         'city_id',
         'pincode',
+        'is_primary',
         'status',
         'notes',
     ];
 
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+        ];
+    }
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function markAsPrimary(): void
+    {
+        DB::transaction(function () {
+            static::query()->whereKeyNot($this->id)->update(['is_primary' => false]);
+
+            $this->forceFill([
+                'is_primary' => true,
+                'status' => self::STATUS_ACTIVE,
+            ])->save();
+        });
+    }
+
+    /**
+     * Active branch that receives agent custom-product requests.
+     */
+    public static function primaryForCustomRequests(): ?self
+    {
+        return static::query()
+            ->where('is_primary', true)
+            ->where('status', self::STATUS_ACTIVE)
+            ->first();
     }
 
     public function state(): BelongsTo

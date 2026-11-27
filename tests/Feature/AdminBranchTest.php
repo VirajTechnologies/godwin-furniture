@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Branch;
 use App\Models\City;
 use App\Models\District;
 use App\Models\State;
@@ -37,8 +38,74 @@ class AdminBranchTest extends TestCase
             'name' => 'Vijayawada Showroom',
             'warehouse_id' => $warehouse->id,
             'city_id' => $city->id,
+            'is_primary' => true,
             'status' => 'active',
         ]);
+    }
+
+    public function test_setting_a_second_branch_as_primary_clears_the_previous_one(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$state, $district, $city, $warehouse] = $this->place();
+
+        $first = Branch::query()->create([
+            'code' => 'BR001',
+            'name' => 'Vijayawada Showroom',
+            'warehouse_id' => $warehouse->id,
+            'address_line' => 'MG Road',
+            'state_id' => $state->id,
+            'district_id' => $district->id,
+            'city_id' => $city->id,
+            'pincode' => '520001',
+            'is_primary' => true,
+            'status' => 'active',
+        ]);
+
+        $second = Branch::query()->create([
+            'code' => 'BR002',
+            'name' => 'Guntur Showroom',
+            'warehouse_id' => $warehouse->id,
+            'address_line' => 'Main Road',
+            'state_id' => $state->id,
+            'district_id' => $district->id,
+            'city_id' => $city->id,
+            'pincode' => '522001',
+            'is_primary' => false,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.branches.primary', $second))
+            ->assertRedirect();
+
+        $this->assertFalse($first->fresh()->is_primary);
+        $this->assertTrue($second->fresh()->is_primary);
+    }
+
+    public function test_primary_branch_cannot_be_deactivated(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$state, $district, $city, $warehouse] = $this->place();
+
+        $branch = Branch::query()->create([
+            'code' => 'BR001',
+            'name' => 'Vijayawada Showroom',
+            'warehouse_id' => $warehouse->id,
+            'address_line' => 'MG Road',
+            'state_id' => $state->id,
+            'district_id' => $district->id,
+            'city_id' => $city->id,
+            'pincode' => '520001',
+            'is_primary' => true,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.branches.status', $branch), ['status' => 'inactive'])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertSame('active', $branch->fresh()->status);
     }
 
     public function test_branch_rejects_a_district_from_another_state(): void

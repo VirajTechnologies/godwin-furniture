@@ -121,6 +121,13 @@
                                     <i class="ri-file-list-3-line"></i> <span>Request</span>
                                 </a>
                             </li>
+                            @if (auth()->user()?->employee?->branch?->is_primary)
+                                <li class="nav-item">
+                                    <a class="nav-link menu-link {{ request()->routeIs('branch.custom-requests.*') ? 'active' : '' }}" href="{{ route('branch.custom-requests.index') }}">
+                                        <i class="ri-tools-line"></i> <span>Custom Requests</span>
+                                    </a>
+                                </li>
+                            @endif
                             <li class="nav-item">
                                 <a class="nav-link menu-link {{ request()->routeIs('branch.transfers.*') ? 'active' : '' }}" href="{{ route('branch.transfers.index') }}">
                                     <i class="ri-truck-line"></i> <span>Receive</span>

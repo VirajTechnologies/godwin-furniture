@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Agent\Auth\LoginController;
+use App\Http\Controllers\Agent\CustomRequestController;
 use App\Http\Controllers\Agent\HomeController;
 use App\Http\Controllers\Agent\ReportController;
 use App\Http\Controllers\Agent\SaleController;
@@ -37,6 +38,12 @@ Route::prefix('agent')->name('agent.')->group(function () {
         Route::post('stock-requests', [StockRequestController::class, 'store'])->name('stock-requests.store');
         Route::get('stock-requests/{stockRequest}', [StockRequestController::class, 'show'])->name('stock-requests.show');
         Route::post('stock-requests/{stockRequest}/cancel', [StockRequestController::class, 'cancel'])->name('stock-requests.cancel');
+
+        Route::get('custom-requests', [CustomRequestController::class, 'index'])->name('custom-requests.index');
+        Route::get('custom-requests/create', [CustomRequestController::class, 'create'])->name('custom-requests.create');
+        Route::post('custom-requests', [CustomRequestController::class, 'store'])->name('custom-requests.store');
+        Route::get('custom-requests/{customRequest}', [CustomRequestController::class, 'show'])->name('custom-requests.show');
+        Route::post('custom-requests/{customRequest}/cancel', [CustomRequestController::class, 'cancel'])->name('custom-requests.cancel');
 
         Route::get('transfers', [TransferController::class, 'index'])->name('transfers.index');
         Route::post('transfers/{transfer}/complete', [TransferController::class, 'complete'])->name('transfers.complete');

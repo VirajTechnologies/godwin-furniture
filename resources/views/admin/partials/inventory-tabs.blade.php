@@ -20,6 +20,11 @@
             'url' => route('admin.stock-requests.index'),
             'active' => request()->routeIs('admin.stock-requests.*'),
         ],
+        [
+            'label' => 'Custom Requests',
+            'url' => route('admin.custom-requests.index'),
+            'active' => request()->routeIs('admin.custom-requests.*'),
+        ],
     ];
 @endphp
 

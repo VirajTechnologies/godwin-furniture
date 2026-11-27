@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CatalogProductCategoryController;
 use App\Http\Controllers\Admin\CatalogRoomController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CustomRequestController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DesignTypeController;
 use App\Http\Controllers\Admin\DistrictController;
@@ -90,6 +91,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('branches', [BranchController::class, 'store'])->name('branches.store');
         Route::get('branches/{branch}/edit', [BranchController::class, 'edit'])->name('branches.edit');
         Route::put('branches/{branch}', [BranchController::class, 'update'])->name('branches.update');
+        Route::post('branches/{branch}/primary', [BranchController::class, 'makePrimary'])->name('branches.primary');
         Route::post('branches/{branch}/status', [BranchController::class, 'updateStatus'])->name('branches.status');
 
         Route::get('agents', [AgentController::class, 'index'])->name('agents.index');
@@ -191,6 +193,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('stock-requests', [StockRequestController::class, 'index'])->name('stock-requests.index');
         Route::get('stock-requests/{stockRequest}', [StockRequestController::class, 'show'])->name('stock-requests.show');
         Route::post('stock-requests/{stockRequest}/transfer', [StockRequestController::class, 'createTransfer'])->name('stock-requests.transfer');
+
+        Route::get('custom-requests', [CustomRequestController::class, 'index'])->name('custom-requests.index');
+        Route::get('custom-requests/{customRequest}', [CustomRequestController::class, 'show'])->name('custom-requests.show');
+        Route::post('custom-requests/{customRequest}/status', [CustomRequestController::class, 'updateStatus'])->name('custom-requests.status');
 
         Route::get('transfers', [StockTransferController::class, 'index'])->name('transfers.index');
         Route::get('transfers/create', [StockTransferController::class, 'create'])->name('transfers.create');

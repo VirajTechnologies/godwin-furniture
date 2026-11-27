@@ -33,6 +33,7 @@ class BranchFactory extends Factory
             'district_id' => District::factory(),
             'city_id' => City::factory(),
             'pincode' => fake()->numerify('52####'),
+            'is_primary' => false,
             'status' => Branch::STATUS_ACTIVE,
         ];
     }

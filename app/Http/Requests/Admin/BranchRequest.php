@@ -34,6 +34,7 @@ class BranchRequest extends FormRequest
             'city_id' => ['required', 'integer', Rule::exists('cities', 'id')],
             'pincode' => ['required', 'string', 'max:10'],
             'status' => ['required', Rule::in([Branch::STATUS_ACTIVE, Branch::STATUS_INACTIVE])],
+            'is_primary' => ['sometimes', 'boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
 
@@ -46,17 +47,33 @@ class BranchRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $merge = [
+            'is_primary' => $this->boolean('is_primary'),
+        ];
+
         if ($this->filled('code')) {
-            $this->merge([
-                'code' => strtoupper((string) $this->input('code')),
-            ]);
+            $merge['code'] = strtoupper((string) $this->input('code'));
         }
+
+        $this->merge($merge);
     }
 
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
+            $isFirstBranch = $this->route('branch') === null && Branch::query()->doesntExist();
+            $willBePrimary = $isFirstBranch || $this->boolean('is_primary');
+
+            if ($willBePrimary && $this->input('status') !== Branch::STATUS_ACTIVE) {
+                $validator->errors()->add('status', 'The primary branch must stay active.');
+            }
+
             $branch = $this->route('branch');
+
+            if ($branch instanceof Branch && $branch->is_primary && ! $this->boolean('is_primary')) {
+                $validator->errors()->add('is_primary', 'Choose another primary branch before clearing this one.');
+            }
+
             $currentStateId = $branch instanceof Branch ? $branch->state_id : null;
             $currentDistrictId = $branch instanceof Branch ? $branch->district_id : null;
             $currentCityId = $branch instanceof Branch ? $branch->city_id : null;

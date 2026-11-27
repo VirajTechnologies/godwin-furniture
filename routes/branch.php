@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Branch\Auth\LoginController;
+use App\Http\Controllers\Branch\CustomRequestController;
 use App\Http\Controllers\Branch\HomeController;
 use App\Http\Controllers\Branch\ReportController;
 use App\Http\Controllers\Branch\SaleController;
@@ -37,6 +38,10 @@ Route::prefix('branch')->name('branch.')->group(function () {
         Route::post('stock-requests', [StockRequestController::class, 'store'])->name('stock-requests.store');
         Route::get('stock-requests/{stockRequest}', [StockRequestController::class, 'show'])->name('stock-requests.show');
         Route::post('stock-requests/{stockRequest}/cancel', [StockRequestController::class, 'cancel'])->name('stock-requests.cancel');
+
+        Route::get('custom-requests', [CustomRequestController::class, 'index'])->name('custom-requests.index');
+        Route::get('custom-requests/{customRequest}', [CustomRequestController::class, 'show'])->name('custom-requests.show');
+        Route::post('custom-requests/{customRequest}/status', [CustomRequestController::class, 'updateStatus'])->name('custom-requests.status');
 
         Route::get('transfers', [TransferController::class, 'index'])->name('transfers.index');
         Route::post('transfers/{transfer}/complete', [TransferController::class, 'complete'])->name('transfers.complete');
