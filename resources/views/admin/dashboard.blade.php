@@ -26,13 +26,13 @@
     @endphp
 
     {{-- Title + location (reference header) --}}
-    <div class="row mb-3 align-items-center">
+    <div class="row mb-2 align-items-center g-2">
         <div class="col-lg-8">
             <h4 class="mb-0">Central Control Dashboard · {{ $filterLabel }}</h4>
         </div>
         <div class="col-lg-4">
             <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex justify-content-lg-end">
-                <select class="form-select" id="dashboard_location" name="location" onchange="this.form.submit()" style="max-width: 280px;">
+                <select class="form-select form-select-sm" id="dashboard_location" name="location" onchange="this.form.submit()" style="max-width: 260px;">
                     <option value="all" @selected($filter['key'] === 'all')>Overall Business</option>
                     @foreach ($branches as $branch)
                         <option value="branch:{{ $branch->id }}" @selected($filter['key'] === 'branch:'.$branch->id)>{{ $branch->name }}</option>
@@ -45,79 +45,103 @@
         </div>
     </div>
 
-    {{-- KPI row: 8 cards, 4 across (reference .gr minmax ~210px) --}}
-    <div class="row">
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+    {{-- KPI row: 8 cards, 4 across --}}
+    <div class="row admin-dash-row">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-emerald">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Revenue</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">₹{{ number_format((float) $totalRevenue, 2) }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Total Revenue</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">₹{{ number_format((float) $totalRevenue, 2) }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-wallet-3-line"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-blue">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Sales</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">{{ $totalSalesCount }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Total Sales</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">{{ $totalSalesCount }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-shopping-bag-3-line"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-purple">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Orders</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">{{ $totalOrders }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Total Orders</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">{{ $totalOrders }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-bill-line"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-cyan">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Products</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">{{ $totalProducts }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Total Products</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">{{ $totalProducts }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-store-2-line"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-indigo">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Stock</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">{{ number_format($totalStock) }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Total Stock</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">{{ number_format($totalStock) }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-archive-line"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-teal">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Customers</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">{{ $totalCustomers }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Total Customers</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">{{ $totalCustomers }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-group-line"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-amber">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Pending Orders</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">{{ $pendingOrders }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Pending Orders</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">{{ $pendingOrders }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-time-line"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card card-animate admin-kpi-card kpi-rose">
                 <div class="card-body">
-                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Pending Deliveries</p>
-                    <h4 class="fs-22 fw-semibold ff-secondary mt-3 mb-0">{{ $pendingDeliveries }}</h4>
+                    <div class="overflow-hidden">
+                        <p class="text-uppercase text-truncate mb-0 admin-kpi-label">Pending Deliveries</p>
+                        <h4 class="ff-secondary mb-0 admin-kpi-val">{{ $pendingDeliveries }}</h4>
+                    </div>
+                    <span class="admin-kpi-icon"><i class="ri-truck-line"></i></span>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Chart row: 6 cards, 3 across (reference .gr.g2 ≈ minmax 330px) --}}
-    <div class="row">
+    {{-- Chart row: 6 cards, 3 across --}}
+    <div class="row admin-dash-row">
         <div class="col-xl-4 col-md-6">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">{{ $monthlyRevenueTitle }}</h5></div>
+                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-line-chart-line"></i></span><h5 class="card-title mb-0">{{ $monthlyRevenueTitle }}</h5></div>
                 <div class="card-body">
                     @foreach ($monthlyRevenue as $row)
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -133,7 +157,7 @@
         </div>
         <div class="col-xl-4 col-md-6">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">Branch-wise sales</h5></div>
+                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-building-2-line"></i></span><h5 class="card-title mb-0">Branch-wise sales</h5></div>
                 <div class="card-body">
                     @forelse ($branchSales as $row)
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -151,7 +175,7 @@
         </div>
         <div class="col-xl-4 col-md-6">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">Warehouse / location stock</h5></div>
+                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-stack-line"></i></span><h5 class="card-title mb-0">Warehouse / location stock</h5></div>
                 <div class="card-body">
                     @forelse ($locationStock as $row)
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -169,7 +193,7 @@
         </div>
         <div class="col-xl-4 col-md-6">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">Online vs showroom vs agent</h5></div>
+                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-pie-chart-2-line"></i></span><h5 class="card-title mb-0">Online vs showroom vs agent</h5></div>
                 <div class="card-body">
                     @foreach ($channelMix as $row)
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -185,7 +209,7 @@
         </div>
         <div class="col-xl-4 col-md-6">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">Top selling products</h5></div>
+                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-award-line"></i></span><h5 class="card-title mb-0">Top selling products</h5></div>
                 <div class="card-body">
                     @forelse ($topProducts as $row)
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -203,7 +227,7 @@
         </div>
         <div class="col-xl-4 col-md-6">
             <div class="card">
-                <div class="card-header"><h5 class="card-title mb-0">Order status</h5></div>
+                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-checkbox-multiple-line"></i></span><h5 class="card-title mb-0">Order status</h5></div>
                 <div class="card-body">
                     @foreach ($orderStatusBars as $row)
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -220,7 +244,7 @@
     </div>
 
     {{-- Branch + warehouse metric cards, 3 across --}}
-    <div class="row">
+    <div class="row admin-dash-row">
         @foreach ($branchCards as $card)
             <div class="col-xl-4 col-md-6">
                 <div class="card">
@@ -275,7 +299,7 @@
     </div>
 
     {{-- Bottom: Recent transactions + Recent activity, 2 across --}}
-    <div class="row">
+    <div class="row admin-dash-row">
         <div class="col-xl-6">
             <div class="card">
                 <div class="card-header"><h5 class="card-title mb-0">Recent transactions</h5></div>
@@ -322,7 +346,7 @@
     </div>
 
     {{-- Essential ops (after reference layout) --}}
-    <div class="row">
+    <div class="row admin-dash-row">
         <div class="col-xl-6">
             <div class="card">
                 <div class="card-header d-flex align-items-center">
