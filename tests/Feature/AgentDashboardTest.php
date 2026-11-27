@@ -106,6 +106,10 @@ class AgentDashboardTest extends TestCase
         $this->actingAs($cashier)
             ->get(route('agent.reports.stock-requests'))
             ->assertForbidden();
+
+        $this->actingAs($cashier)
+            ->get(route('agent.reports.custom-requests'))
+            ->assertForbidden();
     }
 
     public function test_a_manager_can_open_transfer_and_request_reports(): void
@@ -134,6 +138,11 @@ class AgentDashboardTest extends TestCase
             ->get(route('agent.reports.stock-requests'))
             ->assertOk()
             ->assertSee('R00005');
+
+        $this->actingAs($agent->user)
+            ->get(route('agent.reports.custom-requests'))
+            ->assertOk()
+            ->assertSee('Custom Requests');
     }
 
     /**

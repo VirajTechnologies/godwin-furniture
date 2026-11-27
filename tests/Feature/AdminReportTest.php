@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Customer;
+use App\Models\CustomRequest;
 use App\Models\District;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -47,13 +48,27 @@ class AdminReportTest extends TestCase
             'status' => StockRequest::STATUS_REQUESTED,
         ]);
 
+        $agent = $this->shop();
+        CustomRequest::query()->create([
+            'code' => 'CR00001',
+            'agent_id' => $agent->id,
+            'branch_id' => $branch->id,
+            'match_mode' => CustomRequest::MODE_UNMATCHED,
+            'model_name' => 'Bespoke Console',
+            'notes' => 'Brass legs preferred.',
+            'status' => CustomRequest::STATUS_REQUESTED,
+            'requested_by' => $agent->user_id,
+        ]);
+
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('45,000.00')
             ->assertSee('Vijayawada Showroom')
             ->assertSee('TR001')
-            ->assertSee('R00004');
+            ->assertSee('R00004')
+            ->assertSee('CR00001')
+            ->assertSee('Open custom requests');
     }
 
     public function test_overview_shows_reference_style_sections(): void

@@ -6,7 +6,6 @@
     $colours = Catalog::colours();
     $finishes = Catalog::finishes();
     $upholsteries = Catalog::upholsteries();
-    $dimensionDefaults = config('catalog.dimension_defaults');
     $oldVariants = old('variants');
 
     if (is_array($oldVariants)) {
@@ -150,28 +149,28 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label for="width_cm" class="form-label">Width (cm)</label>
-                    <input type="number" class="form-control @error('width_cm') is-invalid @enderror" id="width_cm" name="width_cm" value="{{ old('width_cm', $product->width_cm ?? $dimensionDefaults['width_cm']) }}" min="0" step="0.01">
+                    <input type="number" class="form-control @error('width_cm') is-invalid @enderror" id="width_cm" name="width_cm" value="{{ old('width_cm', $product->width_cm) }}" min="0" step="0.01">
                     @error('width_cm')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-md-3">
                     <label for="depth_cm" class="form-label">Depth (cm)</label>
-                    <input type="number" class="form-control @error('depth_cm') is-invalid @enderror" id="depth_cm" name="depth_cm" value="{{ old('depth_cm', $product->depth_cm ?? $dimensionDefaults['depth_cm']) }}" min="0" step="0.01">
+                    <input type="number" class="form-control @error('depth_cm') is-invalid @enderror" id="depth_cm" name="depth_cm" value="{{ old('depth_cm', $product->depth_cm) }}" min="0" step="0.01">
                     @error('depth_cm')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-md-3">
                     <label for="height_cm" class="form-label">Height (cm)</label>
-                    <input type="number" class="form-control @error('height_cm') is-invalid @enderror" id="height_cm" name="height_cm" value="{{ old('height_cm', $product->height_cm ?? $dimensionDefaults['height_cm']) }}" min="0" step="0.01">
+                    <input type="number" class="form-control @error('height_cm') is-invalid @enderror" id="height_cm" name="height_cm" value="{{ old('height_cm', $product->height_cm) }}" min="0" step="0.01">
                     @error('height_cm')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-md-3">
                     <label for="weight_kg" class="form-label">Weight (kg)</label>
-                    <input type="number" class="form-control @error('weight_kg') is-invalid @enderror" id="weight_kg" name="weight_kg" value="{{ old('weight_kg', $product->weight_kg ?? $dimensionDefaults['weight_kg']) }}" min="0" step="0.01">
+                    <input type="number" class="form-control @error('weight_kg') is-invalid @enderror" id="weight_kg" name="weight_kg" value="{{ old('weight_kg', $product->weight_kg) }}" min="0" step="0.01">
                     @error('weight_kg')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -181,7 +180,7 @@
             <div class="row g-3 mt-0">
                 <div class="col-md-3">
                     <label for="base_price" class="form-label required">Base price (₹)</label>
-                    <input type="number" class="form-control @error('base_price') is-invalid @enderror" id="base_price" name="base_price" value="{{ old('base_price', $product->exists ? $product->base_price : config('catalog.default_base_price')) }}" min="0" step="0.01" required>
+                    <input type="number" class="form-control @error('base_price') is-invalid @enderror" id="base_price" name="base_price" value="{{ old('base_price', $product->exists ? $product->base_price : '') }}" min="0" step="0.01" required>
                     <div class="form-text">Starting price for new variants.</div>
                     @error('base_price')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -557,14 +556,15 @@
 
                     if (field.type === 's') {
                         const options = field.options || [];
-                        const value = saved === undefined || options.indexOf(saved) === -1 ? options[0] : saved;
+                        const value = saved !== undefined && options.indexOf(saved) !== -1 ? saved : '';
                         control = '<select class="form-select' + invalid + '" id="' + id + '" name="' + esc(name) + '" data-spec-label="' + esc(label) + '">'
+                            + '<option value="">Select</option>'
                             + options.map(function (choice) {
                                 return '<option value="' + esc(choice) + '"' + (choice === value ? ' selected' : '') + '>' + esc(choice) + '</option>';
                             }).join('')
                             + '</select>';
                     } else {
-                        const value = saved === undefined || saved === '' ? (field.default || '') : saved;
+                        const value = saved === undefined || saved === null ? '' : saved;
                         control = '<input type="number" class="form-control' + invalid + '" id="' + id + '" name="' + esc(name) + '" value="' + esc(value) + '" step="0.01" data-spec-label="' + esc(label) + '">';
                     }
 
@@ -668,7 +668,7 @@
                     existing[row.colour + '|' + row.finish + '|' + row.upholstery] = row;
                 });
 
-                const price = basePrice.value === '' ? String(cfg.defaultBasePrice) : basePrice.value;
+                const price = basePrice.value;
                 const rows = [];
 
                 colours.forEach(function (colour) {

@@ -4,7 +4,7 @@
         <input type="text" class="form-control" value="{{ $customRequest->isMatched() ? 'From catalog' : 'Not in catalog' }}" readonly>
     </div>
     <div class="col-md-6">
-        <label class="form-label">Product / model</label>
+        <label class="form-label">Model</label>
         <input type="text" class="form-control" value="{{ $customRequest->displayName() }}" readonly>
     </div>
     @if ($customRequest->classificationTrail() !== '')

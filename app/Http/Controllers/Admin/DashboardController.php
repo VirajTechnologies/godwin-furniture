@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\Branch;
 use App\Models\Customer;
+use App\Models\CustomRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -98,6 +99,13 @@ class DashboardController extends Controller
                 ->with(['branch', 'agent'])
                 ->where('status', StockRequest::STATUS_REQUESTED)
                 ->whereNull('stock_transfer_id')
+                ->when($filter['type'] === 'branch', fn (Builder $q) => $q->where('branch_id', $filter['id']))
+                ->orderBy('id')
+                ->limit(8)
+                ->get(),
+            'openCustomRequests' => CustomRequest::query()
+                ->with(['agent', 'branch', 'product'])
+                ->where('status', CustomRequest::STATUS_REQUESTED)
                 ->when($filter['type'] === 'branch', fn (Builder $q) => $q->where('branch_id', $filter['id']))
                 ->orderBy('id')
                 ->limit(8)
@@ -524,6 +532,26 @@ class DashboardController extends Controller
                     $request->created_at?->format('H:i') ?? '',
                     $request->code,
                     $request->holderName()
+                ),
+            ]);
+        }
+
+        $customRequests = CustomRequest::query()
+            ->with('agent')
+            ->where('status', CustomRequest::STATUS_REQUESTED)
+            ->when($filter['type'] === 'branch', fn (Builder $q) => $q->where('branch_id', $filter['id']))
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+
+        foreach ($customRequests as $customRequest) {
+            $lines->push([
+                'at' => $customRequest->created_at,
+                'text' => sprintf(
+                    '%s · Custom request %s from %s',
+                    $customRequest->created_at?->format('H:i') ?? '',
+                    $customRequest->code,
+                    $customRequest->agent?->name ?? 'Agent'
                 ),
             ]);
         }

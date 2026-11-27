@@ -30,6 +30,11 @@
             'url' => route('admin.reports.stock-requests'),
             'active' => request()->routeIs('admin.reports.stock-requests'),
         ],
+        [
+            'label' => 'Custom Requests',
+            'url' => route('admin.reports.custom-requests'),
+            'active' => request()->routeIs('admin.reports.custom-requests'),
+        ],
     ];
 @endphp
 

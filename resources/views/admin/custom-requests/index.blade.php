@@ -29,7 +29,7 @@
                                         <th>Code</th>
                                         <th>Agent</th>
                                         <th>Branch</th>
-                                        <th>Product</th>
+                                        <th>Model</th>
                                         <th>Status</th>
                                         <th>Requested</th>
                                         <th>Action</th>

@@ -30,7 +30,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Code</th>
-                                        <th>Product</th>
+                                        <th>Model</th>
                                         <th>Branch</th>
                                         <th>Status</th>
                                         <th>Requested</th>

@@ -1,15 +1,13 @@
 @extends('layouts.admin')
 
 @section('title', 'Customers')
-@section('page_title', 'Registration')
+@section('page_title', 'Customers')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Customers</li>
 @endsection
 
 @section('content')
-    @include('admin.partials.registration-tabs')
-
     @php
         $hasFilters = $filters['q'] !== '';
     @endphp

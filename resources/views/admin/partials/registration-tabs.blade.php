@@ -20,11 +20,6 @@
             'url' => route('admin.agents.index'),
             'active' => request()->routeIs('admin.agents.*'),
         ],
-        [
-            'label' => 'Customer',
-            'url' => route('admin.customers.index'),
-            'active' => request()->routeIs('admin.customers.*'),
-        ],
     ];
 @endphp
 

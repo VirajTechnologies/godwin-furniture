@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Branch;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\CustomRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
@@ -102,6 +103,27 @@ class ReportController extends Controller
         ]);
     }
 
+    public function customRequests(Request $request): View
+    {
+        $branch = $this->primaryManagerBranch($request);
+        [$from, $to] = $this->range($request);
+
+        $requests = CustomRequest::query()
+            ->with(['agent', 'product'])
+            ->where('branch_id', $branch->id)
+            ->whereDate('created_at', '>=', $from->toDateString())
+            ->whereDate('created_at', '<=', $to->toDateString())
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('branch.reports.custom-requests', [
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
+            'requests' => $requests,
+        ]);
+    }
+
     private function branch(Request $request): Branch
     {
         $user = $request->user();
@@ -125,6 +147,15 @@ class ReportController extends Controller
         $branch = $this->branch($request);
 
         abort_unless($request->user()?->isBranchManager(), 403);
+
+        return $branch;
+    }
+
+    private function primaryManagerBranch(Request $request): Branch
+    {
+        $branch = $this->managerBranch($request);
+
+        abort_unless($branch->is_primary, 403);
 
         return $branch;
     }

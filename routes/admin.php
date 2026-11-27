@@ -47,6 +47,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
         Route::get('reports/transfers', [ReportController::class, 'transfers'])->name('reports.transfers');
         Route::get('reports/stock-requests', [ReportController::class, 'stockRequests'])->name('reports.stock-requests');
+        Route::get('reports/custom-requests', [ReportController::class, 'customRequests'])->name('reports.custom-requests');
 
         Route::get('states', [StateController::class, 'index'])->name('states.index');
         Route::get('states/create', [StateController::class, 'create'])->name('states.create');

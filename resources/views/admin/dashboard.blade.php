@@ -395,4 +395,43 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <h5 class="card-title mb-0 flex-grow-1">Open custom requests</h5>
+                    <a href="{{ route('admin.custom-requests.index') }}" class="btn btn-sm btn-light">Custom Requests</a>
+                </div>
+                <div class="card-body">
+                    @if ($openCustomRequests->isEmpty())
+                        <p class="text-muted mb-0">No custom request is waiting for review.</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Agent</th>
+                                        <th>Model</th>
+                                        <th>Requested</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($openCustomRequests as $customRequest)
+                                        <tr>
+                                            <td class="fw-medium"><a href="{{ route('admin.custom-requests.show', $customRequest) }}">{{ $customRequest->code }}</a></td>
+                                            <td>{{ $customRequest->agent?->name ?? '—' }}</td>
+                                            <td>{{ $customRequest->displayName() }}</td>
+                                            <td>{{ $customRequest->created_at?->format('d M Y, h:i A') }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection

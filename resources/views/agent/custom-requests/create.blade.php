@@ -14,7 +14,6 @@
     $colours = Catalog::colours();
     $finishes = Catalog::finishes();
     $upholsteries = Catalog::upholsteries();
-    $dimensionDefaults = config('catalog.dimension_defaults');
 @endphp
 
 @if (! $primaryBranch)
@@ -61,7 +60,7 @@
                         @error('design_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-4">
-                        <label for="model_name" class="form-label">5 · Product model</label>
+                        <label for="model_name" class="form-label">5 · Model</label>
                         <select class="form-select @error('model_name') is-invalid @enderror" id="model_name" name="model_name" disabled>
                             <option value="">Select</option>
                         </select>
@@ -84,7 +83,7 @@
                 <p class="text-muted small">This model isn’t in the catalog, so colour and configuration options stay hidden. Name the product below and add customization notes.</p>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="requested_model_name" class="form-label required">Product / model name</label>
+                        <label for="requested_model_name" class="form-label required">Model name</label>
                         <input type="text" class="form-control @error('model_name') is-invalid @enderror" id="requested_model_name" maxlength="150" value="{{ old('model_name') }}">
                         @error('model_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
@@ -102,19 +101,19 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label for="width_cm" class="form-label">Width (cm)</label>
-                        <input type="number" class="form-control" id="width_cm" name="width_cm" value="{{ old('width_cm', $dimensionDefaults['width_cm'] ?? '') }}" min="0" step="0.01">
+                        <input type="number" class="form-control" id="width_cm" name="width_cm" value="{{ old('width_cm') }}" min="0" step="0.01">
                     </div>
                     <div class="col-md-3">
                         <label for="depth_cm" class="form-label">Depth (cm)</label>
-                        <input type="number" class="form-control" id="depth_cm" name="depth_cm" value="{{ old('depth_cm', $dimensionDefaults['depth_cm'] ?? '') }}" min="0" step="0.01">
+                        <input type="number" class="form-control" id="depth_cm" name="depth_cm" value="{{ old('depth_cm') }}" min="0" step="0.01">
                     </div>
                     <div class="col-md-3">
                         <label for="height_cm" class="form-label">Height (cm)</label>
-                        <input type="number" class="form-control" id="height_cm" name="height_cm" value="{{ old('height_cm', $dimensionDefaults['height_cm'] ?? '') }}" min="0" step="0.01">
+                        <input type="number" class="form-control" id="height_cm" name="height_cm" value="{{ old('height_cm') }}" min="0" step="0.01">
                     </div>
                     <div class="col-md-3">
                         <label for="weight_kg" class="form-label">Weight (kg)</label>
-                        <input type="number" class="form-control" id="weight_kg" name="weight_kg" value="{{ old('weight_kg', $dimensionDefaults['weight_kg'] ?? '') }}" min="0" step="0.01">
+                        <input type="number" class="form-control" id="weight_kg" name="weight_kg" value="{{ old('weight_kg') }}" min="0" step="0.01">
                     </div>
                 </div>
                 <div class="row g-3 mt-0" id="family-fields"></div>
@@ -272,12 +271,13 @@ document.addEventListener('DOMContentLoaded', function () {
             let control;
             if (field.type === 's') {
                 const options = field.options || [];
-                const value = saved === undefined || options.indexOf(saved) === -1 ? options[0] : saved;
+                const value = saved !== undefined && options.indexOf(saved) !== -1 ? saved : '';
                 control = '<select class="form-select" id="' + id + '" name="' + name + '">' +
+                    '<option value="">Select</option>' +
                     options.map((choice) => '<option value="' + choice + '"' + (choice === value ? ' selected' : '') + '>' + choice + '</option>').join('') +
                     '</select>';
             } else {
-                const value = saved === undefined || saved === '' ? (field.default || '') : saved;
+                const value = saved === undefined || saved === null ? '' : saved;
                 control = '<input type="number" class="form-control" id="' + id + '" name="' + name + '" value="' + value + '" step="0.01">';
             }
             return '<div class="col-md-3"><label class="form-label" for="' + id + '">' + label + '</label>' + control + '</div>';

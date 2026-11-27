@@ -150,6 +150,54 @@ class CustomRequestTest extends TestCase
         $this->actingAs($manager)
             ->get(route('branch.custom-requests.index'))
             ->assertForbidden();
+
+        $this->actingAs($manager)
+            ->get(route('branch.reports.custom-requests'))
+            ->assertForbidden();
+    }
+
+    public function test_admin_agent_and_primary_branch_can_open_custom_request_reports(): void
+    {
+        [$agent, $branch] = $this->fixture();
+        $admin = User::factory()->superAdmin()->create();
+        $manager = $this->branchManager($branch);
+
+        $this->actingAs($agent->user)
+            ->post(route('agent.custom-requests.store'), [
+                'model_not_listed' => '1',
+                'model_name' => 'Bespoke Console',
+                'notes' => 'Brass legs preferred.',
+            ])
+            ->assertRedirect();
+
+        $customRequest = CustomRequest::query()->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.custom-requests', [
+                'from' => now()->toDateString(),
+                'to' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Custom Requests')
+            ->assertSee($customRequest->code)
+            ->assertSee('Bespoke Console')
+            ->assertSee('Not in catalog');
+
+        $this->actingAs($agent->user)
+            ->get(route('agent.reports.custom-requests', [
+                'from' => now()->toDateString(),
+                'to' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee($customRequest->code);
+
+        $this->actingAs($manager)
+            ->get(route('branch.reports.custom-requests', [
+                'from' => now()->toDateString(),
+                'to' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee($customRequest->code);
     }
 
     /**

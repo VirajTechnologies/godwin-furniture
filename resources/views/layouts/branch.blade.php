@@ -111,6 +111,11 @@
                                         <li class="nav-item">
                                             <a href="{{ route('branch.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('branch.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
                                         </li>
+                                        @if (auth()->user()?->employee?->branch?->is_primary)
+                                            <li class="nav-item">
+                                                <a href="{{ route('branch.reports.custom-requests') }}" class="nav-link {{ request()->routeIs('branch.reports.custom-requests') ? 'active' : '' }}">Custom Requests</a>
+                                            </li>
+                                        @endif
                                     @endif
                                 </ul>
                             </div>

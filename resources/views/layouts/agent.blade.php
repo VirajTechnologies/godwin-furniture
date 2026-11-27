@@ -111,6 +111,9 @@
                                         <li class="nav-item">
                                             <a href="{{ route('agent.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('agent.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a href="{{ route('agent.reports.custom-requests') }}" class="nav-link {{ request()->routeIs('agent.reports.custom-requests') ? 'active' : '' }}">Custom Requests</a>
+                                        </li>
                                     @endif
                                 </ul>
                             </div>

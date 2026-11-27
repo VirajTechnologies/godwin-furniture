@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\Branch;
+use App\Models\CustomRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -163,6 +164,25 @@ class ReportController extends Controller
             ->withQueryString();
 
         return view('admin.reports.stock-requests', [
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
+            'requests' => $requests,
+        ]);
+    }
+
+    public function customRequests(Request $request): View
+    {
+        [$from, $to] = $this->range($request);
+
+        $requests = CustomRequest::query()
+            ->with(['agent', 'branch', 'product'])
+            ->whereDate('created_at', '>=', $from->toDateString())
+            ->whereDate('created_at', '<=', $to->toDateString())
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.reports.custom-requests', [
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             'requests' => $requests,

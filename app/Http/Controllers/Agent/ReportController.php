@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
+use App\Models\CustomRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -92,6 +93,27 @@ class ReportController extends Controller
             ->withQueryString();
 
         return view('agent.reports.stock-requests', [
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
+            'requests' => $requests,
+        ]);
+    }
+
+    public function customRequests(Request $request): View
+    {
+        $agent = $this->managerAgent($request);
+        [$from, $to] = $this->range($request);
+
+        $requests = CustomRequest::query()
+            ->with('product')
+            ->where('agent_id', $agent->id)
+            ->whereDate('created_at', '>=', $from->toDateString())
+            ->whereDate('created_at', '<=', $to->toDateString())
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('agent.reports.custom-requests', [
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             'requests' => $requests,

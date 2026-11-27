@@ -31,7 +31,12 @@
 
                 <div class="mb-3">
                     <label for="password" class="gw-label required">Password</label>
-                    <input type="password" id="password" name="password" class="gw-input @error('password') is-invalid @enderror" required autocomplete="current-password">
+                    <div class="position-relative auth-pass-inputgroup">
+                        <input type="password" id="password" name="password" class="gw-input pe-5 password-input @error('password') is-invalid @enderror" required autocomplete="current-password">
+                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" aria-label="Show password" style="height: 100%; padding-inline: .75rem;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-check mb-4">
@@ -55,3 +60,7 @@
 
     @include('store.partials.footer')
 @endsection
+
+@push('scripts')
+<script src="{{ vasset('assets/js/pages/password-addon.init.js') }}"></script>
+@endpush

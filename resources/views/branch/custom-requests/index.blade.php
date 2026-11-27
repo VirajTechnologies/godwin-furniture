@@ -25,7 +25,7 @@
                                     <tr>
                                         <th>Code</th>
                                         <th>Agent</th>
-                                        <th>Product</th>
+                                        <th>Model</th>
                                         <th>Status</th>
                                         <th>Requested</th>
                                     </tr>

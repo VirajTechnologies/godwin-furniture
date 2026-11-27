@@ -23,10 +23,9 @@ class AdminCustomerTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.customers.index'))
             ->assertOk()
-            ->assertSee('Registration')
+            ->assertSee('Customers')
             ->assertSee('View only')
-            ->assertSee('Ravi Kumar')
-            ->assertSee('Customer');
+            ->assertSee('Ravi Kumar');
 
         $this->actingAs($admin)
             ->get(route('admin.customers.show', $customer))
@@ -36,7 +35,7 @@ class AdminCustomerTest extends TestCase
             ->assertSee('ravi@example.com');
     }
 
-    public function test_registration_tabs_appear_on_branch_index(): void
+    public function test_registration_tabs_exclude_customer(): void
     {
         $admin = User::factory()->superAdmin()->create();
 
@@ -47,6 +46,6 @@ class AdminCustomerTest extends TestCase
             ->assertSee('Warehouse')
             ->assertSee('Employee')
             ->assertSee('Agent')
-            ->assertSee('Customer');
+            ->assertDontSee('>Customer</a>', false);
     }
 }

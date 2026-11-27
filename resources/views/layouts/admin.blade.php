@@ -113,7 +113,6 @@
                                 'admin.warehouses.*',
                                 'admin.employees.*',
                                 'admin.agents.*',
-                                'admin.customers.*',
                             );
                         @endphp
                         <li class="nav-item">
@@ -124,6 +123,11 @@
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ $registrationOpen ? 'active' : '' }}" href="{{ route('admin.branches.index') }}">
                                 <i class="ri-user-add-line"></i> <span>Registration</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">
+                                <i class="ri-user-heart-line"></i> <span>Customers</span>
                             </a>
                         </li>
                         <li class="nav-item">

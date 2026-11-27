@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', $customer->name)
-@section('page_title', 'Registration')
+@section('page_title', 'Customers')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.customers.index') }}">Customers</a></li>
@@ -9,8 +9,6 @@
 @endsection
 
 @section('content')
-    @include('admin.partials.registration-tabs')
-
     <div class="row">
         <div class="col-xl-4">
             <div class="card">

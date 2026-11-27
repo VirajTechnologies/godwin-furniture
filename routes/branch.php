@@ -24,6 +24,7 @@ Route::prefix('branch')->name('branch.')->group(function () {
         Route::get('reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
         Route::get('reports/transfers', [ReportController::class, 'transfers'])->name('reports.transfers');
         Route::get('reports/stock-requests', [ReportController::class, 'stockRequests'])->name('reports.stock-requests');
+        Route::get('reports/custom-requests', [ReportController::class, 'customRequests'])->name('reports.custom-requests');
 
         Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
         Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');

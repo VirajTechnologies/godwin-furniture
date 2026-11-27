@@ -51,10 +51,13 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label required" for="password-input">Password</label>
-                                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password-input" name="password" required>
-                                            @error('password')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
+                                            <div class="position-relative auth-pass-inputgroup mb-3">
+                                                <input type="password" class="form-control pe-5 password-input @error('password') is-invalid @enderror" id="password-input" name="password" required>
+                                                <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" id="password-addon" aria-label="Show password"><i class="ri-eye-fill align-middle"></i></button>
+                                                @error('password')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="remember" value="1" id="auth-remember-check" @checked(old('remember'))>
@@ -80,6 +83,7 @@
         </footer>
     </div>
     <script src="{{ vasset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ vasset('assets/js/pages/password-addon.init.js') }}"></script>
     @include('partials.csrf-refresh', ['loginUrl' => route('agent.login')])
 </body>
 </html>
