@@ -13,8 +13,10 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\State;
+use App\Models\Stock;
 use App\Models\StockRequest;
 use App\Models\StockTransfer;
+use App\Models\StockTransferItem;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -115,6 +117,59 @@ class AdminReportTest extends TestCase
         $this->assertStringContainsString('Product-wise', $csv);
         $this->assertStringContainsString('Vijayawada Showroom', $csv);
         $this->assertStringContainsString('Three Seater Sofa', $csv);
+    }
+
+    public function test_stock_on_hand_shows_panel_totals_and_in_transit(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        [$branch, $product, $warehouse] = $this->showroom();
+        $agent = $this->shop();
+        $variantId = $this->primaryVariant($product)->id;
+
+        Stock::query()->create([
+            'product_variant_id' => $variantId,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 40,
+        ]);
+        Stock::query()->create([
+            'product_variant_id' => $variantId,
+            'branch_id' => $branch->id,
+            'quantity' => 12,
+        ]);
+        Stock::query()->create([
+            'product_variant_id' => $variantId,
+            'agent_id' => $agent->id,
+            'quantity' => 5,
+        ]);
+
+        $transfer = StockTransfer::query()->create([
+            'code' => 'TR100',
+            'warehouse_id' => $warehouse->id,
+            'branch_id' => $branch->id,
+            'status' => StockTransfer::STATUS_DISPATCHED,
+            'dispatched_at' => now()->subHour(),
+        ]);
+        StockTransferItem::query()->create([
+            'stock_transfer_id' => $transfer->id,
+            'product_variant_id' => $variantId,
+            'quantity' => 8,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.stock'))
+            ->assertOk()
+            ->assertSee('Warehouses')
+            ->assertSee('40')
+            ->assertSee('Branches')
+            ->assertSee('12')
+            ->assertSee('Agent shops')
+            ->assertSee('5')
+            ->assertSee('On hand total')
+            ->assertSee('57')
+            ->assertSee('In transit')
+            ->assertSee('8')
+            ->assertSee('Matched total')
+            ->assertSee('65');
     }
 
     public function test_sales_by_branch_uses_the_selected_dates(): void

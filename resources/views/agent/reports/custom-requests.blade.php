@@ -1,13 +1,14 @@
 @extends('layouts.agent')
 
 @section('title', 'Custom Request Report')
-@section('page_title', 'Custom Request Report')
+@section('page_title', 'Reports & Analytics')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Custom Request Report</li>
 @endsection
 
 @section('content')
+    @include('agent.partials.reports-tabs')
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

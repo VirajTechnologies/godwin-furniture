@@ -227,7 +227,7 @@
         </div>
         <div class="col-xl-4 col-md-6">
             <div class="card">
-                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-checkbox-multiple-line"></i></span><h5 class="card-title mb-0">Order status</h5></div>
+                <div class="card-header d-flex align-items-center gap-2"><span class="admin-card-icon"><i class="ri-checkbox-multiple-line"></i></span><h5 class="card-title mb-0">Online order status</h5></div>
                 <div class="card-body">
                     @foreach ($orderStatusBars as $row)
                         <div class="d-flex align-items-center gap-2 mb-2">

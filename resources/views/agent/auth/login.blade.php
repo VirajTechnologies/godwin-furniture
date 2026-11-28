@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
     <script src="{{ vasset('assets/js/layout.js') }}"></script>
+    @include('partials.theme-boot')
     <link href="{{ vasset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
@@ -23,6 +24,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="text-center mt-sm-5 mb-4 text-white-50">
+                            <img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo admin-logo-invert mb-3">
                             <h4 class="text-white">Godwin Furniture</h4>
                             <p class="mt-3 fs-15 fw-medium">Agent shop</p>
                         </div>

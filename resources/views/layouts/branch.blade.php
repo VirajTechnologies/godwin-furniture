@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
     <script src="{{ vasset('assets/js/layout.js') }}"></script>
+    @include('partials.theme-boot')
     <link href="{{ vasset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
@@ -18,20 +19,19 @@
         <header id="page-topbar">
             <div class="layout-width">
                 <div class="navbar-header">
-                    <div class="d-flex">
+                    <div class="d-flex align-items-center">
                         <div class="navbar-brand-box horizontal-logo">
-                            <a href="{{ route('branch.home') }}" class="logo logo-dark">
-                                <span class="logo-lg"><span class="fw-semibold">Godwin</span></span>
-                            </a>
-                            <a href="{{ route('branch.home') }}" class="logo logo-light">
-                                <span class="logo-lg"><span class="text-white fw-semibold">Godwin</span></span>
-                            </a>
+                            @include('partials.brand-logos', ['homeUrl' => route('branch.home')])
                         </div>
                         <button type="button" class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger" id="topnav-hamburger-icon">
                             <span class="hamburger-icon"><span></span><span></span><span></span></span>
                         </button>
+                        <a href="{{ route('branch.home') }}" class="admin-topbar-brand d-inline-flex align-items-center ms-1">
+                            <img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-topbar-logo-img">
+                        </a>
                     </div>
                     <div class="d-flex align-items-center">
+                        @include('partials.theme-picker')
                         <div class="dropdown ms-sm-3 header-item topbar-user">
                             <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="d-flex align-items-center">
@@ -60,15 +60,15 @@
 
         <div class="app-menu navbar-menu">
             <div class="navbar-brand-box">
-                <a href="{{ route('branch.home') }}" class="logo logo-light">
-                    <span class="logo-sm"><span class="text-white fw-bold">G</span></span>
-                    <span class="logo-lg"><span class="text-white fw-semibold">Godwin</span></span>
-                </a>
+                @include('partials.brand-logos', ['homeUrl' => route('branch.home')])
+                <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
+                    <i class="ri-record-circle-line"></i>
+                </button>
             </div>
             <div id="scrollbar">
                 <div class="container-fluid">
                     <ul class="navbar-nav" id="navbar-nav">
-                        <li class="menu-title"><span>Branch</span></li>
+                        <li class="menu-title"><span>Menu</span></li>
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->routeIs('branch.home') ? 'active' : '' }}" href="{{ route('branch.home') }}">
                                 <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
@@ -84,61 +84,25 @@
                                 <i class="ri-bill-line"></i> <span>Sales</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('branch.stock.index') ? 'active' : '' }}" href="{{ route('branch.stock.index') }}">
-                                <i class="ri-archive-line"></i> <span>Stock</span>
-                            </a>
-                        </li>
                         @php
+                            $inventoryOpen = request()->routeIs(
+                                'branch.stock.*',
+                                'branch.transfers.*',
+                                'branch.stock-requests.*',
+                                'branch.custom-requests.*',
+                            );
                             $reportsOpen = request()->routeIs('branch.reports.*');
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="#sidebarBranchReports" data-bs-toggle="collapse" role="button" aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}" aria-controls="sidebarBranchReports">
-                                <i class="ri-bar-chart-2-line"></i> <span>Reports</span>
+                            <a class="nav-link menu-link {{ $inventoryOpen ? 'active' : '' }}" href="{{ route('branch.stock.index') }}">
+                                <i class="ri-archive-line"></i> <span>Inventory</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $reportsOpen ? 'show' : '' }}" id="sidebarBranchReports">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('branch.reports.sales-by-product') }}" class="nav-link {{ request()->routeIs('branch.reports.sales-by-product') ? 'active' : '' }}">Sales By Product</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('branch.reports.stock') }}" class="nav-link {{ request()->routeIs('branch.reports.stock') ? 'active' : '' }}">Stock On Hand</a>
-                                    </li>
-                                    @if (auth()->user()?->isBranchManager())
-                                        <li class="nav-item">
-                                            <a href="{{ route('branch.reports.transfers') }}" class="nav-link {{ request()->routeIs('branch.reports.transfers') ? 'active' : '' }}">Transfers</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a href="{{ route('branch.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('branch.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
-                                        </li>
-                                        @if (auth()->user()?->employee?->branch?->is_primary)
-                                            <li class="nav-item">
-                                                <a href="{{ route('branch.reports.custom-requests') }}" class="nav-link {{ request()->routeIs('branch.reports.custom-requests') ? 'active' : '' }}">Custom Requests</a>
-                                            </li>
-                                        @endif
-                                    @endif
-                                </ul>
-                            </div>
                         </li>
-                        @if (auth()->user()?->isBranchManager())
-                            <li class="nav-item">
-                                <a class="nav-link menu-link {{ request()->routeIs('branch.stock-requests.*') ? 'active' : '' }}" href="{{ route('branch.stock-requests.index') }}">
-                                    <i class="ri-file-list-3-line"></i> <span>Request</span>
-                                </a>
-                            </li>
-                            @if (auth()->user()?->employee?->branch?->is_primary)
-                                <li class="nav-item">
-                                    <a class="nav-link menu-link {{ request()->routeIs('branch.custom-requests.*') ? 'active' : '' }}" href="{{ route('branch.custom-requests.index') }}">
-                                        <i class="ri-tools-line"></i> <span>Custom Requests</span>
-                                    </a>
-                                </li>
-                            @endif
-                            <li class="nav-item">
-                                <a class="nav-link menu-link {{ request()->routeIs('branch.transfers.*') ? 'active' : '' }}" href="{{ route('branch.transfers.index') }}">
-                                    <i class="ri-truck-line"></i> <span>Receive</span>
-                                </a>
-                            </li>
-                        @endif
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="{{ route('branch.reports.sales-by-product') }}">
+                                <i class="ri-bar-chart-2-line"></i> <span>Reports &amp; Analytics</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -195,6 +159,7 @@
     <script src="{{ vasset('assets/js/plugins.js') }}"></script>
     <script src="{{ vasset('assets/js/app.js') }}"></script>
     @include('partials.csrf-refresh', ['requiresAuth' => true, 'loginUrl' => route('branch.login')])
+    @include('partials.theme-scripts')
     @stack('scripts')
 </body>
 </html>

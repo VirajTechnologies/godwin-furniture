@@ -1,13 +1,14 @@
 @extends('layouts.agent')
 
 @section('title', 'Receive')
-@section('page_title', 'Receive')
+@section('page_title', 'Inventory')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Receive</li>
 @endsection
 
 @section('content')
+    @include('agent.partials.inventory-tabs')
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

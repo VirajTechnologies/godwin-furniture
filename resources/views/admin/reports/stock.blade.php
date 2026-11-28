@@ -15,7 +15,48 @@
             <div class="card">
                 <div class="card-header"><h5 class="card-title mb-0">Stock On Hand</h5></div>
                 <div class="card-body">
-                    <p class="text-muted">This is the quantity held now, at the warehouse and at each branch.</p>
+                    <p class="text-muted">Quantities held now across warehouses, branches, and agent shops. In transit is dispatched but not yet received.</p>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4 col-xl-2">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted small">Warehouses</div>
+                                <div class="fs-4 fw-semibold">{{ number_format($summary['warehouses']) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xl-2">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted small">Branches</div>
+                                <div class="fs-4 fw-semibold">{{ number_format($summary['branches']) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xl-2">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted small">Agent shops</div>
+                                <div class="fs-4 fw-semibold">{{ number_format($summary['agents']) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xl-2">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted small">On hand total</div>
+                                <div class="fs-4 fw-semibold">{{ number_format($summary['on_hand']) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xl-2">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted small">In transit</div>
+                                <div class="fs-4 fw-semibold">{{ number_format($summary['in_transit']) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xl-2">
+                            <div class="border rounded p-3 h-100 bg-light">
+                                <div class="text-muted small">Matched total</div>
+                                <div class="fs-4 fw-semibold">{{ number_format($summary['matched_total']) }}</div>
+                                <div class="text-muted small">On hand + in transit</div>
+                            </div>
+                        </div>
+                    </div>
+
                     @if ($stocks->isEmpty())
                         <p class="text-muted mb-0">No stock yet.</p>
                     @else

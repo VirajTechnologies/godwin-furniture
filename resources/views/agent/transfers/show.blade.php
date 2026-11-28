@@ -9,6 +9,7 @@
 @endsection
 
 @section('content')
+    @include('agent.partials.inventory-tabs')
     @php
         $oldItems = collect(old('items', []))->filter(fn ($row) => is_array($row))->keyBy(fn (array $row) => (int) ($row['id'] ?? 0));
     @endphp

@@ -9,6 +9,7 @@
 @endsection
 
 @section('content')
+    @include('agent.partials.inventory-tabs')
 @php
     use App\Support\Catalog;
     $colours = Catalog::colours();

@@ -1,13 +1,14 @@
 @extends('layouts.branch')
 
 @section('title', 'Stock Request Report')
-@section('page_title', 'Stock Request Report')
+@section('page_title', 'Reports & Analytics')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Stock Request Report</li>
 @endsection
 
 @section('content')
+    @include('branch.partials.reports-tabs')
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

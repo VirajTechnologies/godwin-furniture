@@ -13,6 +13,7 @@ use App\Models\ProductVariant;
 use App\Models\Stock;
 use App\Models\StockRequest;
 use App\Models\StockTransfer;
+use App\Models\StockTransferItem;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -127,8 +128,24 @@ class ReportController extends Controller
             ->orderBy('product_variant_id')
             ->get();
 
+        $warehouseQty = (int) Stock::query()->whereNotNull('warehouse_id')->sum('quantity');
+        $branchQty = (int) Stock::query()->whereNotNull('branch_id')->sum('quantity');
+        $agentQty = (int) Stock::query()->whereNotNull('agent_id')->sum('quantity');
+        $onHandTotal = $warehouseQty + $branchQty + $agentQty;
+        $inTransitQty = (int) StockTransferItem::query()
+            ->whereHas('transfer', fn ($query) => $query->where('status', StockTransfer::STATUS_DISPATCHED))
+            ->sum('quantity');
+
         return view('admin.reports.stock', [
             'stocks' => $stocks,
+            'summary' => [
+                'warehouses' => $warehouseQty,
+                'branches' => $branchQty,
+                'agents' => $agentQty,
+                'on_hand' => $onHandTotal,
+                'in_transit' => $inTransitQty,
+                'matched_total' => $onHandTotal + $inTransitQty,
+            ],
         ]);
     }
 

@@ -365,15 +365,15 @@ class DashboardController extends Controller
 
         return [
             [
-                'label' => 'Received/Processing',
+                'label' => 'Placed / Confirmed',
                 'value' => (clone $base)->whereIn('status', [Order::STATUS_PLACED, Order::STATUS_CONFIRMED])->count(),
             ],
             [
-                'label' => 'Dispatch stages',
+                'label' => 'Dispatched',
                 'value' => (clone $base)->where('status', Order::STATUS_DISPATCHED)->count(),
             ],
             [
-                'label' => 'Delivered/Done',
+                'label' => 'Completed',
                 'value' => (clone $base)->where('status', Order::STATUS_COMPLETED)->count(),
             ],
         ];

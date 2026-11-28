@@ -7,19 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
     <script src="{{ vasset('assets/js/layout.js') }}"></script>
-    <script>
-        (function () {
-            var savedMode = localStorage.getItem('admin_theme_mode');
-            var savedColor = localStorage.getItem('admin_theme_color');
-            if (savedMode === 'dark' || savedMode === 'light') {
-                document.documentElement.setAttribute('data-bs-theme', savedMode);
-                document.documentElement.setAttribute('data-topbar', savedMode);
-            }
-            if (savedColor) {
-                document.documentElement.setAttribute('data-admin-theme', savedColor);
-            }
-        })();
-    </script>
+    @include('partials.theme-boot')
     <link href="{{ vasset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
@@ -37,14 +25,7 @@
                 <div class="navbar-header">
                     <div class="d-flex align-items-center">
                         <div class="navbar-brand-box horizontal-logo">
-                            <a href="{{ route('admin.dashboard') }}" class="logo logo-dark">
-                                <span class="logo-sm"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo-sm"></span>
-                                <span class="logo-lg"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo"></span>
-                            </a>
-                            <a href="{{ route('admin.dashboard') }}" class="logo logo-light">
-                                <span class="logo-sm"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo-sm admin-logo-invert"></span>
-                                <span class="logo-lg"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo admin-logo-invert"></span>
-                            </a>
+                            @include('partials.brand-logos', ['homeUrl' => route('admin.dashboard')])
                         </div>
                         <button type="button" class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger" id="topnav-hamburger-icon">
                             <span class="hamburger-icon">
@@ -58,27 +39,7 @@
                         </a>
                     </div>
                     <div class="d-flex align-items-center">
-                        <div class="header-item admin-theme-picker" id="adminThemePicker" role="group" aria-label="Theme color selector">
-                            <button type="button"
-                                    class="admin-mode-toggle"
-                                    id="adminModeToggle"
-                                    title="Toggle light / dark mode"
-                                    aria-label="Toggle light or dark mode">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <circle cx="12" cy="12" r="9"></circle>
-                                    <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"></path>
-                                </svg>
-                            </button>
-                            <div class="admin-swatch-list">
-                                <button type="button" class="admin-swatch-btn" data-theme-color="gold" style="--swatch-color: #d4a44a;" title="Gold theme" aria-label="Gold theme"></button>
-                                <button type="button" class="admin-swatch-btn" data-theme-color="blue" style="--swatch-color: #3b82f6;" title="Blue theme" aria-label="Blue theme"></button>
-                                <button type="button" class="admin-swatch-btn" data-theme-color="emerald" style="--swatch-color: #10b981;" title="Emerald theme" aria-label="Emerald theme"></button>
-                                <button type="button" class="admin-swatch-btn" data-theme-color="purple" style="--swatch-color: #8b5cf6;" title="Purple theme" aria-label="Purple theme"></button>
-                                <button type="button" class="admin-swatch-btn" data-theme-color="rose" style="--swatch-color: #f43f5e;" title="Rose theme" aria-label="Rose theme"></button>
-                                <button type="button" class="admin-swatch-btn" data-theme-color="cyan" style="--swatch-color: #06b6d4;" title="Cyan theme" aria-label="Cyan theme"></button>
-                                <button type="button" class="admin-swatch-btn" data-theme-color="orange" style="--swatch-color: #f97316;" title="Orange theme" aria-label="Orange theme"></button>
-                            </div>
-                        </div>
+                        @include('partials.theme-picker')
 
                         <div class="dropdown ms-sm-3 header-item topbar-user">
                             <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -108,14 +69,7 @@
 
         <div class="app-menu navbar-menu">
             <div class="navbar-brand-box">
-                <a href="{{ route('admin.dashboard') }}" class="logo logo-dark">
-                    <span class="logo-sm"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo-sm"></span>
-                    <span class="logo-lg"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo"></span>
-                </a>
-                <a href="{{ route('admin.dashboard') }}" class="logo logo-light">
-                    <span class="logo-sm"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo-sm admin-logo-invert"></span>
-                    <span class="logo-lg"><img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-brand-logo admin-logo-invert"></span>
-                </a>
+                @include('partials.brand-logos', ['homeUrl' => route('admin.dashboard')])
                 <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
                     <i class="ri-record-circle-line"></i>
                 </button>
@@ -263,45 +217,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     @include('partials.datatables')
     @include('partials.csrf-refresh', ['requiresAuth' => true])
+    @include('partials.theme-scripts')
     @stack('scripts')
     <script>
-        (function () {
-            var root = document.documentElement;
-            var modeBtn = document.getElementById('adminModeToggle');
-            var swatchBtns = document.querySelectorAll('#adminThemePicker .admin-swatch-btn');
-
-            function syncSwatches(activeColor) {
-                swatchBtns.forEach(function (btn) {
-                    var isActive = btn.getAttribute('data-theme-color') === activeColor;
-                    btn.classList.toggle('is-active', isActive);
-                    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-                });
-            }
-
-            syncSwatches(root.getAttribute('data-admin-theme') || localStorage.getItem('admin_theme_color') || '');
-
-            swatchBtns.forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var color = btn.getAttribute('data-theme-color');
-                    root.setAttribute('data-admin-theme', color);
-                    localStorage.setItem('admin_theme_color', color);
-                    syncSwatches(color);
-                });
-            });
-
-            if (modeBtn) {
-                modeBtn.addEventListener('click', function () {
-                    var current = root.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
-                    var next = current === 'dark' ? 'light' : 'dark';
-                    root.setAttribute('data-bs-theme', next);
-                    root.setAttribute('data-topbar', next);
-                    localStorage.setItem('admin_theme_mode', next);
-                    sessionStorage.setItem('data-bs-theme', next);
-                    sessionStorage.setItem('data-topbar', next);
-                });
-            }
-        })();
-
         jQuery(function ($) {
             $('.js-select2').each(function () {
                 if ($(this).hasClass('select2-hidden-accessible')) {

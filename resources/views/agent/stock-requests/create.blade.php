@@ -9,6 +9,7 @@
 @endsection
 
 @section('content')
+    @include('agent.partials.inventory-tabs')
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

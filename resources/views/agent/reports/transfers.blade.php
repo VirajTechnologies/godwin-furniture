@@ -1,13 +1,14 @@
 @extends('layouts.agent')
 
 @section('title', 'Transfer Report')
-@section('page_title', 'Transfer Report')
+@section('page_title', 'Reports & Analytics')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Transfer Report</li>
 @endsection
 
 @section('content')
+    @include('agent.partials.reports-tabs')
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

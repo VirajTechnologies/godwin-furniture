@@ -1,13 +1,14 @@
 @extends('layouts.agent')
 
 @section('title', 'Sales By Product')
-@section('page_title', 'Sales By Product')
+@section('page_title', 'Reports & Analytics')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active">Sales By Product</li>
 @endsection
 
 @section('content')
+    @include('agent.partials.reports-tabs')
     <div class="row">
         <div class="col-lg-12">
             <div class="card">

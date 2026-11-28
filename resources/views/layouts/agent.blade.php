@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
     <script src="{{ vasset('assets/js/layout.js') }}"></script>
+    @include('partials.theme-boot')
     <link href="{{ vasset('assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ vasset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
@@ -18,20 +19,19 @@
         <header id="page-topbar">
             <div class="layout-width">
                 <div class="navbar-header">
-                    <div class="d-flex">
+                    <div class="d-flex align-items-center">
                         <div class="navbar-brand-box horizontal-logo">
-                            <a href="{{ route('agent.home') }}" class="logo logo-dark">
-                                <span class="logo-lg"><span class="fw-semibold">Godwin</span></span>
-                            </a>
-                            <a href="{{ route('agent.home') }}" class="logo logo-light">
-                                <span class="logo-lg"><span class="text-white fw-semibold">Godwin</span></span>
-                            </a>
+                            @include('partials.brand-logos', ['homeUrl' => route('agent.home')])
                         </div>
                         <button type="button" class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger" id="topnav-hamburger-icon">
                             <span class="hamburger-icon"><span></span><span></span><span></span></span>
                         </button>
+                        <a href="{{ route('agent.home') }}" class="admin-topbar-brand d-inline-flex align-items-center ms-1">
+                            <img src="{{ asset('store/images/logo.png') }}" alt="GODWIN" class="admin-topbar-logo-img">
+                        </a>
                     </div>
                     <div class="d-flex align-items-center">
+                        @include('partials.theme-picker')
                         <div class="dropdown ms-sm-3 header-item topbar-user">
                             <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="d-flex align-items-center">
@@ -60,15 +60,15 @@
 
         <div class="app-menu navbar-menu">
             <div class="navbar-brand-box">
-                <a href="{{ route('agent.home') }}" class="logo logo-light">
-                    <span class="logo-sm"><span class="text-white fw-bold">G</span></span>
-                    <span class="logo-lg"><span class="text-white fw-semibold">Godwin</span></span>
-                </a>
+                @include('partials.brand-logos', ['homeUrl' => route('agent.home')])
+                <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
+                    <i class="ri-record-circle-line"></i>
+                </button>
             </div>
             <div id="scrollbar">
                 <div class="container-fluid">
                     <ul class="navbar-nav" id="navbar-nav">
-                        <li class="menu-title"><span>Agent</span></li>
+                        <li class="menu-title"><span>Menu</span></li>
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->routeIs('agent.home') ? 'active' : '' }}" href="{{ route('agent.home') }}">
                                 <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
@@ -84,57 +84,25 @@
                                 <i class="ri-bill-line"></i> <span>Sales</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->routeIs('agent.stock.index') ? 'active' : '' }}" href="{{ route('agent.stock.index') }}">
-                                <i class="ri-archive-line"></i> <span>Stock</span>
-                            </a>
-                        </li>
                         @php
+                            $inventoryOpen = request()->routeIs(
+                                'agent.stock.*',
+                                'agent.transfers.*',
+                                'agent.stock-requests.*',
+                                'agent.custom-requests.*',
+                            );
                             $reportsOpen = request()->routeIs('agent.reports.*');
                         @endphp
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="#sidebarAgentReports" data-bs-toggle="collapse" role="button" aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}" aria-controls="sidebarAgentReports">
-                                <i class="ri-bar-chart-2-line"></i> <span>Reports</span>
+                            <a class="nav-link menu-link {{ $inventoryOpen ? 'active' : '' }}" href="{{ route('agent.stock.index') }}">
+                                <i class="ri-archive-line"></i> <span>Inventory</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ $reportsOpen ? 'show' : '' }}" id="sidebarAgentReports">
-                                <ul class="nav nav-sm flex-column">
-                                    <li class="nav-item">
-                                        <a href="{{ route('agent.reports.sales-by-product') }}" class="nav-link {{ request()->routeIs('agent.reports.sales-by-product') ? 'active' : '' }}">Sales By Product</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('agent.reports.stock') }}" class="nav-link {{ request()->routeIs('agent.reports.stock') ? 'active' : '' }}">Stock On Hand</a>
-                                    </li>
-                                    @if (auth()->user()?->isAgentManager())
-                                        <li class="nav-item">
-                                            <a href="{{ route('agent.reports.transfers') }}" class="nav-link {{ request()->routeIs('agent.reports.transfers') ? 'active' : '' }}">Transfers</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a href="{{ route('agent.reports.stock-requests') }}" class="nav-link {{ request()->routeIs('agent.reports.stock-requests') ? 'active' : '' }}">Stock Requests</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a href="{{ route('agent.reports.custom-requests') }}" class="nav-link {{ request()->routeIs('agent.reports.custom-requests') ? 'active' : '' }}">Custom Requests</a>
-                                        </li>
-                                    @endif
-                                </ul>
-                            </div>
                         </li>
-                        @if (auth()->user()?->isAgentManager())
-                            <li class="nav-item">
-                                <a class="nav-link menu-link {{ request()->routeIs('agent.transfers.*') ? 'active' : '' }}" href="{{ route('agent.transfers.index') }}">
-                                    <i class="ri-truck-line"></i> <span>Receive</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link menu-link {{ request()->routeIs('agent.stock-requests.*') ? 'active' : '' }}" href="{{ route('agent.stock-requests.index') }}">
-                                    <i class="ri-inbox-archive-line"></i> <span>Request</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link menu-link {{ request()->routeIs('agent.custom-requests.*') ? 'active' : '' }}" href="{{ route('agent.custom-requests.index') }}">
-                                    <i class="ri-tools-line"></i> <span>Custom Request</span>
-                                </a>
-                            </li>
-                        @endif
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ $reportsOpen ? 'active' : '' }}" href="{{ route('agent.reports.sales-by-product') }}">
+                                <i class="ri-bar-chart-2-line"></i> <span>Reports &amp; Analytics</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -191,6 +159,7 @@
     <script src="{{ vasset('assets/js/plugins.js') }}"></script>
     <script src="{{ vasset('assets/js/app.js') }}"></script>
     @include('partials.csrf-refresh', ['requiresAuth' => true, 'loginUrl' => route('agent.login')])
+    @include('partials.theme-scripts')
     @stack('scripts')
 </body>
 </html>
