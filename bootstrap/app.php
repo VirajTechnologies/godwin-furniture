@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureAgent;
 use App\Http\Middleware\EnsureBranchUser;
 use App\Http\Middleware\EnsureSuperAdmin;
+use App\Support\PortalRedirect;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -40,19 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->redirectUsersTo(function (Request $request) {
-            if ($request->is('admin', 'admin/*')) {
-                return route('admin.dashboard');
-            }
-
-            if ($request->is('branch', 'branch/*')) {
-                return route('branch.home');
-            }
-
-            if ($request->is('agent', 'agent/*')) {
-                return route('agent.home');
-            }
-
-            return route('store.home');
+            return PortalRedirect::homeFor($request->user());
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -67,17 +56,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 419);
             }
 
+            $home = PortalRedirect::homeFor($request->user());
+
             if ($request->is('branch', 'branch/*')) {
-                $home = route('branch.home');
                 $login = 'branch.login';
             } elseif ($request->is('agent', 'agent/*')) {
-                $home = route('agent.home');
                 $login = 'agent.login';
             } elseif ($request->is('admin', 'admin/*')) {
-                $home = route('admin.dashboard');
                 $login = 'admin.login';
             } else {
-                $home = route('store.home');
                 $login = 'store.login';
             }
 

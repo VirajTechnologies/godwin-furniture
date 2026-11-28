@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Agent;
+use App\Support\PortalRedirect;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,10 @@ class EnsureAgent
             || $user->status !== 'active'
             || ! $agent instanceof Agent
             || ! $agent->isActive()) {
+            if ($user !== null && $user->status === 'active' && ($user->isSuperAdmin() || $user->isBranchUser())) {
+                return redirect()->to(PortalRedirect::homeFor($user));
+            }
+
             abort(403);
         }
 

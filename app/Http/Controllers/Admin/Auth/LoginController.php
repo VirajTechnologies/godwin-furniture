@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\PortalRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,7 @@ class LoginController extends Controller
             ]);
         }
 
-        return redirect()->intended(route('admin.dashboard'));
+        return PortalRedirect::afterLogin($request, '/admin', route('admin.dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse

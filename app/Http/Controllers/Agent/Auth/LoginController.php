@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agent\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\PortalRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +49,7 @@ class LoginController extends Controller
             ]);
         }
 
-        return redirect()->intended(route('agent.home'));
+        return PortalRedirect::afterLogin($request, '/agent', route('agent.home'));
     }
 
     public function destroy(Request $request): RedirectResponse
